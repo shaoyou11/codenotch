@@ -66,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // site behind bot management, and re-registering is one line.
             let webProviders: [WebSessionProvider] = []
             fleet.signInItems = webProviders.map { provider in
-                (title: "Sign in to \(provider.displayName)…",
+                (title: "登录 \(provider.displayName)…",
                  action: { [weak provider] in provider?.presentSignIn() })
             }
 

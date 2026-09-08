@@ -16,7 +16,7 @@ final class NotchWindowController {
     var panelFrameForTesting: CGRect? { panel?.frame }
     var panelAlphaForTesting: CGFloat { panel?.alphaValue ?? 0 }
 
-    /// Hooked up by the app delegate; drives the menu's "Refresh now".
+    /// Hooked up by the app delegate; drives the menu's "立即刷新".
     var onRefresh: (() -> Void)?
     /// One "Sign in to …" item per provider that needs a browser session.
     var signInItems: [(title: String, action: () -> Void)] = []
@@ -756,7 +756,7 @@ final class NotchWindowController {
         // below. Turning it off means every item has to say so for itself.
         menu.autoenablesItems = false
         let keepOpen = NSMenuItem(
-            title: "Keep open",
+            title: "保持展开",
             action: #selector(MenuActions.togglePinned(_:)),
             keyEquivalent: ""
         )
@@ -768,13 +768,13 @@ final class NotchWindowController {
         keepOpen.state = model.staysOpen ? .on : .off
         keepOpen.isEnabled = !model.isAlwaysOn
         keepOpen.toolTip = model.isAlwaysOn
-            ? "Codenotch is set to Always show. Change it in Settings."
+            ? "当前已设为始终显示，可在设置中更改。"
             : nil
         menu.addItem(keepOpen)
         menu.addItem(.separator())
 
         let refresh = NSMenuItem(
-            title: "Refresh now",
+            title: "立即刷新",
             action: #selector(MenuActions.refreshNow(_:)),
             keyEquivalent: "r"
         )
@@ -795,7 +795,7 @@ final class NotchWindowController {
         }
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "Quit Codenotch",
+            withTitle: "退出 Codenotch",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ).isEnabled = true

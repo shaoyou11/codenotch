@@ -61,7 +61,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     func rebuild(menu: NSMenu, now: Date) {
         menu.removeAllItems()
         if snapshots.isEmpty {
-            let empty = NSMenuItem(title: "Waiting for the first reading…", action: nil, keyEquivalent: "")
+            let empty = NSMenuItem(title: "正在等待首次读取…", action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         } else {
@@ -77,14 +77,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         }
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "Refresh all", action: #selector(refreshAll), keyEquivalent: "r"
+            withTitle: "全部刷新", action: #selector(refreshAll), keyEquivalent: "r"
         ).target = self
         menu.addItem(
-            withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ","
+            withTitle: "设置…", action: #selector(openSettings), keyEquivalent: ","
         ).target = self
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "Quit Codenotch", action: #selector(quit), keyEquivalent: "q"
+            withTitle: "退出 Codenotch", action: #selector(quit), keyEquivalent: "q"
         ).target = self
     }
 

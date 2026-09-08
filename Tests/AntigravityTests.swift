@@ -874,9 +874,9 @@ final class StatusMenuTests: XCTestCase {
         XCTAssertTrue(titles[0].contains("20 hr 21 min ago"), titles[0])
         XCTAssertTrue(titles[1].contains("Weekly limit"), titles[1])
         XCTAssertTrue(titles[1].contains("29% Used · 71% left"), titles[1])
-        XCTAssertTrue(titles.contains("Refresh all"))
-        XCTAssertTrue(titles.contains("Settings…"))
-        XCTAssertTrue(titles.contains("Quit Codenotch"))
+        XCTAssertTrue(titles.contains("全部刷新"))
+        XCTAssertTrue(titles.contains("设置…"))
+        XCTAssertTrue(titles.contains("退出 Codenotch"))
         // The header re-reads its own provider.
         XCTAssertEqual(menu.items[0].representedObject as? String, "codex")
     }
@@ -886,7 +886,7 @@ final class StatusMenuTests: XCTestCase {
         let controller = StatusItemController(onOpenSettings: {})
         let menu = NSMenu()
         controller.rebuild(menu: menu, now: now)
-        XCTAssertTrue(menu.items[0].title.contains("Waiting for the first reading"))
+        XCTAssertTrue(menu.items[0].title.contains("正在等待首次读取"))
     }
 }
 
