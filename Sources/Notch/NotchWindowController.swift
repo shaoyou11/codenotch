@@ -5,6 +5,10 @@ import Combine
 @MainActor
 final class NotchWindowController {
     let model = NotchViewModel()
+    var hideInFullscreen = true { didSet { updateFullscreenVisibility() } }
+    private var suppressedByFullscreen = false
+    var fullscreenCheck: (NSScreen) -> Bool = { FullscreenDetector.covers($0) }
+    var panelVisibleForTesting: Bool { panel?.isVisible ?? false }
     var displayPreference: DisplayPreference = .followActiveWindow
 
     /// The panel's content view, so a test can check what SwiftUI is and is not
@@ -148,6 +152,7 @@ final class NotchWindowController {
 
     func relocate(cellCount: Int? = nil) {
         guard let screen = currentScreen() else { return }
+        defer { updateFullscreenVisibility() }
         model.adopt(screen: screen)
         let size = model.panelSize(cellCount: cellCount ?? model.snapshots.count)
         let frame = NotchGeometry.panelFrame(
@@ -367,7 +372,27 @@ final class NotchWindowController {
         relocate()
     }
 
+    @discardableResult
+    private func updateFullscreenVisibility() -> Bool {
+        let suppress = hideInFullscreen && (currentScreen().map(fullscreenCheck) ?? false)
+        let wasSuppressed = suppressedByFullscreen
+        suppressedByFullscreen = suppress
+        if suppress {
+            panel?.orderOut(nil)
+            clearHoverWork?.cancel()
+            clearHoverWork = nil
+            foldWork?.cancel()
+            foldWork = nil
+            if model.hoveredIndex != nil { model.hoveredIndex = nil }
+            setPointing(false)
+        } else if wasSuppressed && visibility != .hidden {
+            panel?.orderFrontRegardless()
+        }
+        return suppress
+    }
+
     private func cursorMoved() {
+        guard !updateFullscreenVisibility() else { return }
         guard let panel else { return }
         let local = localCursor(in: panel.frame)
         let overTooltip = model.hoveredIndex
@@ -599,6 +624,7 @@ final class NotchWindowController {
     private var edgeChange = 0
 
     func apply(_ visibility: NotchVisibility) {
+        defer { updateFullscreenVisibility() }
         self.visibility = visibility
         // A standing choice outranks a peek that happens to be in flight.
         peekWork?.cancel()
@@ -651,6 +677,7 @@ final class NotchWindowController {
     /// `pid` is the agent's process, used only if the peek is clicked; nil
     /// leaves the click doing what it ordinarily does.
     func peek(for duration: TimeInterval, focusing pid: pid_t?) {
+        guard !updateFullscreenVisibility() else { return }
         // Hidden is a standing choice that the notch is not to be on screen.
         // Something finishing is not grounds to overrule it — the chime still
         // sounds, which is the part that works with nothing visible.

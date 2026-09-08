@@ -85,6 +85,10 @@ final class Preferences: ObservableObject {
 
     private static func offsetKey(for edge: NotchEdge) -> String { "notchOffset.\(edge.rawValue)" }
 
+    @Published var hideInFullscreen: Bool {
+        didSet { defaults.set(hideInFullscreen, forKey: "hideInFullscreen") }
+    }
+
     @Published var interfaceSize: InterfaceSize {
         didSet { defaults.set(interfaceSize.rawValue, forKey: "interfaceSize") }
     }
@@ -275,6 +279,7 @@ final class Preferences: ObservableObject {
             .flatMap(NotchEdge.init(rawValue:)) ?? .right
         self.displayPreference = defaults.string(forKey: Keys.display)
             .map(DisplayPreference.display) ?? .followActiveWindow
+        self.hideInFullscreen = defaults.object(forKey: "hideInFullscreen") as? Bool ?? true
         self.interfaceSize = InterfaceSize(rawValue: defaults.integer(forKey: "interfaceSize")) ?? .standard
         self.usageDisplayMode = defaults.string(forKey: "usageDisplayMode")
             .flatMap(UsageDisplayMode.init(rawValue:)) ?? .used

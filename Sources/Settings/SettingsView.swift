@@ -388,6 +388,11 @@ struct SettingsView: View {
     private var appearancePane: some View {
         Form {
             Section("悬浮面板") {
+                Toggle("全屏时自动隐藏", isOn: $preferences.hideInFullscreen)
+                Text("视频或网页等占满所在屏幕时隐藏，包括固定展开；退出全屏后恢复。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 Picker("整体大小", selection: $preferences.interfaceSize) {
                     ForEach(InterfaceSize.allCases) { Text($0.title).tag($0) }
                 }

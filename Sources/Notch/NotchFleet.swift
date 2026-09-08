@@ -30,6 +30,7 @@ final class NotchFleet {
     /// already has its own `assignedScreen`, which wins over this in
     /// `NotchWindowController.currentScreen()`.
     private var displayPreference: DisplayPreference = .followActiveWindow
+    private var hideInFullscreen = true
     private var interfaceSize: InterfaceSize = .standard
     private var usageDisplayMode: UsageDisplayMode = .used
     private var resetTimeFormat: ResetTimeFormat = .automatic
@@ -120,6 +121,13 @@ final class NotchFleet {
         self.displayPreference = displayPreference
         guard hasShown else { return }
         reconcile(screens: NSScreen.screens)
+    }
+
+    func apply(hideInFullscreen: Bool) {
+        self.hideInFullscreen = hideInFullscreen
+        for controller in controllers.values {
+            controller.hideInFullscreen = hideInFullscreen
+        }
     }
 
     func apply(interfaceSize: InterfaceSize) {
@@ -281,6 +289,7 @@ final class NotchFleet {
     private func makeController(on screen: NSScreen) -> NotchWindowController {
         let controller = NotchWindowController()
         controller.assignedScreen = screen
+        controller.hideInFullscreen = hideInFullscreen
         controller.displayPreference = displayPreference
         controller.model.edge = edge
         controller.model.alongOffset = alongOffset

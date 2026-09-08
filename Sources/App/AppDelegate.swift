@@ -186,6 +186,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 preferences?.setOffset(offset, for: preferences?.notchEdge ?? .right)
             }
 
+            preferences.$hideInFullscreen
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.apply(hideInFullscreen: $0) }
+                .store(in: &cancellables)
+
             preferences.$interfaceSize
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(interfaceSize: $0) }
