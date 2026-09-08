@@ -85,6 +85,10 @@ final class Preferences: ObservableObject {
 
     private static func offsetKey(for edge: NotchEdge) -> String { "notchOffset.\(edge.rawValue)" }
 
+    @Published var interfaceSize: InterfaceSize {
+        didSet { defaults.set(interfaceSize.rawValue, forKey: "interfaceSize") }
+    }
+
     @Published var usageDisplayMode: UsageDisplayMode {
         didSet { defaults.set(usageDisplayMode.rawValue, forKey: "usageDisplayMode") }
     }
@@ -271,6 +275,7 @@ final class Preferences: ObservableObject {
             .flatMap(NotchEdge.init(rawValue:)) ?? .right
         self.displayPreference = defaults.string(forKey: Keys.display)
             .map(DisplayPreference.display) ?? .followActiveWindow
+        self.interfaceSize = InterfaceSize(rawValue: defaults.integer(forKey: "interfaceSize")) ?? .standard
         self.usageDisplayMode = defaults.string(forKey: "usageDisplayMode")
             .flatMap(UsageDisplayMode.init(rawValue:)) ?? .used
         self.resetTimeFormat = defaults.string(forKey: Keys.resetTimeFormat)

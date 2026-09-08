@@ -61,3 +61,30 @@ final class UsageDisplayModeTests: XCTestCase {
         XCTAssertEqual(Preferences(defaults: defaults).usageDisplayMode, .remaining)
     }
 }
+
+@MainActor
+final class InterfaceSizeTests: XCTestCase {
+    func testChangingSizeRecalculatesExistingLayout() {
+        let previous = Design.interfaceScale
+        defer { Design.interfaceScale = previous }
+        Design.interfaceScale = 0.70
+        let smallRing = NotchLayout.ringDiameter
+        let smallCard = NotchLayout.cardWidth
+        let smallLine = NotchLayout.percentLineHeight
+        Design.interfaceScale = 1
+        XCTAssertEqual(NotchLayout.ringDiameter, 44, accuracy: 0.001)
+        XCTAssertGreaterThan(NotchLayout.ringDiameter, smallRing)
+        XCTAssertGreaterThan(NotchLayout.cardWidth, smallCard)
+        XCTAssertGreaterThan(NotchLayout.percentLineHeight, smallLine)
+        XCTAssertEqual(NotchLayout.pillWidth, 10)
+    }
+
+    func testSizeChoicePersistsAndInvalidValueFallsBack() {
+        let defaults = UserDefaults(suiteName: "InterfaceSizeTests.\(UUID().uuidString)")!
+        defaults.set(999, forKey: "interfaceSize")
+        let preferences = Preferences(defaults: defaults)
+        XCTAssertEqual(preferences.interfaceSize, .standard)
+        preferences.interfaceSize = .original
+        XCTAssertEqual(Preferences(defaults: defaults).interfaceSize, .original)
+    }
+}

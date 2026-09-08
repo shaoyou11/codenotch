@@ -121,6 +121,14 @@ final class NotchFleet {
         reconcile(screens: NSScreen.screens)
     }
 
+    func apply(interfaceSize: InterfaceSize) {
+        Design.interfaceScale = interfaceSize.scale
+        for controller in controllers.values {
+            controller.model.objectWillChange.send()
+            controller.relocate()
+        }
+    }
+
     func apply(usageDisplayMode: UsageDisplayMode) {
         self.usageDisplayMode = usageDisplayMode
         for controller in controllers.values {

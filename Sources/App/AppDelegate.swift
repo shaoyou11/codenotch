@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Preferences.migrateFromPreviousName()
         let preferences = Preferences()
         self.preferences = preferences
+        Design.interfaceScale = preferences.interfaceSize.scale
 
         // One notch per display: the fleet owns a controller for each screen
         // the scope asks for and fans every reading out to all of them. The
@@ -184,6 +185,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             fleet.onReposition = { [weak preferences] offset in
                 preferences?.setOffset(offset, for: preferences?.notchEdge ?? .right)
             }
+
+            preferences.$interfaceSize
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.apply(interfaceSize: $0) }
+                .store(in: &cancellables)
 
             preferences.$usageDisplayMode
                 .receive(on: RunLoop.main)

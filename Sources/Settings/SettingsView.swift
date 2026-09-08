@@ -388,6 +388,13 @@ struct SettingsView: View {
     private var appearancePane: some View {
         Form {
             Section("悬浮面板") {
+                Picker("整体大小", selection: $preferences.interfaceSize) {
+                    ForEach(InterfaceSize.allCases) { Text($0.title).tag($0) }
+                }
+                Text("调整面板、图标和详情大小；立即生效并自动保存。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 Picker("图标下方百分比", selection: $preferences.usageDisplayMode) {
                     ForEach(UsageDisplayMode.allCases) { Text($0.title).tag($0) }
                 }
