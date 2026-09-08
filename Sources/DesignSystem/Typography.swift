@@ -7,8 +7,8 @@ enum Typography {
     static var percent: Font { Font.system(size: Design.fontSize(capPixels: 27), weight: .semibold) }
 
     /// "Claude Usage". Cap height 26px.
-    static var cardTitle: Font { Font.system(size: max(12, Design.fontSize(capPixels: 26)), weight: .semibold) }
+    static var cardTitle: Font { Font.system(size: max(12 * Design.interfaceScale / 0.70, Design.fontSize(capPixels: 26)), weight: .semibold) }
 
     /// "Current session", "73% Used", "Resets in 51 min". Cap height 18px.
-    static var cardBody: Font { Font.system(size: max(11, Design.fontSize(capPixels: 18)), weight: .regular) }
+    static var cardBody: Font { Font.system(size: max(11 * Design.interfaceScale / 0.70, Design.fontSize(capPixels: 18)), weight: .regular) }
 }

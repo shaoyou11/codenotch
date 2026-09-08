@@ -146,13 +146,13 @@ enum NotchLayout {
     }
 
     static var cardTitleLineHeight: CGFloat { lineHeight(
-        NSFont.systemFont(ofSize: max(12, Design.fontSize(capPixels: 26)), weight: .semibold)
+        NSFont.systemFont(ofSize: max(12 * Design.interfaceScale / 0.70, Design.fontSize(capPixels: 26)), weight: .semibold)
     ) }
     /// The card's body face. Held rather than rebuilt at each use: the line
     /// height below and the wrap measurement in `bodyTextHeight` have to be
     /// measuring the same font, or the budget and the text disagree.
     static var cardBodyFont: NSFont { NSFont.systemFont(
-        ofSize: max(11, Design.fontSize(capPixels: 18)), weight: .regular
+        ofSize: max(11 * Design.interfaceScale / 0.70, Design.fontSize(capPixels: 18)), weight: .regular
     ) }
     static var cardBodyLineHeight: CGFloat { lineHeight(cardBodyFont) }
 
