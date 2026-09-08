@@ -316,9 +316,10 @@ final class NotchWindowController {
         if model.isExpanded, let index = model.hoveredIndex, let card = tooltipRect(index: index) {
             rects.append(card)
         }
-        hostingView?.interactiveRects = rects
+        if hostingView?.interactiveRects != rects { hostingView?.interactiveRects = rects }
         if let panel {
-            panel.ignoresMouseEvents = !rects.contains { $0.contains(localCursor(in: panel.frame)) }
+            let ignores = !rects.contains { $0.contains(localCursor(in: panel.frame)) }
+            if panel.ignoresMouseEvents != ignores { panel.ignoresMouseEvents = ignores }
         }
     }
 
@@ -338,6 +339,7 @@ final class NotchWindowController {
                 // the screen list, and doing that per event would be work at
                 // 60Hz to answer a question that changes twice a minute.
                 self?.followUsableAreaIfItMoved()
+                self?.updateFullscreenVisibility()
                 self?.cursorMoved()
             }
         }
@@ -378,7 +380,7 @@ final class NotchWindowController {
         let wasSuppressed = suppressedByFullscreen
         suppressedByFullscreen = suppress
         if suppress {
-            panel?.orderOut(nil)
+            if panel?.isVisible == true { panel?.orderOut(nil) }
             clearHoverWork?.cancel()
             clearHoverWork = nil
             foldWork?.cancel()
@@ -392,7 +394,7 @@ final class NotchWindowController {
     }
 
     private func cursorMoved() {
-        guard !updateFullscreenVisibility() else { return }
+        guard !suppressedByFullscreen else { return }
         guard let panel else { return }
         let local = localCursor(in: panel.frame)
         let overTooltip = model.hoveredIndex

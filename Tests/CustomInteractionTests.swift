@@ -64,6 +64,10 @@ final class UsageDisplayModeTests: XCTestCase {
 
 @MainActor
 final class InterfaceSizeTests: XCTestCase {
+    func testAvailableSizesIncludeIntermediateChoices() {
+        XCTAssertEqual(InterfaceSize.allCases.map(\.rawValue), [40, 50, 55, 60, 65, 70, 75, 80, 90, 100])
+    }
+
     func testChangingSizeRecalculatesExistingLayout() {
         let previous = Design.interfaceScale
         defer { Design.interfaceScale = previous }

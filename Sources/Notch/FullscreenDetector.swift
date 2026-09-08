@@ -6,27 +6,40 @@ import AppKit
 enum FullscreenDetector {
     private static var checkedAt: TimeInterval = -1
     private static var frames: [CGRect] = []
+    private static var queryInFlight = false
 
     static func covers(_ screen: NSScreen) -> Bool {
         let now = ProcessInfo.processInfo.systemUptime
-        if now - checkedAt >= 0.3 {
+        if now - checkedAt >= 0.3 && !queryInFlight {
             checkedAt = now
-            let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
-                                                    kCGNullWindowID) as? [[String: Any]] ?? []
-            frames = windows.compactMap { info in
-                guard let pid = info[kCGWindowOwnerPID as String] as? Int,
-                      pid != Int(ProcessInfo.processInfo.processIdentifier),
-                      let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
-                      let alpha = info[kCGWindowAlpha as String] as? Double, alpha > 0,
-                      let bounds = info[kCGWindowBounds as String] as? [String: Any]
-                else { return nil }
-                return CGRect(dictionaryRepresentation: bounds as CFDictionary)
+            queryInFlight = true
+            DispatchQueue.global(qos: .utility).async {
+                let result = readWindowFrames()
+                Task { @MainActor in
+                    frames = result
+                    queryInFlight = false
+                }
             }
         }
         guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
         else { return false }
         let bounds = CGDisplayBounds(CGDirectDisplayID(number.uint32Value))
         return frames.contains { fillsScreen($0, screen: bounds) }
+    }
+
+    /// WindowServer IPC never runs on the mouse/animation thread.
+    nonisolated private static func readWindowFrames() -> [CGRect] {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+                                                kCGNullWindowID) as? [[String: Any]] ?? []
+        return windows.compactMap { info in
+            guard let pid = info[kCGWindowOwnerPID as String] as? Int,
+                  pid != Int(ProcessInfo.processInfo.processIdentifier),
+                  let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
+                  let alpha = info[kCGWindowAlpha as String] as? Double, alpha > 0,
+                  let bounds = info[kCGWindowBounds as String] as? [String: Any]
+            else { return nil }
+            return CGRect(dictionaryRepresentation: bounds as CFDictionary)
+        }
     }
 
     nonisolated static func fillsScreen(_ window: CGRect, screen: CGRect) -> Bool {
