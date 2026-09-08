@@ -132,6 +132,7 @@ struct NotchRootView: View {
     private var cells: some View {
         let stack = ForEach(Array(model.snapshots.enumerated()), id: \.element.id) { index, snapshot in
             ProviderCell(
+                usageDisplayMode: model.usageDisplayMode,
                 snapshot: snapshot,
                 activity: model.activity(for: snapshot.id),
                 isRefreshing: model.refreshing.contains(snapshot.id)

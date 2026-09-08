@@ -185,6 +185,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 preferences?.setOffset(offset, for: preferences?.notchEdge ?? .right)
             }
 
+            preferences.$usageDisplayMode
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.apply(usageDisplayMode: $0) }
+                .store(in: &cancellables)
+
             preferences.$resetTimeFormat
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(resetTimeFormat: $0) }

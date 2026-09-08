@@ -117,7 +117,7 @@ enum NotchLayout {
     static let orbHotZone  = Design.px(152)
 
     // The hover tooltip
-    static let cardWidth     = max(Design.px(600), 220)
+    static let cardWidth     = max(Design.px(600), (220 / 0.75) * Design.interfaceScale)
     static let cardCorner    = Design.px(49.5)
     static let cardPadding   = Design.px(32)
     static let tailLength    = Design.px(75)

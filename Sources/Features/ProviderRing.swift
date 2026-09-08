@@ -157,13 +157,14 @@ private struct ActivityArc: View {
 
 /// A ring and the percent burned underneath it.
 struct ProviderCell: View {
+    var usageDisplayMode: UsageDisplayMode = .used
     let snapshot: ProviderSnapshot
     var activity: ActivitySummary?
     var isRefreshing: Bool = false
 
     /// A dash, not "0%": nothing read is not the same as nothing used.
     private var percentText: String {
-        snapshot.hasReading ? snapshot.headlineText : "—"
+        usageDisplayMode.text(for: snapshot)
     }
 
     var body: some View {
@@ -177,6 +178,7 @@ struct ProviderCell: View {
                 isRefreshing: isRefreshing
             )
             Text(percentText)
+                .accessibilityLabel("\(usageDisplayMode.title) \(percentText)")
                 .font(Typography.percent)
                 .foregroundStyle(Palette.textPrimary)
                 // Never squeezed: across a horizontal edge the cell is only as

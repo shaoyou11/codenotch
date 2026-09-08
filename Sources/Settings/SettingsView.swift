@@ -388,6 +388,14 @@ struct SettingsView: View {
     private var appearancePane: some View {
         Form {
             Section("悬浮面板") {
+                Picker("图标下方百分比", selection: $preferences.usageDisplayMode) {
+                    ForEach(UsageDisplayMode.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                Text("例如已用 20% 或剩余 80%；圆环仍表示已用额度。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 Picker("重置时间", selection: $preferences.resetTimeFormat) {
                     ForEach(ResetTimeFormat.allCases) { Text($0.title).tag($0) }
                 }

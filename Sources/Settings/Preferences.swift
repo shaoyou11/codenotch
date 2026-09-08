@@ -85,6 +85,10 @@ final class Preferences: ObservableObject {
 
     private static func offsetKey(for edge: NotchEdge) -> String { "notchOffset.\(edge.rawValue)" }
 
+    @Published var usageDisplayMode: UsageDisplayMode {
+        didSet { defaults.set(usageDisplayMode.rawValue, forKey: "usageDisplayMode") }
+    }
+
     @Published var resetTimeFormat: ResetTimeFormat {
         didSet { defaults.set(resetTimeFormat.rawValue, forKey: Keys.resetTimeFormat) }
     }
@@ -267,6 +271,8 @@ final class Preferences: ObservableObject {
             .flatMap(NotchEdge.init(rawValue:)) ?? .right
         self.displayPreference = defaults.string(forKey: Keys.display)
             .map(DisplayPreference.display) ?? .followActiveWindow
+        self.usageDisplayMode = defaults.string(forKey: "usageDisplayMode")
+            .flatMap(UsageDisplayMode.init(rawValue:)) ?? .used
         self.resetTimeFormat = defaults.string(forKey: Keys.resetTimeFormat)
             .flatMap(ResetTimeFormat.init(rawValue:)) ?? .automatic
         // Absent means never chosen. Main display only, because that is what a

@@ -38,6 +38,7 @@ final class NotchWindowController {
     var assignedScreen: NSScreen?
     private var cancellables = Set<AnyCancellable>()
     private var mouseMonitors: [Any] = []
+    private var firstTooltipHover = FirstTooltipHover()
     private var clearHoverWork: DispatchWorkItem?
     private var clockTimer: Timer?
     private var cursorTimer: Timer?
@@ -391,6 +392,8 @@ final class NotchWindowController {
             Self.wantsPointingHand(isExpanded: model.isExpanded, cellIndex: target) || overHandle
         )
 
+        target = firstTooltipHover.target(target, pinned: model.staysOpen,
+                                          now: ProcessInfo.processInfo.systemUptime)
         if let target {
             clearHoverWork?.cancel()
             clearHoverWork = nil
@@ -421,6 +424,7 @@ final class NotchWindowController {
             foldWork?.cancel()
             foldWork = nil
             guard !model.isExpanded else { return }
+            firstTooltipHover.unfolded()
             withAnimation(NotchMotion.unfold) { model.isExpanded = true }
             return
         }

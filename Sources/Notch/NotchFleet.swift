@@ -30,6 +30,7 @@ final class NotchFleet {
     /// already has its own `assignedScreen`, which wins over this in
     /// `NotchWindowController.currentScreen()`.
     private var displayPreference: DisplayPreference = .followActiveWindow
+    private var usageDisplayMode: UsageDisplayMode = .used
     private var resetTimeFormat: ResetTimeFormat = .automatic
     private var accentColor: AccentColorChoice = .system
     /// The ⌥-drag nudge along the current edge. One value for the whole
@@ -118,6 +119,13 @@ final class NotchFleet {
         self.displayPreference = displayPreference
         guard hasShown else { return }
         reconcile(screens: NSScreen.screens)
+    }
+
+    func apply(usageDisplayMode: UsageDisplayMode) {
+        self.usageDisplayMode = usageDisplayMode
+        for controller in controllers.values {
+            controller.model.usageDisplayMode = usageDisplayMode
+        }
     }
 
     func apply(resetTimeFormat: ResetTimeFormat) {
@@ -268,6 +276,7 @@ final class NotchFleet {
         controller.model.alongOffset = alongOffset
         controller.model.resetTimeFormat = resetTimeFormat
         controller.model.accentColor = accentColor
+        controller.model.usageDisplayMode = usageDisplayMode
         controller.onRefresh = onRefresh
         controller.onRefreshProvider = onRefreshProvider
         controller.onOpenSettings = onOpenSettings
