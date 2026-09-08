@@ -37,7 +37,7 @@ final class FirstTooltipHoverTests: XCTestCase {
 @MainActor
 final class UsageDisplayModeTests: XCTestCase {
     private func snapshot(_ windows: [LimitWindow]) -> ProviderSnapshot {
-        ProviderSnapshot(id: "codex", displayName: "Codex", glyph: .codex,
+        ProviderSnapshot(id: "codex", displayName: "Codex", glyph: .openai,
                          fidelity: .official, status: .ok, windows: windows)
     }
 
