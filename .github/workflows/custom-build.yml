@@ -85,7 +85,7 @@ jobs:
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/release-notes.md" <<EOF
-          CodenotchT 基于上游版本 ${RELEASE_VERSION}，保留 75% 面板、透黑胶囊、中文设置和独立应用标识，可与官方版共存。
+          CodenotchT 基于上游版本 ${RELEASE_VERSION}，保留定制面板、透黑胶囊、中文设置和独立应用标识，可与官方版共存。
 
           本安装包已通过 GitHub 云端单元测试、Release 编译及代码签名校验。
           源码提交：${RELEASE_COMMIT}
