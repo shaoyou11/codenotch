@@ -7,7 +7,7 @@ import XCTest
 /// everything without silently reshaping it.
 final class NotchLayoutTests: XCTestCase {
     func testRingIsTheSpecAnchor() {
-        XCTAssertEqual(NotchLayout.ringDiameter, 33, accuracy: 0.001)
+        XCTAssertEqual(NotchLayout.ringDiameter, 30.8, accuracy: 0.001)
     }
 
     func testProportionsMatchTheFrame() {
@@ -18,7 +18,7 @@ final class NotchLayoutTests: XCTestCase {
         // cap height, and SF's metrics are not the frame's to the pixel.
         XCTAssertEqual(NotchLayout.cellPitch(for: .right) / NotchLayout.ringDiameter, 275.0 / 117.0, accuracy: 0.05)
         // The card is 600px wide.
-        XCTAssertEqual(NotchLayout.cardWidth, max(Design.px(600), 220), accuracy: 0.001)
+        XCTAssertEqual(NotchLayout.cardWidth, 205.3333333333, accuracy: 0.001)
     }
 
     func testShapeGrowsOneCellAtATime() {

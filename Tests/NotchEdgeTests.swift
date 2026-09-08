@@ -233,17 +233,21 @@ final class HorizontalStackTests: XCTestCase {
         XCTAssertEqual(NotchLayout.slack(for: .top), NotchLayout.slack(for: .bottom))
     }
 
-    /// The panel is sized from the stack, so a horizontal notch is wide and
-    /// shallow where a vertical one is narrow and tall.
+    /// Adding a cell grows the panel along its edge. The invisible tooltip
+    /// budget can make a small horizontal panel taller than it is wide.
     @MainActor
     func testThePanelTurnsWithTheStack() {
         let model = NotchViewModel()
         model.edge = .right
         let side = model.panelSize(cellCount: 3)
+        let smallerSide = model.panelSize(cellCount: 2)
         model.edge = .top
         let horizontal = model.panelSize(cellCount: 3)
-        XCTAssertGreaterThan(side.height, side.width)
-        XCTAssertGreaterThan(horizontal.width, horizontal.height)
+        let smallerHorizontal = model.panelSize(cellCount: 2)
+        XCTAssertGreaterThan(side.height, smallerSide.height)
+        XCTAssertEqual(side.width, smallerSide.width, accuracy: 0.001)
+        XCTAssertGreaterThan(horizontal.width, smallerHorizontal.width)
+        XCTAssertEqual(horizontal.height, smallerHorizontal.height, accuracy: 0.001)
     }
 
     /// Whatever the edge, the panel always has room for the whole shape.
