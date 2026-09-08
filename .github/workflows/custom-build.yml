@@ -103,7 +103,7 @@ jobs:
           fi
           gh release upload "$RELEASE_TAG" build/custom/CodenotchT-*.zip --clobber
           gh release edit "$RELEASE_TAG" --draft=false --latest
-          echo "已发布 $RELEASE_TAG；请到 Releases 下载安装。" >> "$GITHUB_STEP_SUMMARY"
+          echo "已发布 ${RELEASE_TAG}；请到 Releases 下载安装。" >> "$GITHUB_STEP_SUMMARY"
       - name: 失败说明
         if: failure()
         run: echo '同步、测试、编译或发布失败；未完成的安装包不会作为正式新版发布。请检查失败步骤，修复后手动重新运行。' >> "$GITHUB_STEP_SUMMARY"
