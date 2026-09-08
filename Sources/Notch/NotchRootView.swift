@@ -73,6 +73,7 @@ struct NotchRootView: View {
             .animation(motion(NotchMotion.glide), value: model.hoveredIndex)
         }
         .animation(motion(NotchMotion.unfold), value: model.isExpanded)
+        .id(model.interfaceSize)
         .tint(model.accentColor.color)
         .environment(\.codenotchAccentColor, model.accentColor.color)
     }

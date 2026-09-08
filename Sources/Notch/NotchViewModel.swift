@@ -17,6 +17,7 @@ final class NotchViewModel: ObservableObject {
     @Published var hoveredIndex: Int?
     /// Ticked on refresh so the "Resets in N min" copy stays honest.
     @Published var now: Date = Date()
+    @Published var interfaceSize: InterfaceSize = .standard
     @Published var usageDisplayMode: UsageDisplayMode = .used
     @Published var resetTimeFormat: ResetTimeFormat = .automatic
 

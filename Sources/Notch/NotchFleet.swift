@@ -30,6 +30,7 @@ final class NotchFleet {
     /// already has its own `assignedScreen`, which wins over this in
     /// `NotchWindowController.currentScreen()`.
     private var displayPreference: DisplayPreference = .followActiveWindow
+    private var interfaceSize: InterfaceSize = .standard
     private var usageDisplayMode: UsageDisplayMode = .used
     private var resetTimeFormat: ResetTimeFormat = .automatic
     private var accentColor: AccentColorChoice = .system
@@ -122,9 +123,10 @@ final class NotchFleet {
     }
 
     func apply(interfaceSize: InterfaceSize) {
+        self.interfaceSize = interfaceSize
         Design.interfaceScale = interfaceSize.scale
         for controller in controllers.values {
-            controller.model.objectWillChange.send()
+            controller.model.interfaceSize = interfaceSize
             controller.relocate()
         }
     }
@@ -285,6 +287,7 @@ final class NotchFleet {
         controller.model.resetTimeFormat = resetTimeFormat
         controller.model.accentColor = accentColor
         controller.model.usageDisplayMode = usageDisplayMode
+        controller.model.interfaceSize = interfaceSize
         controller.onRefresh = onRefresh
         controller.onRefreshProvider = onRefreshProvider
         controller.onOpenSettings = onOpenSettings
