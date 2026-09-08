@@ -1,23 +1,109 @@
-name: Build compact app
+name: CodenotchT 自动同步与发布
 on:
+  schedule:
+    - cron: '23 1 * * *'
   workflow_dispatch:
   push:
     branches: [custom/compact-draggable]
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: codenotcht-release
+  cancel-in-progress: false
 jobs:
-  build:
+  release:
+    if: github.repository == 'shaoyou11/codenotch'
     runs-on: macos-26
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: custom/compact-draggable
+          fetch-depth: 0
+      - name: 合并上游（冲突时停止）
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name shaoyou11
+          git config user.email shaoyou11@users.noreply.github.com
+          git remote add upstream https://github.com/vinzdg/codenotch.git
+          git fetch upstream main
+          git merge --no-edit -m '同步：合并上游 main，保留 CodenotchT 定制' upstream/main
+      - name: 检查是否需要发布
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(awk -F'"' '/MARKETING_VERSION:/ {print $2; exit}' project.yml)
+          [[ "$version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]
+          commit=$(git rev-parse HEAD)
+          tag="codenotcht-v${version}-${commit:0:12}"
+          gh release list --limit 1000 --json tagName,isDraft > "$RUNNER_TEMP/releases.json"
+          exists=$(jq --arg tag "$tag" '[.[] | select(.tagName == $tag and .isDraft == false)] | length' "$RUNNER_TEMP/releases.json")
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          if [ "$exists" -gt 0 ]; then
+            echo 'needed=false' >> "$GITHUB_OUTPUT"
+            echo '没有新的代码需要发布。' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'needed=true' >> "$GITHUB_OUTPUT"
+          fi
       - name: Install XcodeGen
+        if: steps.version.outputs.needed == 'true'
         run: brew install xcodegen
       - name: Run unit tests
+        if: steps.version.outputs.needed == 'true'
         run: make test-ci
       - name: Build CodenotchT app
+        if: steps.version.outputs.needed == 'true'
         run: bash Scripts/custom-build.sh
       - uses: actions/upload-artifact@v4
+        if: steps.version.outputs.needed == 'true'
         with:
-          name: CodenotchT-1.6.0
-          path: build/custom/CodenotchT-1.6.0.zip
+          name: ${{ steps.version.outputs.tag }}
+          path: build/custom/CodenotchT-*.zip
+          if-no-files-found: error
           retention-days: 30
+      - name: 保存验证通过的同步结果
+        if: steps.version.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # 普通推送：并发修改导致分支前进时停止，绝不强推。
+          git push origin HEAD:refs/heads/custom/compact-draggable
+      - name: 发布安装包
+        if: steps.version.outputs.needed == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_COMMIT: ${{ steps.version.outputs.commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/release-notes.md" <<EOF
+          CodenotchT 基于上游版本 ${RELEASE_VERSION}，保留 75% 面板、透黑胶囊、中文设置和独立应用标识，可与官方版共存。
+
+          本安装包已通过 GitHub 云端单元测试、Release 编译及代码签名校验。
+          源码提交：${RELEASE_COMMIT}
+
+          下载 ZIP，解压后将 CodenotchT.app 放入「应用程序」。替换前请先退出应用并备份旧版。本机无需 Xcode 或 XcodeGen。
+
+          使用临时签名，未做 Apple 公证；应用内自动更新保持关闭。
+          EOF
+          # 先建草稿，资产全部上传成功后才公开；中断后允许重跑。
+          draft=$(jq --arg tag "$RELEASE_TAG" '[.[] | select(.tagName == $tag and .isDraft == true)] | length' "$RUNNER_TEMP/releases.json")
+          if [ "$draft" -eq 0 ]; then
+            gh release create "$RELEASE_TAG" --target "$RELEASE_COMMIT" --draft \
+              --title "CodenotchT ${RELEASE_VERSION} · ${RELEASE_COMMIT:0:7}" \
+              --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi
+          gh release upload "$RELEASE_TAG" build/custom/CodenotchT-*.zip --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest
+          echo "已发布 $RELEASE_TAG；请到 Releases 下载安装。" >> "$GITHUB_STEP_SUMMARY"
+      - name: 失败说明
+        if: failure()
+        run: echo '同步、测试、编译或发布失败；未完成的安装包不会作为正式新版发布。请检查失败步骤，修复后手动重新运行。' >> "$GITHUB_STEP_SUMMARY"

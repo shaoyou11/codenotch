@@ -23,17 +23,28 @@
 bash Scripts/custom-build.sh
 ```
 
-成品：`build/custom/CodenotchT-1.6.0.zip`。解压后把 `CodenotchT.app` 放进「应用程序」。
+成品：`build/custom/CodenotchT-<上游版本号>.zip`。解压后把 `CodenotchT.app` 放进「应用程序」。
 
-正式下载入口在个人仓库的 Releases。推送定制分支会触发 GitHub Actions 云端编译，其 Artifacts 保留 30 天；Releases 安装包另行发布。两者都不是应用内自动更新。
+正式下载入口在个人仓库的 Releases。现在由 GitHub Actions 自动同步、测试、编译并发布，无需本机开机或安装 Xcode。
+
+- 每天北京时间 09:23 检查上游 main（GitHub 调度可能延迟）；推送定制分支或在 Actions 手动运行也会触发。
+- 无新代码且已有对应正式 Release 时跳过编译。版本号从 project.yml 读取，发布标签附带源码提交号，区分同版本的多次定制。
+- 合并冲突、测试失败、编译失败时停止；通过验证后才保存合并结果，资产上传完成后才公开 Release。修复失败原因后可手动重新运行。
+- Actions 产物保留 30 天，正式 Release 安装包长期保留。失败记录在 Actions 查看，通知取决于 GitHub 个人通知设置。
+- 仍需自行下载、备份旧版并安装；这不是应用内自动更新。
+- GitHub 对长期无活动的公共仓库可能暂停定时任务，届时在 Actions 重新启用。
+
 
 使用本地临时签名，无需付费开发者账号，未做 Apple 公证。自用构建关闭该应用的 Hardened Runtime 以兼容内嵌组件签名，不改变系统安全设置。
 
 ## 同步上游
 
-`origin` 是自己的 fork，`upstream` 是原作者仓库；`main` 保留上游基线，个人修改位于 `custom/compact-draggable`。
+`origin` 是自己的 fork，`upstream` 是原作者仓库；`main` 保留上游代码及定时工作流入口，个人修改位于 `custom/compact-draggable`。
+
+日常无需运行以下命令；如需本机手动同步，先拉取云端已验证的定制分支：
 
 ```sh
+git pull --ff-only origin custom/compact-draggable
 bash Scripts/custom-sync.sh
 bash Scripts/custom-build.sh
 git push origin HEAD
