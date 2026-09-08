@@ -351,6 +351,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// otherwise nothing left to click — choosing Hide would be a one-way door.
     /// Launching the app again while it is already running lands here, so
     /// opening it from Applications or Spotlight reopens settings.
+    @MainActor func showSettings() { settings?.show() }
+
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows: Bool) -> Bool {
         settings?.show()
