@@ -1,18 +1,8 @@
 import Foundation
 import Sparkle
 
-/// Keeps the app up to date on its own.
-///
-/// Silent by design: `SUAutomaticallyUpdate` and `SUEnableAutomaticChecks` in
-/// the Info.plist mean Sparkle checks, downloads and installs without asking,
-/// and without the first-launch permission prompt it otherwise shows. For an
-/// agent app with no windows that is the only sensible behaviour — there is no
-/// natural moment to interrupt someone who never looks at it.
-///
-/// Two things it still cannot do silently, which is macOS rather than Sparkle:
-/// the app has to be writable by the user installing the update (true for a
-/// normal drag to /Applications, false if it was copied there with `sudo`), and
-/// the replacement is applied on relaunch rather than mid-flight.
+/// The compact fork updates through its repository, never the official feed.
+/// Keeping Sparkle dormant also ignores an old official build's saved opt-in.
 @MainActor
 final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
     /// What the last check came to, in words the settings sheet can show.
@@ -51,32 +41,27 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
         startingUpdater: true, updaterDelegate: self, userDriverDelegate: nil
     )
 
-    /// Mirrors the preference, so switching it off really does stop the checks
-    /// rather than only hiding them.
+    /// Read-only in the compact build to prevent replacing personal changes.
     var automatic: Bool {
-        get { controller.updater.automaticallyChecksForUpdates }
-        set {
-            controller.updater.automaticallyChecksForUpdates = newValue
-            controller.updater.automaticallyDownloadsUpdates = newValue
-        }
+        get { false }
+        set { /* Custom builds are updated from the fork, never the upstream feed. */ }
     }
 
     var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
     }
 
-    var lastChecked: Date? { controller.updater.lastUpdateCheckDate }
+    var lastChecked: Date? { nil }
 
     /// Starts the scheduled checks. Deliberately not in `init`: the controller
     /// is lazy so that `self` exists before it is handed over as the delegate.
-    func start() { _ = controller }
+    func start() {}
 
     /// The manual path, for someone who does not want to wait for the schedule.
     /// This one *does* show UI — it was asked for, so silence would read as a
     /// broken button.
     func checkNow() {
-        outcome = .checking
-        controller.updater.checkForUpdates()
+        outcome = .failed("定制版通过自己的仓库更新；上游支持缩放和拖动后，可换回官方版。")
     }
 
     // MARK: - SPUUpdaterDelegate

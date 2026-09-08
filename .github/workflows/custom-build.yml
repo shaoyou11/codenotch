@@ -1,0 +1,21 @@
+name: Build compact app
+on:
+  workflow_dispatch:
+  push:
+    branches: [custom/compact-draggable]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Build 50 percent app
+        run: bash Scripts/custom-build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codenotch-50percent
+          path: build/custom/Codenotch-50percent.zip
+          retention-days: 30

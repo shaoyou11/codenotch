@@ -7,7 +7,7 @@ import XCTest
 /// everything without silently reshaping it.
 final class NotchLayoutTests: XCTestCase {
     func testRingIsTheSpecAnchor() {
-        XCTAssertEqual(NotchLayout.ringDiameter, 44, accuracy: 0.001)
+        XCTAssertEqual(NotchLayout.ringDiameter, 22, accuracy: 0.001)
     }
 
     func testProportionsMatchTheFrame() {

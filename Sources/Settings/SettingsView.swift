@@ -575,10 +575,11 @@ struct SettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Toggle("Install updates automatically", isOn: Binding(
+                Toggle("定制版：已停用官方自动更新", isOn: Binding(
                     get: { updater.automatic },
                     set: { updater.automatic = $0 }
                 ))
+                .disabled(true)
 
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     // Disclosed rather than merely silent. An app that updates
@@ -587,13 +588,12 @@ struct SettingsView: View {
                     // a way to switch it off, is the difference between a
                     // background updater and something that looks like it is
                     // hiding.
-                    Text("Version \(updater.currentVersion). Updates install in the "
-                         + "background and apply next time Codenotch starts.")
+                    Text("版本 \(updater.currentVersion) · 50% 定制版。通过自己的仓库同步更新。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)
-                    Button("Check now") { updater.checkNow() }
+                    Button("更新说明") { updater.checkNow() }
                         .controlSize(.small)
                 }
 
