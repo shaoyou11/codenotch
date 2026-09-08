@@ -42,16 +42,16 @@ enum SignInRoute: Equatable {
 
     var actionTitle: String? {
         switch self {
-        case .modal(let name):     return "Sign in to \(name)"
-        case .openApp(_, let name): return "Open \(name)"
+        case .modal(let name):     return "登录 \(name)"
+        case .openApp(_, let name): return "打开 \(name)"
         case .guidance:            return nil
         }
     }
 
     var explanation: String {
         switch self {
-        case .modal(let name):      return "Sign in to \(name) to read this account."
-        case .openApp(_, let name): return "Sign in with \(name) to read this account."
+        case .modal(let name):      return "登录 \(name) 后读取此账号。"
+        case .openApp(_, let name): return "请先在 \(name) 中登录此账号。"
         case .guidance(let text):   return text
         }
     }
@@ -63,9 +63,9 @@ enum SignInRoute: Equatable {
     /// where to go.
     var switchHint: String {
         switch self {
-        case .modal(let name):      return "Sign out in the \(name) window to use another account."
-        case .openApp(_, let name): return "Switch accounts in \(name); the notch follows."
-        case .guidance:             return "Switch accounts in the tool that owns it; the notch follows."
+        case .modal(let name):      return "在 \(name) 窗口中退出后，可登录其他账号。"
+        case .openApp(_, let name): return "在 \(name) 中切换账号，面板会随之更新。"
+        case .guidance:             return "在原工具中切换账号，面板会随之更新。"
         }
     }
 
@@ -74,11 +74,11 @@ enum SignInRoute: Equatable {
     var signOutCaveat: String {
         switch self {
         case .modal(let name):
-            return "Signs out of \(name) — the session belongs to Codenotch."
+            return "退出由 CodenotchT 管理的 \(name) 会话。"
         case .openApp(_, let name):
-            return "You stay signed in to \(name) — end that session in \(name) itself."
+            return "\(name) 中仍保持登录，如需退出请在该工具中操作。"
         case .guidance:
-            return "You stay signed in to the tool that owns the account."
+            return "原工具中的账号仍保持登录。"
         }
     }
 }
@@ -92,7 +92,7 @@ extension UsageProvider {
     func account() -> ProviderAccount? { nil }
 
     var signInRoute: SignInRoute {
-        .guidance("Sign in with the tool that owns this account.")
+        .guidance("请先在此账号所属的工具中登录。")
     }
 
     /// Nothing of our own to discard, by default.
@@ -112,7 +112,7 @@ struct ProviderSummary: Identifiable, Equatable {
     /// refused. Codex still reads an ordinary file and never prompts. Cursor
     /// does too when the editor is signed in, but `cursor-agent` files its
     /// JWT in the login keychain — without this flag a declined prompt would
-    /// have no "Allow access…" to put the dialogue back.
+    /// have no "允许访问…" to put the dialogue back.
     var usesKeychain: Bool {
         ClaudeProfile.isClaude(providerID: id) || id == "gemini" || id == "cursor"
     }
@@ -123,7 +123,7 @@ struct ProviderSummary: Identifiable, Equatable {
     let account: ProviderAccount?
     let signIn: SignInRoute
     /// Whether macOS refused this credential on the last fetch — the one state
-    /// "Allow access…" can actually repair.
+    /// "允许访问…" can actually repair.
     ///
     /// Deliberately *not* read off the snapshot's status. A refusal leaves the
     /// last reading standing and its status untouched, because the number is

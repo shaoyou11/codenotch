@@ -795,7 +795,7 @@ final class NotchWindowController {
         }
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "退出 Codenotch",
+            withTitle: "退出 CodenotchT",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ).isEnabled = true

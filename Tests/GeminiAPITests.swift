@@ -496,7 +496,7 @@ final class GeminiAPISnapshotTests: XCTestCase {
     func testTheAccountNamesTheKeyAndTheToolsItWasReadFrom() {
         let account = GeminiAPICredentials.account(
             tools: ["Gemini CLI", "OpenCode"], authType: "gemini-api-key")
-        XCTAssertEqual(account?.label, "API key")
+        XCTAssertEqual(account?.label, "API 密钥")
         XCTAssertEqual(account?.plan, "metered")
         XCTAssertEqual(account?.source, "Gemini CLI, OpenCode")
     }
@@ -506,7 +506,7 @@ final class GeminiAPISnapshotTests: XCTestCase {
     func testAGoogleAccountLoginIsNotMetered() {
         let account = GeminiAPICredentials.account(
             tools: ["Gemini CLI"], authType: "oauth-personal")
-        XCTAssertEqual(account?.label, "Google account")
+        XCTAssertEqual(account?.label, "Google 账号")
         XCTAssertNil(account?.plan)
     }
 

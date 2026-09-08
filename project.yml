@@ -14,7 +14,7 @@ settings:
     # silently pins every build to one version, so no customer ever sees an
     # update. Bump CURRENT_PROJECT_VERSION on every release.
     MARKETING_VERSION: "1.6.0"
-    CURRENT_PROJECT_VERSION: "8"
+    CURRENT_PROJECT_VERSION: "9"
     # Signed with a stable identity on purpose. The app reads Claude Code's
     # OAuth token out of the login keychain, and the keychain's ACL remembers
     # *which signed binary* was allowed. Ad-hoc or unsigned builds get a new
@@ -41,6 +41,7 @@ packages:
 
 targets:
   Codenotch:
+    productName: CodenotchT
     type: application
     platform: macOS
     sources:
@@ -54,8 +55,8 @@ targets:
         # notch is ambient, but the *app* still has to be findable: without a
         # Dock tile there is nothing to click to open it, nothing in Cmd-Tab,
         # and no obvious way to reach settings or quit.
-        CFBundleName: Codenotch
-        CFBundleDisplayName: Codenotch
+        CFBundleName: CodenotchT
+        CFBundleDisplayName: CodenotchT
         CFBundleDevelopmentRegion: zh_CN
         CFBundleLocalizations: [zh-Hans]
         LSMinimumSystemVersion: "26.0"
@@ -86,7 +87,9 @@ targets:
         SUScheduledCheckInterval: 86400
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.vinz.codenotch
+        PRODUCT_BUNDLE_IDENTIFIER: com.shaoyou11.codenotcht
+        PRODUCT_MODULE_NAME: Codenotch
+        PRODUCT_NAME: CodenotchT
         GENERATE_INFOPLIST_FILE: "NO"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
@@ -99,7 +102,7 @@ targets:
       - target: Codenotch
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.vinz.codenotch.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.shaoyou11.codenotcht.tests
         GENERATE_INFOPLIST_FILE: "YES"
 
 schemes:

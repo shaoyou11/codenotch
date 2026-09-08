@@ -56,9 +56,7 @@ actor GeminiAPIProvider: UsageProvider {
     }
 
     nonisolated var signInRoute: SignInRoute {
-        .guidance("There is nothing to sign in to: the count is added up from what "
-                  + "Gemini CLI, OpenCode and Hermes recorded about their own calls. "
-                  + "Your API key is never read.")
+        .guidance("无需额外登录，用量根据 Gemini CLI、OpenCode 和 Hermes 已记录的调用统计，不读取你的 API 密钥。")
     }
 
     nonisolated func account() -> ProviderAccount? {

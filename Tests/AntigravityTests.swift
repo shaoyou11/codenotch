@@ -597,7 +597,7 @@ final class AccountDestinationTests: XCTestCase {
     /// where it actually goes.
     func testTitlesNameTheirDestination() {
         XCTAssertEqual(SignInRoute.openApp(bundleID: "x", name: "Cursor").actionTitle,
-                       "Open Cursor")
+                       "打开 Cursor")
     }
 
     /// An app that is not installed must not be offered — the button would do
@@ -634,7 +634,7 @@ final class FirstRunCopyTests: XCTestCase {
         for tool in ["Claude Code", "Cursor", "Codex", "Antigravity"] {
             XCTAssertTrue(copy.contains(tool), "the setup note never mentions \(tool)")
         }
-        XCTAssertTrue(copy.contains("not the Claude app"),
+        XCTAssertTrue(copy.contains("不是 Claude 应用"),
                       "nothing warns that the Claude app is not Claude Code")
     }
 
@@ -642,8 +642,8 @@ final class FirstRunCopyTests: XCTestCase {
     /// choosing Allow rather than Always Allow is what makes it recur.
     func testTheKeychainPromptIsExplainedBeforeItAppears() {
         let copy = SettingsView.keychainCopy
-        XCTAssertTrue(copy.contains("Always Allow"))
-        XCTAssertTrue(copy.lowercased().contains("macos will ask"))
+        XCTAssertTrue(copy.contains("始终允许"))
+        XCTAssertTrue(copy.contains("macOS 可能请求"))
     }
 }
 
@@ -876,7 +876,7 @@ final class StatusMenuTests: XCTestCase {
         XCTAssertTrue(titles[1].contains("29% Used · 71% left"), titles[1])
         XCTAssertTrue(titles.contains("全部刷新"))
         XCTAssertTrue(titles.contains("设置…"))
-        XCTAssertTrue(titles.contains("退出 Codenotch"))
+        XCTAssertTrue(titles.contains("退出 CodenotchT"))
         // The header re-reads its own provider.
         XCTAssertEqual(menu.items[0].representedObject as? String, "codex")
     }

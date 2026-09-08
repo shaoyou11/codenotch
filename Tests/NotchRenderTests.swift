@@ -41,10 +41,10 @@ final class NotchRenderTests: XCTestCase {
             let point = place.point(along: m.notchLeadingInset + along, across: across)
             return rep.colorAt(x: Int(point.x), y: Int(point.y))?.alphaComponent ?? 0
         }
-        XCTAssertEqual(alpha(along: 14, across: 3), 0.65, accuracy: 0.03)
+        XCTAssertEqual(alpha(along: 20, across: 5), 0.72, accuracy: 0.03)
         // The boundary pixel is anti-aliased; it must be clearly lighter than the centre.
-        XCTAssertLessThan(alpha(along: 0, across: 6), 0.4)
-        XCTAssertEqual(m.notchSize, CGSize(width: 7, height: 28))
+        XCTAssertLessThan(alpha(along: 0, across: 9), 0.4)
+        XCTAssertEqual(m.notchSize, CGSize(width: 10, height: 40))
         // Save the real rendering for visual review, without exposing live account data.
         let renderer = ImageRenderer(content: NotchRootView(model: m)
             .frame(width: m.panelSize.width, height: m.panelSize.height)
@@ -355,13 +355,13 @@ final class EdgeArrivalTests: XCTestCase {
     }
 }
 
-/// "Always show" is a standing choice, and clicking the notch must not quietly
+/// "始终显示" is a standing choice, and clicking the notch must not quietly
 /// undo it.
 ///
 /// It was held in `isPinned` — the same flag a click on the notch toggles. So
 /// clicking anywhere on the bar that was not a ring or the settings orb turned
 /// the flag off, the notch started folding on the way out, and Settings went on
-/// saying "Always show". Reported as: it sometimes reverts to show-on-hover.
+/// saying "始终显示". Reported as: it sometimes reverts to show-on-hover.
 @MainActor
 final class AlwaysShowTests: XCTestCase {
     func testClickingTheNotchDoesNotUndoAlwaysShow() {

@@ -168,7 +168,7 @@ final class ClaudeProfileTests: XCTestCase {
     }
 
     /// Every profile's token is a keychain item, so every profile can be
-    /// refused and needs the "Allow access…" button.
+    /// refused and needs the "允许访问…" button.
     func testEveryProfileUsesTheKeychain() {
         let summary = ProviderSummary(id: "claude-work", name: "Claude (work)", glyph: .claude,
                                       account: nil, signIn: .guidance("x"))

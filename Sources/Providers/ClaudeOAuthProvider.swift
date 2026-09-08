@@ -271,8 +271,7 @@ actor ClaudeOAuthProvider: UsageProvider {
     nonisolated var signInRoute: SignInRoute {
         // Names the command for a profile, because that is the only way to
         // reach it: plain `claude` signs the default one in, not this.
-        .guidance("Run `\(profile.signInCommand)` once — it signs in and is what "
-                  + "these readings come from. Use /login there to change account.")
+        .guidance("先运行 `\(profile.signInCommand)` 完成登录，随后即可读取用量。切换账号请在该工具中使用 /login。")
     }
 
     nonisolated func forgetCachedCredential() { keychain.forgetCached() }

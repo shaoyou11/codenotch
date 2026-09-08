@@ -17,5 +17,5 @@ xcodebuild -project Codenotch.xcodeproj -scheme Codenotch \
 mkdir -p build/custom
 # ZIP preserves executable permissions and app bundle metadata for Downloads/Actions.
 ditto -c -k --sequesterRsrc --keepParent \
-  build/CustomDerivedData/Build/Products/Release/Codenotch.app \
-  build/custom/Codenotch-50percent.zip
+  build/CustomDerivedData/Build/Products/Release/CodenotchT.app \
+  build/custom/CodenotchT-1.6.0.zip

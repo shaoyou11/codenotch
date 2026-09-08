@@ -33,8 +33,7 @@ actor OpenCodeProvider: UsageProvider {
     }
 
     nonisolated var signInRoute: SignInRoute {
-        .guidance("Usage rides on the opencode-go key OpenCode stores on sign-in — "
-                  + "connect Go inside OpenCode (`opencode auth login`) and the notch reads it.")
+        .guidance("请先在 OpenCode 中运行 `opencode auth login` 连接 Go 计划，随后即可读取用量。")
     }
 
     nonisolated func forgetCachedCredential() {

@@ -30,8 +30,14 @@ struct ReleaseNote: Equatable {
 /// `testTheCurrentVersionHasANote`.
 enum ReleaseNotes {
     static let all: [ReleaseNote] = [
+        ReleaseNote(version: "1.6.0", headline: "CodenotchT：更清晰的独立定制版", changes: [
+            .init(title: "75% 面板与更清晰的文字", detail: "展开面板为原尺寸的 75%，详情使用易读字号。"),
+            .init(title: "更易找到的透黑胶囊", detail: "收起后为 10×40 点胶囊，鼠标移入即可展开。"),
+            .init(title: "中文设置与原版共存", detail: "设置页面已汉化；使用独立应用标识，可与 Codenotch 同时安装。按住 Option 拖动可调整位置。")
+        ]),
+
         ReleaseNote(
-            version: "1.6.0",
+            version: "1.6.0-upstream",
             headline: "Reorder the rings, pick a display, and get told when a limit is close.",
             changes: [
                 ReleaseNote.Change(

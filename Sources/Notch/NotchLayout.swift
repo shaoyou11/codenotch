@@ -43,8 +43,8 @@ enum NotchLayout {
 
     // The resting pill. Not in the design frame — it is the notch folded away,
     // sized to read as a deliberate handle rather than a sliver of chrome.
-    static let pillWidth: CGFloat = 7
-    static let pillHeight: CGFloat = 28
+    static let pillWidth: CGFloat = 10
+    static let pillHeight: CGFloat = 40
     /// The pill is small, so the region that wakes it is deliberately larger.
     static let pillHotZone = Design.px(90)
 
@@ -117,7 +117,7 @@ enum NotchLayout {
     static let orbHotZone  = Design.px(152)
 
     // The hover tooltip
-    static let cardWidth     = Design.px(600)
+    static let cardWidth     = max(Design.px(600), 220)
     static let cardCorner    = Design.px(49.5)
     static let cardPadding   = Design.px(32)
     static let tailLength    = Design.px(75)
@@ -146,13 +146,13 @@ enum NotchLayout {
     }()
 
     static let cardTitleLineHeight: CGFloat = lineHeight(
-        NSFont.systemFont(ofSize: Design.fontSize(capPixels: 26), weight: .semibold)
+        NSFont.systemFont(ofSize: max(12, Design.fontSize(capPixels: 26)), weight: .semibold)
     )
     /// The card's body face. Held rather than rebuilt at each use: the line
     /// height below and the wrap measurement in `bodyTextHeight` have to be
     /// measuring the same font, or the budget and the text disagree.
     static let cardBodyFont = NSFont.systemFont(
-        ofSize: Design.fontSize(capPixels: 18), weight: .regular
+        ofSize: max(11, Design.fontSize(capPixels: 18)), weight: .regular
     )
     static let cardBodyLineHeight: CGFloat = lineHeight(cardBodyFont)
 

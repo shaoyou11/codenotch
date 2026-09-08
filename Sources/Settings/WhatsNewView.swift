@@ -18,7 +18,7 @@ struct WhatsNewView: View {
             Divider()
             HStack {
                 Spacer(minLength: 0)
-                Button("Continue", action: onContinue)
+                Button("继续", action: onContinue)
                     .keyboardShortcut(.defaultAction)
             }
             .padding(.horizontal, 24)
@@ -35,10 +35,10 @@ struct WhatsNewView: View {
                     .frame(width: 60, height: 60)
                     .padding(.bottom, 8)
             }
-            Text("What's new in Codenotch")
+            Text("CodenotchT 更新内容")
                 .font(.system(size: 19, weight: .semibold))
                 .multilineTextAlignment(.center)
-            Text("Version \(note.version)")
+            Text("版本 \(note.version)")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
             Text(note.headline)

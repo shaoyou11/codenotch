@@ -56,25 +56,23 @@ enum NotchEdge: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .right:  return "Right"
-        case .left:   return "Left"
-        case .top:    return "Top"
-        case .bottom: return "Bottom"
+        case .right:  return "右侧"
+        case .left:   return "左侧"
+        case .top:    return "顶部"
+        case .bottom: return "底部"
         }
     }
 
     var explanation: String {
         switch self {
         case .right:
-            return "Down the right-hand edge, clear of a Dock on that side."
+            return "贴在屏幕右侧，并避开右侧的程序坞。"
         case .left:
-            return "Down the left-hand edge, clear of a Dock on that side."
+            return "贴在屏幕左侧，并避开左侧的程序坞。"
         case .top:
-            return "A wide bar across the top, readings side by side. On a Mac "
-                 + "with a notch of its own it runs up to meet it, so the two "
-                 + "read as one shape."
+            return "在顶部横向显示；带硬件刘海的 Mac 会与刘海衔接。"
         case .bottom:
-            return "A wide bar resting on top of the Dock, readings side by side."
+            return "在底部横向显示，并避开程序坞。"
         }
     }
 }

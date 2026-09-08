@@ -8,17 +8,17 @@ enum ResetTimeFormat: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .automatic: return "Reset date"
-        case .remaining: return "Time remaining"
+        case .automatic: return "重置日期"
+        case .remaining: return "剩余时间"
         }
     }
 
     var explanation: String {
         switch self {
         case .automatic:
-            return "Minutes under an hour; otherwise the reset date and time."
+            return "不足一小时显示剩余分钟，否则显示重置日期和时间。"
         case .remaining:
-            return "Time until usage resets, such as 3 Days 3h or 3h 20m."
+            return "显示距离额度重置的时间，例如 3 天 3 小时。"
         }
     }
 }

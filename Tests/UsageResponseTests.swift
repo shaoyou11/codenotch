@@ -804,7 +804,7 @@ final class SignInRoutingTests: XCTestCase {
 final class ModalRouteCopyTests: XCTestCase {
     func testTheModalRouteOffersToSignIn() {
         XCTAssertEqual(SignInRoute.modal(name: "Perplexity").actionTitle,
-                       "Sign in to Perplexity")
+                       "登录 Perplexity")
     }
 
     func testItDoesNotClaimYouStaySignedIn() {

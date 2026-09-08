@@ -22,7 +22,7 @@ enum AccentColorChoice: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .system:   return "Device accent color"
+        case .system:   return "跟随系统强调色"
         case .pink:     return "#FF33E1"
         case .red:      return "#EB4236"
         case .orange:   return "#EB8436"

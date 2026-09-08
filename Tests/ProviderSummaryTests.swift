@@ -3,7 +3,7 @@ import XCTest
 
 /// What the settings row is allowed to offer.
 ///
-/// "Allow access…" used to be shown for every keychain-backed provider,
+/// "允许访问…" used to be shown for every keychain-backed provider,
 /// unconditionally. That put a remedy on screen next to a perfectly working
 /// account, and — because the same row looked identical when the remedy *was*
 /// needed — gave no way to tell a button that had nothing to do from one that

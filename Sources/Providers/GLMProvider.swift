@@ -34,8 +34,7 @@ actor GLMProvider: UsageProvider {
     }
 
     nonisolated var signInRoute: SignInRoute {
-        .guidance("Usage rides on a Z.ai GLM Coding Plan key held by a coding tool — Claude "
-                  + "Code's settings.json, ZCode or OpenCode. Set one up there and the notch reads it.")
+        .guidance("请先在 Claude Code 的 settings.json、ZCode 或 OpenCode 中配置 Z.ai GLM Coding Plan 密钥，面板会从该工具读取用量。")
     }
 
     nonisolated func forgetCachedCredential() {

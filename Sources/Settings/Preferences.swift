@@ -228,7 +228,7 @@ final class Preferences: ObservableObject {
     /// the notch's mode, the archived readings, all apparently lost. Copying
     /// the old domain across once is the difference between a rename and what
     /// looks like a reset.
-    private static let previousDomain = "com.vinz.usagenotch"
+    private static let previousDomain = "com.vinz.codenotch"
 
     static func migrateFromPreviousName(into defaults: UserDefaults = .standard,
                                         from domain: String = previousDomain) {
@@ -346,7 +346,7 @@ final class Preferences: ObservableObject {
     /// update, and wiping data on every Sparkle update would be catastrophic.
     /// It has to be something the user asks for.
     static func eraseAllData() {
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.vinz.codenotch"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.shaoyou11.codenotcht"
         UserDefaults.standard.removePersistentDomain(forName: bundleID)
         UserDefaults.standard.synchronize()
 

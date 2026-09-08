@@ -18,26 +18,24 @@ enum NotchVisibility: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .alwaysShow: return "Always show"
-        case .onHover:    return "Show on hover"
-        case .hidden:     return "Hide"
+        case .alwaysShow: return "始终显示"
+        case .onHover:    return "悬停展开"
+        case .hidden:     return "隐藏"
         }
     }
 
     var explanation: String {
         switch self {
         case .alwaysShow:
-            return "The notch stays open with every reading visible."
+            return "始终展开面板，显示全部用量。"
         case .onHover:
-            return "A small pill at the screen edge that opens when you reach it."
+            return "平时显示小胶囊，鼠标移入后展开。"
         case .hidden:
             // Said here because a hidden notch is also a hidden way back in.
             // Names the menu bar route: with the notch off screen the readings
             // live in the menu bar menu instead, so Hide plus App icon "Menu
             // bar" is a working setup rather than a one-way door.
-            return "Nothing on screen. The readings stay in the menu bar menu "
-                 + "when App icon is Menu bar. Otherwise, open Codenotch again "
-                 + "from Applications to bring these settings back."
+            return "隐藏悬浮面板。若选择菜单栏图标，仍可在菜单栏查看用量；也可从「应用程序」重新打开 CodenotchT 进入设置。"
         }
     }
 }

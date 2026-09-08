@@ -18,23 +18,22 @@ enum AppPresence: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .dock:    return "Dock"
-        case .menuBar: return "Menu bar"
-        case .hidden:  return "Neither"
+        case .dock:    return "程序坞"
+        case .menuBar: return "菜单栏"
+        case .hidden:  return "不显示"
         }
     }
 
     var explanation: String {
         switch self {
         case .dock:
-            return "A normal app icon in the Dock while Codenotch is running."
+            return "运行时在程序坞显示 CodenotchT 图标。"
         case .menuBar:
-            return "A small icon in the menu bar instead, and nothing in the Dock."
+            return "仅在菜单栏显示图标，程序坞不显示。"
         case .hidden:
             // Said here because choosing this removes every visible way back to
             // these settings, and finding that out afterwards is too late.
-            return "No icon anywhere. Open Codenotch again from Applications to "
-                 + "bring these settings back."
+            return "不显示应用图标，可从「应用程序」重新打开 CodenotchT 进入设置。"
         }
     }
 

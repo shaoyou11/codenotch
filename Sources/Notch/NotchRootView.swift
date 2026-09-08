@@ -91,7 +91,7 @@ struct NotchRootView: View {
     private func notch(_ place: NotchPlacement) -> some View {
         if !model.isExpanded, model.joinedNotch == nil {
             Capsule()
-                .fill(Color.black.opacity(0.65))
+                .fill(Color.black.opacity(0.72))
                 .frame(width: model.notchSize.width, height: model.notchSize.height)
                 .position(place.point(
                     along: model.notchLeadingInset + model.notchLength / 2,
