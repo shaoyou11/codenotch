@@ -125,7 +125,7 @@ final class NotchViewModel: ObservableObject {
     /// that was asked for.
     var drawnCornerRadius: CGFloat {
         guard let hardwareNotch else { return NotchLayout.cornerRadius }
-        return min(NotchLayout.cornerRadius, hardwareNotch.height / 2)
+        return hardwareNotch.height / 2
     }
 
     /// What the orb scales to as it folds away. Nestled in a flare it grows

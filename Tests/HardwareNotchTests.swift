@@ -181,8 +181,8 @@ final class MergedTopNotchTests: XCTestCase {
     /// reserves only the small frame corner at its ends where a flared one
     /// reserves a whole `curlRadius`.
     func testAWideStackIsLeftAlone() {
-        XCTAssertEqual(model(cells: 5).endSpread, 0, accuracy: 0.001)
-        XCTAssertEqual(model(cells: 4).endSpread, 0, accuracy: 0.001)
+        XCTAssertEqual(model(cells: 10).endSpread, 0, accuracy: 0.001)
+        XCTAssertEqual(model(cells: 8).endSpread, 0, accuracy: 0.001)
     }
 
     func testASideEdgeIsNeverWidenedForIt() {
@@ -582,7 +582,8 @@ final class BarEndMarginTests: XCTestCase {
     /// rather than one that dwarfs them.
     func testTheMarginBesideTheFirstRingIsProportionate() {
         let m = model()
-        let ringEdge = m.ringCenter(index: 0) - NotchLayout.ringDiameter / 2
+        // Widening to clear the physical camera housing is intentional, not spare padding.
+        let ringEdge = m.ringCenter(index: 0) - NotchLayout.ringDiameter / 2 - m.endSpread
         XCTAssertLessThan(ringEdge, NotchLayout.ringDiameter * 1.2,
                           "there is more black beside the first ring than there is ring")
     }

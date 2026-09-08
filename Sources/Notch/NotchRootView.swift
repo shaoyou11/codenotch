@@ -87,7 +87,23 @@ struct NotchRootView: View {
             : NotchMotion.merge
     }
 
+    @ViewBuilder
     private func notch(_ place: NotchPlacement) -> some View {
+        if !model.isExpanded, model.joinedNotch == nil {
+            Capsule()
+                .fill(Color.black.opacity(0.65))
+                .frame(width: model.notchSize.width, height: model.notchSize.height)
+                .position(place.point(
+                    along: model.notchLeadingInset + model.notchLength / 2,
+                    across: model.notchDepth / 2
+                ))
+                .transition(.opacity)
+        } else {
+            expandedNotch(place)
+        }
+    }
+
+    private func expandedNotch(_ place: NotchPlacement) -> some View {
         SideNotchShape(edge: model.edge, joining: model.joinedNotch)
             .fill(Palette.notch)
             .frame(width: model.notchSize.width, height: model.notchSize.height)

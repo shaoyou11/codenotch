@@ -43,8 +43,8 @@ enum NotchLayout {
 
     // The resting pill. Not in the design frame — it is the notch folded away,
     // sized to read as a deliberate handle rather than a sliver of chrome.
-    static let pillWidth  = Design.px(26)
-    static let pillHeight = Design.px(210)
+    static let pillWidth: CGFloat = 7
+    static let pillHeight: CGFloat = 28
     /// The pill is small, so the region that wakes it is deliberately larger.
     static let pillHotZone = Design.px(90)
 

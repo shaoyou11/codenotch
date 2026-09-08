@@ -32,6 +32,39 @@ final class NotchRenderTests: XCTestCase {
         return NSBitmapImageRep(cgImage: image)
     }
 
+    func testCompactRestingPillHasTranslucentCentreAndRoundedEnds() {
+        let m = model(edge: .right, cells: 1)
+        m.isExpanded = false
+        guard let rep = render(m) else { return XCTFail("No rendered pill") }
+        let place = NotchPlacement(edge: .right, panelSize: m.panelSize)
+        func alpha(along: CGFloat, across: CGFloat) -> CGFloat {
+            let point = place.point(along: m.notchLeadingInset + along, across: across)
+            return rep.colorAt(x: Int(point.x), y: Int(point.y))?.alphaComponent ?? 0
+        }
+        XCTAssertEqual(alpha(along: 14, across: 3), 0.65, accuracy: 0.03)
+        // The boundary pixel is anti-aliased; it must be clearly lighter than the centre.
+        XCTAssertLessThan(alpha(along: 0, across: 6), 0.4)
+        XCTAssertEqual(m.notchSize, CGSize(width: 7, height: 28))
+        // Save the real rendering for visual review, without exposing live account data.
+        let renderer = ImageRenderer(content: NotchRootView(model: m)
+            .frame(width: m.panelSize.width, height: m.panelSize.height)
+            .background(Color(red: 0.30, green: 0.58, blue: 0.74)))
+        renderer.scale = 2
+        if let image = renderer.cgImage,
+           let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
+            try? png.write(to: URL(fileURLWithPath: "/tmp/codenotch-compact-pill.png"))
+        }
+        m.isExpanded = true
+        let expanded = ImageRenderer(content: NotchRootView(model: m)
+            .frame(width: m.panelSize.width, height: m.panelSize.height)
+            .background(Color(red: 0.30, green: 0.58, blue: 0.74)))
+        expanded.scale = 2
+        if let image = expanded.cgImage,
+           let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
+            try? png.write(to: URL(fileURLWithPath: "/tmp/codenotch-compact-expanded.png"))
+        }
+    }
+
     /// Fraction of sampled pixels that are painted at all.
     private func inkedFraction(_ rep: NSBitmapImageRep) -> Double {
         var inked = 0, total = 0
