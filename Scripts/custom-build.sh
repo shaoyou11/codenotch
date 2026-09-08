@@ -12,7 +12,8 @@ xcodegen generate
 xcodebuild -project Codenotch.xcodeproj -scheme Codenotch \
   -destination 'platform=macOS,arch=arm64' -configuration Release \
   -derivedDataPath build/CustomDerivedData \
-  CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= CODE_SIGN_STYLE=Automatic build
+  CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= CODE_SIGN_STYLE=Automatic \
+  ENABLE_HARDENED_RUNTIME=NO build
 mkdir -p build/custom
 # ZIP preserves executable permissions and app bundle metadata for Downloads/Actions.
 ditto -c -k --sequesterRsrc --keepParent \
