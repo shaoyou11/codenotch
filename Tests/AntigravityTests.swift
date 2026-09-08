@@ -705,7 +705,7 @@ final class AppPresenceTests: XCTestCase {
     /// Choosing this removes every visible way back into settings, so the
     /// option itself has to say where the door is.
     func testHidingExplainsHowToGetBack() {
-        XCTAssertTrue(AppPresence.hidden.explanation.contains("Applications"))
+        XCTAssertTrue(AppPresence.hidden.explanation.contains("应用程序"))
     }
 
     func testEveryModeIsNamedAndExplained() {

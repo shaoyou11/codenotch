@@ -775,7 +775,7 @@ final class NotchVisibilityTests: XCTestCase {
     /// Hiding removes every other way back into the app, so the option itself
     /// has to say where the door is.
     func testHidingExplainsHowToGetBack() {
-        XCTAssertTrue(NotchVisibility.hidden.explanation.contains("Applications"))
+        XCTAssertTrue(NotchVisibility.hidden.explanation.contains("应用程序"))
     }
 
     func testEveryModeIsOfferedAndNamed() {
