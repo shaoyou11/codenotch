@@ -43,7 +43,7 @@ enum GeminiAPICredentials {
         guard !tools.isEmpty else { return nil }
         let isGoogleAccount = authType == "oauth-personal"
         return ProviderAccount(
-            label: isGoogleAccount ? "Google 账号" : "API 密钥",
+            label: isGoogleAccount ? "Google account" : "API key",
             // "metered" rather than a plan name: a bare key is not on a plan,
             // it is charged per token at a price that changes under the app.
             plan: isGoogleAccount ? nil : "metered",

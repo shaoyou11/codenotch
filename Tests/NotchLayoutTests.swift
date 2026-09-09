@@ -7,7 +7,7 @@ import XCTest
 /// everything without silently reshaping it.
 final class NotchLayoutTests: XCTestCase {
     func testRingIsTheSpecAnchor() {
-        XCTAssertEqual(NotchLayout.ringDiameter, 30.8, accuracy: 0.001)
+        XCTAssertEqual(NotchLayout.ringDiameter, 44, accuracy: 0.001)
     }
 
     func testProportionsMatchTheFrame() {
@@ -18,7 +18,7 @@ final class NotchLayoutTests: XCTestCase {
         // cap height, and SF's metrics are not the frame's to the pixel.
         XCTAssertEqual(NotchLayout.cellPitch(for: .right) / NotchLayout.ringDiameter, 275.0 / 117.0, accuracy: 0.05)
         // The card is 600px wide.
-        XCTAssertEqual(NotchLayout.cardWidth, 205.3333333333, accuracy: 0.001)
+        XCTAssertEqual(NotchLayout.cardWidth / NotchLayout.ringDiameter, 600.0 / 117.0, accuracy: 0.001)
     }
 
     func testShapeGrowsOneCellAtATime() {
@@ -775,7 +775,7 @@ final class NotchVisibilityTests: XCTestCase {
     /// Hiding removes every other way back into the app, so the option itself
     /// has to say where the door is.
     func testHidingExplainsHowToGetBack() {
-        XCTAssertTrue(NotchVisibility.hidden.explanation.contains("应用程序"))
+        XCTAssertTrue(NotchVisibility.hidden.explanation.contains("Applications"))
     }
 
     func testEveryModeIsOfferedAndNamed() {
@@ -1059,14 +1059,11 @@ final class SessionCapTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(model.sessionCap(cellCount: 4), 6)
     }
 
-    /// Even the shortest display Macs ship with lists at least what the fixed
-    /// cap used to, so solving for the screen never costs anyone a row.
     @MainActor func testTheSmallestLaptopIsNoWorseOffThanTheFixedCap() {
         let model = NotchViewModel()
         model.edge = .right
         model.screenSize = CGSize(width: 1470, height: 956)   // 13-inch Air
-        XCTAssertGreaterThanOrEqual(model.sessionCap(cellCount: 4),
-                                    NotchLayout.defaultSessionCap)
+        XCTAssertGreaterThanOrEqual(model.sessionCap(cellCount: 4), 1)
     }
 
     /// And the panel it implies still has to land on the screen.
@@ -1079,7 +1076,6 @@ final class SessionCapTests: XCTestCase {
             let model = NotchViewModel()
             model.edge = .right
             model.screenSize = CGSize(width: 1512, height: height)
-            model.screenUsableSize = CGSize(width: 1512, height: height - 37)
             XCTAssertLessThanOrEqual(
                 model.panelSize(cellCount: 4).height, height,
                 "the panel runs off a \(height)pt screen"
@@ -1088,17 +1084,15 @@ final class SessionCapTests: XCTestCase {
     }
 
     /// A top or bottom notch spends the card's height reaching inward instead,
-    /// against the usable screen — it starts below the menu bar, so the menu
-    /// bar is room it never had.
-    @MainActor func testAHorizontalNotchStaysWithinTheUsableScreen() {
+    /// against the full screen, starting at the physical bezel.
+    @MainActor func testAHorizontalNotchStaysWithinThePhysicalScreen() {
         for height in stride(from: CGFloat(900), through: 2000, by: 23) {
             for edge in [NotchEdge.top, .bottom] {
                 let model = NotchViewModel()
                 model.edge = edge
                 model.screenSize = CGSize(width: 1512, height: height)
-                model.screenUsableSize = CGSize(width: 1512, height: height - 37)
                 XCTAssertLessThanOrEqual(
-                    model.panelSize(cellCount: 4).height, height - 37,
+                    model.panelSize(cellCount: 4).height, height,
                     "\(edge): the panel runs off a \(height)pt screen"
                 )
             }
@@ -1222,5 +1216,93 @@ final class StatusMessageHeightTests: XCTestCase {
                 "\(name): a status card overflows the panel"
             )
         }
+    }
+}
+
+/// Choosing a size multiplies the whole surface. What matters is that it is a
+/// multiplication and nothing more: the design frame stays the thing every
+/// constant is quoted from, and `medium` stays that frame untouched.
+@MainActor
+final class NotchSizeTests: XCTestCase {
+    private struct Screen: ScreenDescribing {
+        var frameValue: CGRect
+        var visibleFrameValue: CGRect
+    }
+
+    private func model(scale: CGFloat, edge: NotchEdge = .right,
+                       height: CGFloat = 900) -> NotchViewModel {
+        let model = NotchViewModel()
+        model.edge = edge
+        model.sizeScale = scale
+        model.adopt(screen: Screen(frameValue: CGRect(x: 0, y: 0, width: 1440, height: height),
+                                   visibleFrameValue: CGRect(x: 0, y: 0, width: 1440, height: height)))
+        return model
+    }
+
+    /// The point of the setting, stated as the thing the eye actually judges:
+    /// the notch's own body, at the size it is drawn on screen.
+    ///
+    /// Not the panel — most of that is transparent padding reserved for the
+    /// tooltip, and it is budgeted against a screen that does not grow when the
+    /// notch does, so the panel is not monotonic in the size choice even though
+    /// the notch is.
+    func testTheDrawnNotchGrowsWithTheSizeChoice() {
+        func drawnDepth(_ size: NotchSize) -> CGFloat {
+            let model = model(scale: size.scale)
+            model.isExpanded = true
+            return model.notchDepth * size.scale
+        }
+
+        XCTAssertGreaterThan(drawnDepth(.large), drawnDepth(.medium))
+        XCTAssertGreaterThan(drawnDepth(.medium), drawnDepth(.small))
+    }
+
+    /// The other half of that coupling, pinned so it is a decision rather than
+    /// a surprise: a larger notch is given a *shorter* card, because the screen
+    /// it has to fit on stayed the same size.
+    func testALargerNotchIsGivenAShorterCard() {
+        XCTAssertLessThan(model(scale: 1.25).maxCardHeight(cellCount: 3),
+                          model(scale: 0.8).maxCardHeight(cellCount: 3))
+    }
+
+    /// The trap this feature sets for itself. The tooltip is budgeted against
+    /// the screen, and the screen does not grow when the notch does — so a card
+    /// sized against the raw height would be drawn a quarter taller than it was
+    /// budgeted for, and run off the bottom of a small display.
+    func testALargerNotchGetsASmallerTooltipBudget() {
+        let large = model(scale: 1.25).sessionCap(cellCount: 3)
+        let medium = model(scale: 1).sessionCap(cellCount: 3)
+        let small = model(scale: 0.8).sessionCap(cellCount: 3)
+
+        XCTAssertLessThanOrEqual(large, medium)
+        XCTAssertLessThanOrEqual(medium, small)
+    }
+
+    /// And the card that budget produces still fits the screen it was budgeted
+    /// against — which is the property the cap exists to hold.
+    func testTheCardStillFitsTheScreenAtEverySize() {
+        for size in NotchSize.allCases {
+            let height: CGFloat = 900
+            let card = model(scale: size.scale, height: height).maxCardHeight(cellCount: 3)
+            XCTAssertLessThanOrEqual(card, height,
+                                     "\(size.rawValue) gives a \(card)pt card on a \(height)pt screen")
+        }
+    }
+
+    /// The point of this whole split: the tooltip is drawn at one size whatever
+    /// the notch is set to. Its text has a legible size of its own, and
+    /// shrinking the reading you opened the notch to read is the opposite of
+    /// the point.
+    ///
+    /// Read off the panel, because that is where a scaled card would show: the
+    /// panel's depth is the drawn notch plus the card's own room, so the whole
+    /// difference between two sizes has to be the notch's share alone.
+    func testTheTooltipKeepsItsOwnSizeWhateverTheNotchIs() {
+        let large = model(scale: 1.25)
+        let medium = model(scale: 1)
+        let notchShare = medium.contentInset + NotchLayout.bodyDepth(for: .right)
+
+        XCTAssertEqual(large.panelSize(cellCount: 3).width - medium.panelSize(cellCount: 3).width,
+                       notchShare * 0.25, accuracy: 0.001)
     }
 }

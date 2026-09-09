@@ -6,9 +6,9 @@ import XCTest
 final class FullscreenTests: XCTestCase {
     func testFullscreenGeometryAndOrdinaryMaximizedWindow() {
         let screen = CGRect(x: 1440, y: 0, width: 1920, height: 1080)
-        XCTAssertTrue(FullscreenDetector.fillsScreen(screen, screen: screen))
-        XCTAssertFalse(FullscreenDetector.fillsScreen(CGRect(x: 1440, y: 25, width: 1920, height: 1055), screen: screen))
-        XCTAssertFalse(FullscreenDetector.fillsScreen(CGRect(x: 0, y: 0, width: 1920, height: 1080), screen: screen))
+        XCTAssertTrue(CustomFullscreenDetector.fillsScreen(screen, screen: screen))
+        XCTAssertFalse(CustomFullscreenDetector.fillsScreen(CGRect(x: 1440, y: 25, width: 1920, height: 1055), screen: screen))
+        XCTAssertFalse(CustomFullscreenDetector.fillsScreen(CGRect(x: 0, y: 0, width: 1920, height: 1080), screen: screen))
     }
 
     func testFullscreenOverridesPinAndRestoresIt() throws {

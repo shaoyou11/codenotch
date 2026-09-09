@@ -1,8 +1,14 @@
 import Foundation
 
+enum ProviderKind: Equatable {
+    case usage
+    case localRuntime
+}
+
 /// One source of usage numbers. Each adapter declares how trustworthy it is,
 /// and the UI never dresses a derived number up as an official one.
 protocol UsageProvider {
+    var kind: ProviderKind { get }
     var id: String { get }
     /// Enough to draw the cell even when a fetch has never succeeded.
     var displayName: String { get }
@@ -41,6 +47,19 @@ protocol UsageProvider {
     /// and no prompt appears. A requirement, not an extension member, for the
     /// reason spelled out above `account()`.
     func forgetCachedCredential()
+    /// Whether this provider should keep a cell or placeholder in the notch when
+    /// its account or daemon is unavailable. Most providers default to `true`
+    /// so users see sign-in guidance; local daemon providers return `false`
+    /// so an inactive service does not take up a ring in the notch.
+    var isVisibleWhenAbsent: Bool { get }
+}
+
+extension UsageProvider {
+    var isVisibleWhenAbsent: Bool { true }
+}
+
+extension UsageProvider {
+    var kind: ProviderKind { .usage }
 }
 
 enum UsageProviderError: Error {
@@ -55,6 +74,10 @@ enum UsageProviderError: Error {
     /// refresh it the next time it runs. Not the same as being signed out: the
     /// last reading is still true, just old.
     case credentialExpired
+    /// The fetch never came back inside the store's deadline. Says nothing
+    /// about the account — the usual cause is a keychain read sitting behind an
+    /// authorization prompt nobody has answered yet.
+    case timedOut
     /// The endpoint answered, but not with anything we understand.
     case badResponse(status: Int)
     /// Asked to slow down. Carries the server's own retry hint when it gave one.

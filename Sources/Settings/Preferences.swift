@@ -6,14 +6,19 @@ import os
 /// What the user has chosen, kept in `UserDefaults`.
 @MainActor
 final class Preferences: ObservableObject {
-    /// Providers the user has switched off. Stored as the *disconnected* set
-    /// rather than the connected one, so a provider added in a later version is
-    /// on by default instead of silently staying dark.
-    ///
-    /// Switching one off is not merely hiding it: the store stops fetching it,
-    /// so its credential is never read at all.
+    static let showUsagePaceKey = "showUsagePace"
+
+    /// Disabled model IDs hide cells without stopping their shared runtime.
     @Published var disconnectedProviders: Set<String> {
         didSet { defaults.set(Array(disconnectedProviders), forKey: Keys.disconnected) }
+    }
+
+    @Published var ollamaMetricsEnabled: Bool {
+        didSet { defaults.set(ollamaMetricsEnabled, forKey: Keys.ollamaMetricsEnabled) }
+    }
+
+    @Published var ollamaEndpoint: String {
+        didSet { defaults.set(ollamaEndpoint, forKey: Keys.ollamaEndpoint) }
     }
 
     /// Providers whose threshold alerts are muted. Stored as the muted set so
@@ -46,6 +51,50 @@ final class Preferences: ObservableObject {
     /// Which screen edge the notch is welded to.
     @Published var notchEdge: NotchEdge {
         didSet { defaults.set(notchEdge.rawValue, forKey: Keys.edge) }
+    }
+
+    /// How large the notch is drawn, as one of three named sizes.
+    ///
+    /// Ignored while `usesCustomNotchScale` is on — the two are kept apart
+    /// rather than collapsed into one number so that switching back to the
+    /// presets returns to the preset you last chose, instead of to whichever
+    /// preset happens to sit nearest the slider.
+    @Published var hideInFullscreen: Bool {
+        didSet { defaults.set(hideInFullscreen, forKey: "hideInFullscreen") }
+    }
+    @Published var usageDisplayMode: UsageDisplayMode {
+        didSet { defaults.set(usageDisplayMode.rawValue, forKey: "usageDisplayMode") }
+    }
+
+    @Published var notchSize: NotchSize {
+        didSet { defaults.set(notchSize.rawValue, forKey: Keys.size) }
+    }
+
+    /// Whether the slider decides the size rather than the three presets.
+    @Published var usesCustomNotchScale: Bool {
+        didSet { defaults.set(usesCustomNotchScale, forKey: Keys.usesCustomSize) }
+    }
+
+    /// The slider's own multiplier, honoured only when the slider is in
+    /// charge. Clamped on the way in: a value typed straight into `defaults`
+    /// could otherwise shrink the notch to nothing or blow it off the screen.
+    @Published var customNotchScale: Double {
+        didSet {
+            let clamped = min(max(customNotchScale, Self.customScaleRange.lowerBound),
+                              Self.customScaleRange.upperBound)
+            if clamped != customNotchScale { customNotchScale = clamped; return }
+            defaults.set(customNotchScale, forKey: Keys.customSize)
+        }
+    }
+
+    /// Where the slider may go. Wider than the presets at both ends, but not
+    /// unbounded: below about three quarters the percentage under each ring
+    /// stops being readable, which is the one thing the notch exists for.
+    static let customScaleRange: ClosedRange<Double> = 0.30...1.0
+
+    /// What the notch is actually drawn at, whichever control is in charge.
+    var notchScale: CGFloat {
+        usesCustomNotchScale ? CGFloat(customNotchScale) : notchSize.scale
     }
 
     /// The display the notch stays on, or the original focus-following behaviour.
@@ -85,25 +134,25 @@ final class Preferences: ObservableObject {
 
     private static func offsetKey(for edge: NotchEdge) -> String { "notchOffset.\(edge.rawValue)" }
 
-    @Published var hideInFullscreen: Bool {
-        didSet { defaults.set(hideInFullscreen, forKey: "hideInFullscreen") }
-    }
-
-    @Published var interfaceSize: InterfaceSize {
-        didSet { defaults.set(interfaceSize.rawValue, forKey: "interfaceSize") }
-    }
-
-    @Published var usageDisplayMode: UsageDisplayMode {
-        didSet { defaults.set(usageDisplayMode.rawValue, forKey: "usageDisplayMode") }
-    }
-
     @Published var resetTimeFormat: ResetTimeFormat {
         didSet { defaults.set(resetTimeFormat.rawValue, forKey: Keys.resetTimeFormat) }
+    }
+
+    @Published var showUsagePace: Bool {
+        didSet { defaults.set(showUsagePace, forKey: Self.showUsagePaceKey) }
     }
 
     /// The colour used for positive usage and active-work indicators.
     @Published var accentColor: AccentColorChoice {
         didSet { defaults.set(accentColor.rawValue, forKey: Keys.accentColor) }
+    }
+
+    /// The language the app itself speaks.
+    ///
+    /// `.system` follows the Mac. Written through `L10n.apply` so the store
+    /// and the change notification stay a single write.
+    @Published var language: AppLanguage {
+        didSet { L10n.apply(language) }
     }
 
     /// Where the app itself shows up: Dock, menu bar, or nowhere.
@@ -191,11 +240,19 @@ final class Preferences: ObservableObject {
     private enum Keys {
         /// The old name. Kept so existing choices survive the rename.
         static let disconnected = "hiddenProviders"
+        static let ollamaEndpoint = "ollamaEndpoint"
+        static let introducedOllama = "introducedOllama"
+        static let migratedOllamaID = "migratedOllamaLocalID"
+        static let ollamaMetricsEnabled = "ollamaMetricsEnabled"
         static let mutedAlerts = "mutedAlertProviders"
         static let hasLaunched = "hasLaunchedBefore"
         static let visibility = "notchVisibility"
         static let presence = "appPresence"
         static let edge = "notchEdge"
+        // A new key, so there is nothing under the old app name to migrate.
+        static let size = "notchSize"
+        static let usesCustomSize = "usesCustomNotchScale"
+        static let customSize = "customNotchScale"
         static let display = "notchDisplay"
         static let resetTimeFormat = "resetTimeFormat"
         static let scope = "notchScope"
@@ -261,7 +318,31 @@ final class Preferences: ObservableObject {
         self.defaults = defaults
         self.isFirstLaunch = !defaults.bool(forKey: Keys.hasLaunched)
         defaults.set(true, forKey: Keys.hasLaunched)
-        self.disconnectedProviders = Set(defaults.stringArray(forKey: Keys.disconnected) ?? [])
+        // Only the earlier local integration used this sentinel. Keep unrelated
+        // provider IDs untouched when upgrading from upstream.
+        if defaults.bool(forKey: Keys.introducedOllama),
+           !defaults.bool(forKey: Keys.migratedOllamaID) {
+            for key in [Keys.disconnected, Keys.order, Keys.mutedAlerts] {
+                var seen = Set<String>()
+                let migrated = (defaults.stringArray(forKey: key) ?? []).map { id in
+                    if id == "ollama" { return "ollama-local" }
+                    if id.hasPrefix("ollama:model:") {
+                        return "ollama-local:model:" + id.dropFirst("ollama:model:".count)
+                    }
+                    return id
+                }.filter { seen.insert($0).inserted }
+                defaults.set(migrated, forKey: key)
+            }
+            defaults.set(true, forKey: Keys.migratedOllamaID)
+        }
+        let disconnected = Set(defaults.stringArray(forKey: Keys.disconnected) ?? [])
+        self.disconnectedProviders = disconnected
+        self.ollamaMetricsEnabled = defaults.object(forKey: Keys.ollamaMetricsEnabled) as? Bool
+            ?? (defaults.bool(forKey: Keys.introducedOllama)
+                && !disconnected.contains("ollama-local"))
+        self.ollamaEndpoint = (try? OllamaEndpoint.parse(
+            defaults.string(forKey: Keys.ollamaEndpoint) ?? OllamaEndpoint.defaultAddress
+        ).absoluteString) ?? OllamaEndpoint.defaultAddress
         self.mutedAlertProviders = Set(defaults.stringArray(forKey: Keys.mutedAlerts) ?? [])
         // Absent means never chosen, which is the hover behaviour the app was
         // designed around — not hidden, which would make a fresh install look
@@ -277,14 +358,25 @@ final class Preferences: ObservableObject {
         // side of a Mac that no system chrome claims by default.
         self.notchEdge = defaults.string(forKey: Keys.edge)
             .flatMap(NotchEdge.init(rawValue:)) ?? .right
+        // Medium is the design frame at 1:1, so an install that predates this
+        // choice keeps exactly the notch it already had.
+        self.hideInFullscreen = defaults.object(forKey: "hideInFullscreen") as? Bool ?? true
+        self.usageDisplayMode = defaults.string(forKey: "usageDisplayMode").flatMap(UsageDisplayMode.init(rawValue:)) ?? .used
+        let legacySize = defaults.object(forKey: "interfaceSize") as? Int ?? 70
+        self.notchSize = defaults.string(forKey: Keys.size)
+            .flatMap(NotchSize.init(rawValue:)) ?? NotchSize.presets.first { Int(($0.scale * 100).rounded()) == legacySize } ?? .seventy
+        // Absent means never chosen, and the presets are what every earlier
+        // version had — so the slider is opt-in rather than the default.
+        self.usesCustomNotchScale = defaults.bool(forKey: Keys.usesCustomSize)
+        let stored = defaults.object(forKey: Keys.customSize) as? Double
+        self.customNotchScale = stored.map {
+            min(max($0, Self.customScaleRange.lowerBound), Self.customScaleRange.upperBound)
+        } ?? Double(self.notchSize.scale)
         self.displayPreference = defaults.string(forKey: Keys.display)
             .map(DisplayPreference.display) ?? .followActiveWindow
-        self.hideInFullscreen = defaults.object(forKey: "hideInFullscreen") as? Bool ?? true
-        self.interfaceSize = InterfaceSize(rawValue: defaults.integer(forKey: "interfaceSize")) ?? .standard
-        self.usageDisplayMode = defaults.string(forKey: "usageDisplayMode")
-            .flatMap(UsageDisplayMode.init(rawValue:)) ?? .used
         self.resetTimeFormat = defaults.string(forKey: Keys.resetTimeFormat)
             .flatMap(ResetTimeFormat.init(rawValue:)) ?? .automatic
+        self.showUsagePace = defaults.bool(forKey: Self.showUsagePaceKey)
         // Absent means never chosen. Main display only, because that is what a
         // single-panel setup always did — all-displays on a fresh install
         // would put notches where none were expected.
@@ -293,6 +385,9 @@ final class Preferences: ObservableObject {
         // Follow the Mac unless the user explicitly chooses a Codenotch colour.
         self.accentColor = defaults.string(forKey: Keys.accentColor)
             .flatMap(AccentColorChoice.init(rawValue:)) ?? .system
+        // Absent means never chosen, which is follow-the-Mac.
+        self.language = defaults.string(forKey: L10n.languageDefaultsKey)
+            .flatMap(AppLanguage.init(rawValue:)) ?? .system
         // Absent means nothing has been shown yet, which is true of a fresh
         // install — so the current release reads as new to it.
         self.lastSeenVersion = defaults.string(forKey: Keys.lastSeenVersion)
@@ -362,7 +457,7 @@ final class Preferences: ObservableObject {
     /// update, and wiping data on every Sparkle update would be catastrophic.
     /// It has to be something the user asks for.
     static func eraseAllData() {
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.shaoyou11.codenotcht"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.vinz.codenotch"
         UserDefaults.standard.removePersistentDomain(forName: bundleID)
         UserDefaults.standard.synchronize()
 
@@ -396,7 +491,7 @@ final class Preferences: ObservableObject {
             // Commonly refused for an app running from a build directory rather
             // than /Applications, which is worth saying plainly.
             Log.usage.error("launch at login failed: \(error.localizedDescription, privacy: .public)")
-            launchAtLoginProblem = "macOS refused this — try moving Codenotch to /Applications."
+            launchAtLoginProblem = L10n.t("macOS refused this — try moving Codenotch to /Applications.")
             launchAtLogin = Self.isRegisteredForLogin
         }
     }

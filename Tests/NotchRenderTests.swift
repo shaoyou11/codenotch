@@ -32,39 +32,6 @@ final class NotchRenderTests: XCTestCase {
         return NSBitmapImageRep(cgImage: image)
     }
 
-    func testCompactRestingPillHasTranslucentCentreAndRoundedEnds() {
-        let m = model(edge: .right, cells: 1)
-        m.isExpanded = false
-        guard let rep = render(m) else { return XCTFail("No rendered pill") }
-        let place = NotchPlacement(edge: .right, panelSize: m.panelSize)
-        func alpha(along: CGFloat, across: CGFloat) -> CGFloat {
-            let point = place.point(along: m.notchLeadingInset + along, across: across)
-            return rep.colorAt(x: Int(point.x), y: Int(point.y))?.alphaComponent ?? 0
-        }
-        XCTAssertEqual(alpha(along: 20, across: 5), 0.72, accuracy: 0.03)
-        // The boundary pixel is anti-aliased; it must be clearly lighter than the centre.
-        XCTAssertLessThan(alpha(along: 0, across: 9), 0.4)
-        XCTAssertEqual(m.notchSize, CGSize(width: 10, height: 40))
-        // Save the real rendering for visual review, without exposing live account data.
-        let renderer = ImageRenderer(content: NotchRootView(model: m)
-            .frame(width: m.panelSize.width, height: m.panelSize.height)
-            .background(Color(red: 0.30, green: 0.58, blue: 0.74)))
-        renderer.scale = 2
-        if let image = renderer.cgImage,
-           let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
-            try? png.write(to: URL(fileURLWithPath: "/tmp/codenotch-compact-pill.png"))
-        }
-        m.isExpanded = true
-        let expanded = ImageRenderer(content: NotchRootView(model: m)
-            .frame(width: m.panelSize.width, height: m.panelSize.height)
-            .background(Color(red: 0.30, green: 0.58, blue: 0.74)))
-        expanded.scale = 2
-        if let image = expanded.cgImage,
-           let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
-            try? png.write(to: URL(fileURLWithPath: "/tmp/codenotch-compact-expanded.png"))
-        }
-    }
-
     /// Fraction of sampled pixels that are painted at all.
     private func inkedFraction(_ rep: NSBitmapImageRep) -> Double {
         var inked = 0, total = 0
@@ -114,6 +81,53 @@ final class NotchRenderTests: XCTestCase {
                 colour?.alphaComponent ?? 0, 1, accuracy: 0.01,
                 "\(edge): nothing painted where the notch meets the bezel"
             )
+        }
+    }
+
+    /// The orb has to stay attached to the notch at every size.
+    ///
+    /// `position` hands back a view the size of the whole panel, so a scale
+    /// applied *after* it scales that layer about the panel's centre and slides
+    /// the orb away by a share of the panel — the arc left floating off the
+    /// corner it is drawn to hug. Arithmetic cannot see that: the numbers going
+    /// in were right and the modifier order was not, so this looks at the
+    /// pixels instead.
+    func testNothingIsPaintedBeyondTheNotchAndItsOrbAtAnySize() {
+        for size in NotchSize.allCases {
+            let m = model(edge: .right)
+            m.sizeScale = size.scale
+            guard let rep = render(m) else {
+                XCTFail("\(size.rawValue): no image")
+                continue
+            }
+            let place = NotchPlacement(edge: .right, panelSize: m.panelSize)
+            let scale = size.scale
+            // What the notch and the orb legitimately reach, derived rather
+            // than guessed, plus a point for the stroke's own width.
+            let reach = m.orbArcRadius * scale + NotchLayout.orbStroke
+            let deepest = max(m.notchDepth * scale, m.orbInset * scale + reach)
+            let furthest = m.slack + max(m.shapeLength, m.orbAlong) * scale + reach
+            let nearest = m.slack - reach
+
+            var maxAcross = 0.0, maxAlong = -Double.infinity, minAlong = Double.infinity
+            for x in stride(from: 0, to: rep.pixelsWide, by: 2) {
+                for y in stride(from: 0, to: rep.pixelsHigh, by: 2) {
+                    guard let colour = rep.colorAt(x: x, y: y),
+                          colour.alphaComponent > 0.5 else { continue }
+                    let point = CGPoint(x: x, y: y)
+                    maxAcross = max(maxAcross, place.across(of: point))
+                    maxAlong = max(maxAlong, place.along(of: point))
+                    minAlong = min(minAlong, place.along(of: point))
+                }
+            }
+
+            XCTAssertLessThanOrEqual(maxAcross, deepest + 1,
+                                     "\(size.rawValue): something is painted \(maxAcross)pt in "
+                                     + "from the bezel, past the \(deepest)pt the notch and orb reach")
+            XCTAssertLessThanOrEqual(maxAlong, furthest + 1,
+                                     "\(size.rawValue): something is painted past the far end")
+            XCTAssertGreaterThanOrEqual(minAlong, nearest - 1,
+                                        "\(size.rawValue): something is painted before the near end")
         }
     }
 }
@@ -249,7 +263,7 @@ final class EdgeCrossfadeTests: XCTestCase {
                        "the notch never came back")
         guard let screen = NotchGeometry.preferredScreen(from: NSScreen.screens) else { return }
         XCTAssertEqual(controller.panelFrameForTesting?.minY ?? -1,
-                       screen.visibleFrame.minY, accuracy: 1,
+                       screen.frame.minY, accuracy: 1,
                        "it did not end up on the edge it was sent to")
     }
 
@@ -355,13 +369,13 @@ final class EdgeArrivalTests: XCTestCase {
     }
 }
 
-/// "始终显示" is a standing choice, and clicking the notch must not quietly
+/// "Always show" is a standing choice, and clicking the notch must not quietly
 /// undo it.
 ///
 /// It was held in `isPinned` — the same flag a click on the notch toggles. So
 /// clicking anywhere on the bar that was not a ring or the settings orb turned
 /// the flag off, the notch started folding on the way out, and Settings went on
-/// saying "始终显示". Reported as: it sometimes reverts to show-on-hover.
+/// saying "Always show". Reported as: it sometimes reverts to show-on-hover.
 @MainActor
 final class AlwaysShowTests: XCTestCase {
     func testClickingTheNotchDoesNotUndoAlwaysShow() {
@@ -446,7 +460,7 @@ final class StrayClickPinTests: XCTestCase {
         XCTAssertFalse(controller.model.isExpanded)
         XCTAssertFalse(controller.model.isPinned)
 
-        controller.handleClick()
+        controller.handleClick(at: .zero)
 
         XCTAssertTrue(controller.model.isExpanded, "the click did not open it at all")
         XCTAssertFalse(controller.model.isPinned, "a click before it ever opened pinned it")
@@ -456,7 +470,7 @@ final class StrayClickPinTests: XCTestCase {
     /// pill's hot zone is large enough that more than one could land.
     func testRepeatedClicksBeforeOpeningNeverPin() {
         let controller = NotchWindowController()
-        for _ in 0..<3 { controller.handleClick() }
+        for _ in 0..<3 { controller.handleClick(at: .zero) }
         XCTAssertFalse(controller.model.isPinned)
         XCTAssertTrue(controller.model.isExpanded)
     }
@@ -541,5 +555,41 @@ final class StaleAfterMarginTests: XCTestCase {
     func testTheShippedDefaultsKeepTheSameMargin() {
         let store = UsageStore(providers: [])
         XCTAssertGreaterThan(store.staleAfterForTesting, store.idleRefreshIntervalForTesting)
+    }
+}
+
+@MainActor
+final class PhysicalPanelIntegrationTests: XCTestCase {
+    func testActualPanelsStayOnTheBezelAndKeepCornerCardsVisible() throws {
+        let screen = try XCTUnwrap(NSScreen.main)
+        for size in NotchSize.allCases {
+            for edge in NotchEdge.allCases {
+                let controller = NotchWindowController()
+                controller.assignedScreen = screen
+                controller.model.edge = edge
+                controller.model.sizeScale = size.scale
+                controller.model.snapshots = Array(Fixtures.snapshots().prefix(2))
+                controller.show()
+                defer { controller.stop() }
+                for offset: CGFloat in [-10000, 0, 10000] {
+                    controller.model.alongOffset = offset
+                    controller.relocate()
+                    let frame = try XCTUnwrap(controller.panelFrameForTesting)
+                    switch edge {
+                    case .left: XCTAssertEqual(frame.minX, screen.frame.minX, accuracy: 1)
+                    case .right: XCTAssertEqual(frame.maxX, screen.frame.maxX, accuracy: 1)
+                    case .top: XCTAssertEqual(frame.maxY, screen.frame.maxY, accuracy: 1)
+                    case .bottom: XCTAssertEqual(frame.minY, screen.frame.minY, accuracy: 1)
+                    }
+                    let range = try XCTUnwrap(controller.model.visibleAlongRange)
+                    let length: CGFloat = edge.isVertical ? 260 : NotchLayout.cardWidth
+                    for index in 0..<2 {
+                        let centre = controller.model.tooltipAlong(index: index, length: length)
+                        XCTAssertGreaterThanOrEqual(centre - length / 2, range.lowerBound)
+                        XCTAssertLessThanOrEqual(centre + length / 2, range.upperBound)
+                    }
+                }
+            }
+        }
     }
 }

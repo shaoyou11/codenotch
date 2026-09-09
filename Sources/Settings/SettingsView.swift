@@ -1,6 +1,24 @@
 import AppKit
 import CoreTransferable
 import SwiftUI
+import Combine
+
+/// A Liquid Glass background that falls back to a regular material on macOS
+/// 15, where `glassEffect` does not exist. The visual difference is minor — the
+/// sidebar gets a standard vibrancy material instead of the glass tint — and
+/// the layout and interactions are unchanged.
+extension View {
+    @ViewBuilder
+    func glassBackground(in shape: some Shape) -> some View {
+        if #available(macOS 26.0, *) {
+            background { Color.clear.glassEffect(.regular, in: shape) }
+        } else {
+            background {
+                shape.fill(.regularMaterial)
+            }
+        }
+    }
+}
 
 /// One entry in the sidebar. Grouped by subject rather than by how each
 /// setting is stored — a mute toggle for a provider's threshold alerts lives
@@ -8,22 +26,24 @@ import SwiftUI
 /// crossing-and-notification machinery it switches is Notifications' to
 /// explain.
 private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
-    case accounts, appearance, notifications, general
+    case accounts, ollama, appearance, notifications, general
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .accounts:      return "账号"
-        case .appearance:    return "外观"
-        case .notifications: return "通知"
-        case .general:       return "通用"
+        case .accounts:      return L10n.t("Accounts")
+        case .ollama:        return "Ollama"   // a product name, the same in every language
+        case .appearance:    return L10n.t("Appearance")
+        case .notifications: return L10n.t("Notifications")
+        case .general:       return L10n.t("General")
         }
     }
 
     var icon: String {
         switch self {
         case .accounts:      return "person.crop.circle.fill"
+        case .ollama:        return "desktopcomputer"
         case .appearance:    return "paintbrush.fill"
         case .notifications: return "bell.badge.fill"
         case .general:       return "gearshape.fill"
@@ -36,6 +56,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     var tint: Color {
         switch self {
         case .accounts:      return .blue
+        case .ollama:        return .teal
         case .appearance:    return .indigo
         case .notifications: return .red
         case .general:       return .gray
@@ -55,8 +76,7 @@ private struct VisualEffect: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = .behindWindow
+        apply(to: view, context: context)
         // `.followsWindowActiveState` would drain the colour out of the panel
         // whenever focus went elsewhere, which for a settings window that is
         // read while another app is in front is most of the time.
@@ -65,7 +85,17 @@ private struct VisualEffect: NSViewRepresentable {
     }
 
     func updateNSView(_ view: NSVisualEffectView, context: Context) {
-        view.material = material
+        apply(to: view, context: context)
+    }
+
+    private func apply(to view: NSVisualEffectView, context: Context) {
+        if context.environment.codenotchReduceTransparency {
+            view.material = .windowBackground
+            view.blendingMode = .withinWindow
+        } else {
+            view.material = material
+            view.blendingMode = .behindWindow
+        }
     }
 }
 
@@ -133,7 +163,15 @@ struct SettingsView: View {
     /// Re-reads a provider's credential. For a declined keychain prompt that is
     /// the whole remedy: asking again is what puts the prompt back on screen.
     let retry: (String) -> Void
+    /// Put the notch back in the middle of its edge. A closure rather than a
+    /// write to `preferences`, because the stored offset is not `@Published` —
+    /// nothing would tell the notch to move, and the setting would only take
+    /// effect the next time the edge changed.
+    let resetPosition: () -> Void
     @ObservedObject var updater: Updater
+    var ollamaRelay: OllamaActivityRelay? = nil
+    var usageStore: UsageStore? = nil
+    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
 
     var body: some View {
         // A plain HStack rather than `NavigationSplitView`: the sidebar here
@@ -153,6 +191,20 @@ struct SettingsView: View {
                 // is titled the way a sidebar of documents would be.
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        // Rebuild the whole pane when the language changes.
+        //
+        // A segmented `Picker` draws its options through `ForEach`, which
+        // identifies each row by its tag — the enum case. Switching language
+        // changes only the title that row renders, not its identity, so the
+        // rows compare equal, AppKit's segmented control is told nothing has
+        // changed, and it keeps the segment labels it was first built with.
+        // The result was a pane where every plain `Text` had switched back to
+        // English and every picker was still in Chinese.
+        //
+        // Re-identifying here rather than on each picker: there are eleven of
+        // them across four panes, and a twelfth added later would arrive with
+        // the bug and no way to notice.
+        .id(preferences.language)
         .tint(preferences.accentColor.color)
         .environment(\.codenotchAccentColor, preferences.accentColor.color)
         // Fills the window rather than claiming a fixed size. Under
@@ -165,9 +217,22 @@ struct SettingsView: View {
         // (see `SettingsWindowController.show()`), so this material is the
         // whole visible surface, and clipping it is what rounds all four
         // corners rather than only the two macOS rounds for a titled window.
-        .background(VisualEffect(material: .underWindowBackground))
+        .background {
+            if reduceTransparency {
+                Color(nsColor: .windowBackgroundColor)
+            } else {
+                VisualEffect(material: .underWindowBackground)
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: SettingsView.cornerRadius,
                                     style: .continuous))
+        .overlay {
+            if reduceTransparency {
+                RoundedRectangle(cornerRadius: SettingsView.cornerRadius,
+                                 style: .continuous)
+                    .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
+            }
+        }
         // Without this SwiftUI insets the content by the title bar's height
         // even though the window has none to speak of, and the panel's own
         // rounded top is pushed down leaving a transparent band with the
@@ -180,6 +245,18 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(
             for: NSApplication.didChangeScreenParametersNotification
         )) { _ in displays = DisplayOption.connected }
+        .onReceive((usageStore?.$notchSnapshots.eraseToAnyPublisher()
+                    ?? Empty<[ProviderSnapshot], Never>().eraseToAnyPublisher())
+            .receive(on: RunLoop.main)) { _ in
+                // The sheet stays open while models load and unload. Update
+                // those rows without re-reading cloud credentials on each poll.
+                guard let usageStore else { return }
+                let models = usageStore.localModelSummaries
+                let updated = accounts.filter { $0.localModel == nil }.flatMap { account in
+                    [account] + models.filter { $0.sourceProviderID == account.id }
+                }
+                accounts = ProviderOrder.arrange(updated, by: preferences.providerOrder, id: \.id)
+            }
     }
 
     /// The subject list, drawn as a card floating inside the window rather
@@ -224,14 +301,32 @@ struct SettingsView: View {
         .frame(width: SettingsView.sidebarWidth)
         // Liquid Glass, the way System Settings draws its own floating
         // sidebar on this OS — not a flat tint over the window's material.
-        // The glass is what gives the card an edge and a lift of its own, so
-        // there is no border drawn on top of it.
+        // Under reduce-transparency, swap to an opaque solid card with an explicit border.
         .background {
-            Color.clear.glassEffect(
-                .regular,
-                in: RoundedRectangle(cornerRadius: SettingsView.sidebarCornerRadius,
-                                     style: .continuous)
-            )
+            // Reduce-transparency wins outright: it is a request for no
+            // see-through surface at all, which neither glass nor a material
+            // would honour. Only past that does the OS decide which of the
+            // two translucent treatments it can actually draw.
+            if reduceTransparency {
+                RoundedRectangle(cornerRadius: SettingsView.sidebarCornerRadius,
+                                 style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: SettingsView.sidebarCornerRadius,
+                                         style: .continuous)
+                            .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
+                    )
+            } else if #available(macOS 26.0, *) {
+                Color.clear.glassEffect(
+                    .regular,
+                    in: RoundedRectangle(cornerRadius: SettingsView.sidebarCornerRadius,
+                                         style: .continuous)
+                )
+            } else {
+                RoundedRectangle(cornerRadius: SettingsView.sidebarCornerRadius,
+                                 style: .continuous)
+                    .fill(.regularMaterial)
+            }
         }
         .padding(SettingsView.sidebarInset)
     }
@@ -247,7 +342,7 @@ struct SettingsView: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("隐藏侧边栏")
+        .help(L10n.t("Hide Sidebar"))
     }
 
     /// And brings it back, from the pane's own header.
@@ -262,11 +357,21 @@ struct SettingsView: View {
                 .font(.system(size: 15, weight: .regular))
                 .foregroundStyle(.primary)
                 .frame(width: 36, height: 36)
-                .background { Color.clear.glassEffect(.regular, in: Circle()) }
+                .background {
+                    if reduceTransparency {
+                        Circle()
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .overlay(Circle().strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1))
+                    } else if #available(macOS 26.0, *) {
+                        Color.clear.glassEffect(.regular, in: Circle())
+                    } else {
+                        Circle().fill(.regularMaterial)
+                    }
+                }
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .help("显示侧边栏")
+        .help(L10n.t("Show Sidebar"))
     }
 
     private func toggleSidebar() {
@@ -308,6 +413,15 @@ struct SettingsView: View {
     private func paneContent(for section: SettingsSection) -> some View {
         switch section {
         case .accounts:      accountsPane
+        case .ollama:
+            if let usageStore {
+                Form {
+                    Section("Connection") {
+                        OllamaSettingsRow(preferences: preferences, store: usageStore, relay: ollamaRelay)
+                    }
+                }
+                .formStyle(.grouped)
+            }
         case .appearance:    appearancePane
         case .notifications: notificationsPane
         case .general:       generalPane
@@ -319,7 +433,7 @@ struct SettingsView: View {
             // Split in two, because ordering only means anything for the
             // first group: a provider switched off has no ring in the notch,
             // so dragging it was arranging something that is not on screen.
-            Section("已连接") {
+            Section(L10n.t("Connected")) {
                 if needsSetup { setupNote }
                 ForEach(connected) { account in
                     AccountRow(provider: account, preferences: preferences,
@@ -333,19 +447,19 @@ struct SettingsView: View {
                                didConnect: { connect(account.id) })
                 }
                 if connected.isEmpty {
-                    Text("尚未连接账号，悬浮面板暂无内容。")
+                    Text(L10n.t("Nothing is connected, so the notch has no rings to draw."))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text("圆环按此顺序显示，可拖动左侧手柄调整顺序。")
+                } else if !connected.isEmpty {
+                    Text(L10n.t("The notch draws these in this order. Drag one by its handle to move it."))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // Beside the switches it explains, not stranded at the end of
                 // the page.
-                Text("CodenotchT 从已登录的工具读取用量。在这里断开连接会停止读取并清除用量记录，不会退出原工具中的账号。首次访问或更换账号时，macOS 可能询问权限；选择「始终允许」可减少重复询问。")
+                Text(L10n.t("Codenotch never signs in — each reading is borrowed from the tool that already holds the account. Signing out here stops the credential being read and forgets the numbers, but leaves you signed in to that tool. macOS asks once per tool the first time, and again whenever you sign in to a different account; Always Allow keeps it quiet."))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -354,7 +468,7 @@ struct SettingsView: View {
             // Absent rather than empty when everything is on: a titled, empty
             // group reads as something having failed to load.
             if !notConnected.isEmpty {
-                Section("未连接") {
+                Section(L10n.t("Not connected")) {
                     ForEach(notConnected) { account in
                         AccountRow(provider: account, preferences: preferences,
                                    signOut: signOut, signIn: signIn,
@@ -368,7 +482,7 @@ struct SettingsView: View {
                     }
                     // Says what switching one back on will do, which is the
                     // only question this group raises.
-                    Text("开启后，对应圆环会添加到上方列表末尾。")
+                    Text(L10n.t("These have no ring to place. Switch one on and it joins the end of the list above."))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -387,28 +501,8 @@ struct SettingsView: View {
     // warning.
     private var appearancePane: some View {
         Form {
-            Section("悬浮面板") {
-                Toggle("全屏时自动隐藏", isOn: $preferences.hideInFullscreen)
-                Text("视频或网页等占满所在屏幕时隐藏，包括固定展开；退出全屏后恢复。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Picker("整体大小", selection: $preferences.interfaceSize) {
-                    ForEach(InterfaceSize.allCases) { Text($0.title).tag($0) }
-                }
-                Text("调整面板、图标和详情大小；立即生效并自动保存。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Picker("图标下方百分比", selection: $preferences.usageDisplayMode) {
-                    ForEach(UsageDisplayMode.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                Text("例如已用 20% 或剩余 80%；圆环仍表示已用额度。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Picker("重置时间", selection: $preferences.resetTimeFormat) {
+            Section(L10n.t("Notch")) {
+                Picker(L10n.t("Reset time"), selection: $preferences.resetTimeFormat) {
                     ForEach(ResetTimeFormat.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -418,7 +512,13 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Picker("显示方式", selection: $preferences.notchVisibility) {
+                Toggle(L10n.t("Show usage pace"), isOn: $preferences.showUsagePace)
+                Text(L10n.t("Compares each timed allowance with the time left until reset, showing quota in deficit or held in reserve."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Picker(L10n.t("Show"), selection: $preferences.notchVisibility) {
                     ForEach(NotchVisibility.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -428,7 +528,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Picker("贴边位置", selection: $preferences.notchEdge) {
+                Picker(L10n.t("Edge"), selection: $preferences.notchEdge) {
                     ForEach(NotchEdge.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -438,7 +538,74 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Picker("显示范围", selection: $preferences.notchScope) {
+                // Two ways to answer the same question, because they suit
+                // different people: three named sizes for anyone who wants a
+                // decision made for them, and a slider for anyone who has a
+                // particular size in mind and will not be talked out of it.
+                Toggle("全屏时自动隐藏", isOn: $preferences.hideInFullscreen)
+                Text("全屏时隐藏胶囊和固定面板，退出后恢复原状态。")
+                    .font(.caption).foregroundStyle(.secondary)
+                Picker("图标下方百分比", selection: $preferences.usageDisplayMode) {
+                    ForEach(UsageDisplayMode.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+
+                Picker(L10n.t("Size"), selection: Binding(
+                    get: { preferences.usesCustomNotchScale },
+                    set: { preferences.usesCustomNotchScale = $0 }
+                )) {
+                    Text("预设").tag(false)
+                    Text("自定义").tag(true)
+                }
+                .pickerStyle(.segmented)
+
+                if preferences.usesCustomNotchScale {
+                    HStack(spacing: 10) {
+                        // Continuous, with no step: a step quantises the drag
+                        // into a dozen visible jumps, which is exactly what
+                        // this control exists to avoid.
+                        Slider(value: $preferences.customNotchScale,
+                               in: Preferences.customScaleRange)
+                        // Monospaced digits, so the number does not jitter
+                        // sideways while the slider is being dragged.
+                        Text(Self.scalePercent(preferences.customNotchScale))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                            .frame(width: 46, alignment: .trailing)
+                    }
+
+                    Text("连续调整至 30%～100%；100% 为原尺寸，详情保留上游可读布局。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Picker("预设大小", selection: $preferences.notchSize) {
+                        ForEach(NotchSize.presets) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.menu)
+
+                    Text(preferences.notchSize.explanation)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                // The nudge has been draggable since the edge picker existed,
+                // and nothing on screen has ever said so — the only way to
+                // find it was to hold ⌥ on the notch and see what happened.
+                // This is also the only way back from a nudge that went too
+                // far, short of dragging it out again.
+                HStack {
+                    Text(L10n.t("Hold ⌥ and drag the notch to slide it along its edge. Each edge remembers where you left it."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Button(L10n.t("Recentre"), action: resetPosition)
+                        .controlSize(.small)
+                }
+
+                Picker(L10n.t("Displays"), selection: $preferences.notchScope) {
                     ForEach(NotchScreenScope.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -449,17 +616,17 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 // Pinning to one display only means something when there is
-                // one notch to place — under "所有显示器" every screen
+                // one notch to place — under "All displays" every screen
                 // already gets its own, so there is nothing left to pin.
                 if preferences.notchScope == .mainDisplay {
-                    Picker("显示器", selection: $preferences.displayPreference) {
-                        Text("跟随活动窗口").tag(DisplayPreference.followActiveWindow)
+                    Picker(L10n.t("Display"), selection: $preferences.displayPreference) {
+                        Text(L10n.t("Follow active window")).tag(DisplayPreference.followActiveWindow)
                         ForEach(displays) { display in
                             Text(display.name).tag(DisplayPreference.display(display.id))
                         }
                         if case .display(let id) = preferences.displayPreference,
                            !displays.contains(where: { $0.id == id }) {
-                            Text("显示器未连接").tag(DisplayPreference.display(id))
+                            Text(L10n.t("Unavailable display")).tag(DisplayPreference.display(id))
                         }
                     }
 
@@ -472,8 +639,8 @@ struct SettingsView: View {
 
             // Apart from the notch's own group: these are about the app, not
             // the thing it draws on the screen edge.
-            Section("应用") {
-                LabeledContent("强调色") {
+            Section(L10n.t("App")) {
+                LabeledContent(L10n.t("Accent color")) {
                     // 2pt, not 7: each swatch is now sized to its own
                     // selection ring, so the gap the eye sees is this plus
                     // the 6pt of ring standing clear of the dot inside it.
@@ -489,14 +656,24 @@ struct SettingsView: View {
                     }
                 }
 
-                // "应用图标", not "Icon": the picker above is about the
+                // "App icon", not "Icon": the picker above is about the
                 // notch, and on its own the word would read as another of it.
-                Picker("应用图标", selection: $preferences.appPresence) {
+                Picker(L10n.t("App icon"), selection: $preferences.appPresence) {
                     ForEach(AppPresence.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
 
                 Text(preferences.appPresence.explanation)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Picker(L10n.t("Language"), selection: $preferences.language) {
+                    ForEach(AppLanguage.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+
+                Text(preferences.language.explanation)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -511,10 +688,10 @@ struct SettingsView: View {
             // part of the app that speaks first, and a switch that stops the
             // Mac making a noise has to be findable by someone who is looking
             // for exactly that and nothing else.
-            Section("会话结束时") {
-                Toggle("短暂展开面板", isOn: $preferences.announceSessionEnd)
+            Section(L10n.t("When a session ends")) {
+                Toggle(L10n.t("Open the notch for a moment"), isOn: $preferences.announceSessionEnd)
 
-                Picker("持续时间", selection: $preferences.peekDuration) {
+                Picker(L10n.t("For"), selection: $preferences.peekDuration) {
                     ForEach(PeekDuration.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -525,23 +702,23 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Toggle("播放提示音", isOn: $preferences.sessionEndSound)
+                Toggle(L10n.t("Play a sound"), isOn: $preferences.sessionEndSound)
 
                 // Two sounds, because the two events say different things: one
                 // is "that's done", the other is "you are the hold-up". Each
                 // has a preview beside it — picking an alert sound you cannot
                 // hear until the next time it fires is guesswork.
-                SoundRow(label: "任务完成", name: $preferences.sessionEndSoundName,
+                SoundRow(label: L10n.t("Finished"), name: $preferences.sessionEndSoundName,
                          pickerEnabled: preferences.sessionEndSound)
-                SoundRow(label: "等待操作", name: $preferences.sessionBlockedSoundName,
+                SoundRow(label: L10n.t("Waiting on you"), name: $preferences.sessionBlockedSoundName,
                          pickerEnabled: preferences.sessionEndSound)
 
-                Text("任务完成或等待你操作时，面板会短暂展开。点击面板可切换到该会话所在的应用；具体会话名称显示在提示卡片中。")
+                Text(L10n.t("Codenotch already knows the moment an agent stops working or stops to ask you something. Clicking the notch while it is open brings that session's app to the front — the app, not the tab: only some terminals let anything outside them choose a tab, so the tooltip names the session instead."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text("提示音通过常规音频输出播放，即使系统关闭了界面音效，也可以听到。")
+                Text(L10n.t("The sound plays on the ordinary output, not the interface sound-effects channel — so it is still heard with \u{201C}Play user interface sound effects\u{201D} switched off in System Settings → Sound."))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -551,8 +728,8 @@ struct SettingsView: View {
             // Accounts — muting is a fact about that provider's reading, not
             // about notifications in general — but the mechanism it silences
             // belongs to this pane's subject.
-            Section("用量阈值提醒") {
-                Text("用量达到 80% 和 100% 时分别提醒一次；额度重置后可再次提醒。可在「账号」页面点击铃铛关闭单个账号的提醒。")
+            Section(L10n.t("Threshold alerts")) {
+                Text(L10n.t("A system notification the moment a provider's headline limit crosses 80%, and again at 100% — once per crossing, and again only after the window rolls over. Mute one from the bell beside its row in Accounts."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -567,9 +744,9 @@ struct SettingsView: View {
     private var generalPane: some View {
         Form {
             // No title on the group: the pane's own header above already
-            // says "通用", and repeating it here would say it twice.
+            // says "General", and repeating it here would say it twice.
             Section {
-                Toggle("登录时启动 CodenotchT", isOn: $preferences.launchAtLogin)
+                Toggle(L10n.t("Open Codenotch at login"), isOn: $preferences.launchAtLogin)
                 if let problem = preferences.launchAtLoginProblem {
                     Text(problem)
                         .font(.caption)
@@ -577,7 +754,7 @@ struct SettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Toggle("定制版：已停用官方自动更新", isOn: Binding(
+                Toggle("官方自动更新（定制版已关闭）", isOn: Binding(
                     get: { updater.automatic },
                     set: { updater.automatic = $0 }
                 ))
@@ -590,12 +767,12 @@ struct SettingsView: View {
                     // a way to switch it off, is the difference between a
                     // background updater and something that looks like it is
                     // hiding.
-                    Text("版本 \(updater.currentVersion) · 75% 定制版。通过自己的仓库同步更新。")
+                    Text("CodenotchT \(updater.currentVersion)，更新请下载个人仓库 Releases 安装包。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)
-                    Button("更新说明") { updater.checkNow() }
+                    Button(L10n.t("Check now")) { updater.checkNow() }
                         .controlSize(.small)
                 }
 
@@ -619,7 +796,7 @@ struct SettingsView: View {
             // what an unrelated pane earns for it.
             Section {
                 HStack(spacing: 4) {
-                    Text("原版设计与开发")
+                    Text(L10n.t("App designed and developed by"))
                     Link("@hivinz_", destination: SettingsView.authorURL)
                         .foregroundStyle(authorLinkHovered
                                          ? preferences.accentColor.color : .primary)
@@ -645,15 +822,21 @@ struct SettingsView: View {
     private var displayExplanation: String {
         switch preferences.displayPreference {
         case .followActiveWindow:
-            return "跟随当前接收键盘输入的窗口所在显示器。"
+            return L10n.t("Moves to the display containing the window receiving keyboard input.")
         case .display(let id):
             if let display = displays.first(where: { $0.id == id }) {
-                return "固定在 \(display.name)。"
+                return L10n.t("Pinned to \(display.name).")
             }
-            return "该显示器已断开，暂时跟随活动窗口，重新连接后恢复。"
+            return L10n.t("That display is disconnected. Codenotch follows the active window until it returns.")
         }
     }
 
+
+    /// The slider's multiplier as a percentage, which is how people think
+    /// about "a bit bigger" — 1.15 means nothing, 115% is immediate.
+    static func scalePercent(_ scale: Double) -> String {
+        "\(Int((scale * 100).rounded()))%"
+    }
 
     static let authorURL = URL(string: "https://x.com/hivinz_")!
 
@@ -690,37 +873,46 @@ struct SettingsView: View {
 
     /// The rows the notch actually draws, in the order it draws them.
     ///
-    /// Filtered out of `accounts` rather than kept as a list of its own, so the
-    /// stored order stays one list: a provider switched off keeps its place in
-    /// it, and switching it back on returns it there instead of to the end.
+    /// Model switches control visibility; their shared runtime has its own
+    /// connection row and must remain enabled for its models to appear.
+    private var ringAccounts: [ProviderSummary] {
+        accounts.filter {
+            $0.kind == .usage || ($0.localModel != nil && preferences.isConnected($0.sourceProviderID ?? $0.id))
+        }
+    }
+
     private var connected: [ProviderSummary] {
-        accounts.filter { preferences.isConnected($0.id) }
+        ringAccounts.filter { preferences.isConnected($0.id) }
     }
 
     private var notConnected: [ProviderSummary] {
-        accounts.filter { !preferences.isConnected($0.id) }
+        ringAccounts.filter { !preferences.isConnected($0.id) }
     }
 
     /// Nothing to read from anywhere. On a first launch that is the normal
     /// state, and it is the only moment the sheet has something to explain.
     private var needsSetup: Bool {
-        !accounts.isEmpty && accounts.allSatisfy { $0.account == nil }
+        guard !connected.contains(where: { $0.localModel != nil }) else { return false }
+        let usageAccounts = accounts.filter { $0.kind == .usage }
+        return !usageAccounts.isEmpty && usageAccounts.allSatisfy { $0.account == nil }
     }
 
     /// Names the tools rather than saying "tools already signed in on this
     /// Mac". Someone who uses Claude in a browser reads that sentence, installs
     /// this, sees four blank rings and concludes it is broken — and the
     /// distinction that catches them out is Claude *Code*, not the Claude app.
-    static let setupCopy =
-        "CodenotchT 从本机已登录的工具读取用量，不会索取密码。支持 Claude Code（终端工具，不是 Claude 应用）、Cursor、Codex、Antigravity、GLM、Grok、OpenCode、GitHub Copilot，以及通过 Gemini CLI、OpenCode 或 Hermes 使用的 Gemini API 密钥。连接后即可显示对应圆环。"
+    static var setupCopy: String {
+        L10n.t("Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
+    }
 
     /// Said before it happens rather than after. A system dialogue asking to
     /// read a *credential*, from an app installed a minute ago, looks alarming
     /// unless it was expected — and choosing Allow instead of Always Allow makes
     /// it return on every read, which is what "it asks every time" turns out to
     /// be.
-    static let keychainCopy =
-        "macOS 可能请求访问 Claude Code、Antigravity 和 cursor-agent 已保存的登录信息。选择「始终允许」可减少重复询问，仅选择「允许」可能会在下次读取时再次询问。"
+    static var keychainCopy: String {
+        L10n.t("macOS will ask once for permission to read Claude Code's, Antigravity's and cursor-agent's saved logins. Choose Always Allow — plain Allow makes it ask again every time.")
+    }
 
     /// A provider has just been switched on: put it after the ones already
     /// connected.
@@ -768,7 +960,7 @@ struct SettingsView: View {
             Image(systemName: "sparkles")
                 .foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 3) {
-                Text("连接一个助手即可开始")
+                Text(L10n.t("Connect an assistant to get started"))
                     .font(.callout.weight(.medium))
                 Text(SettingsView.setupCopy)
                     .font(.caption)
@@ -784,7 +976,16 @@ struct SettingsView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.orange.opacity(0.09), in: RoundedRectangle(cornerRadius: 8))
+        .background(
+            reduceTransparency ? .orange.opacity(0.18) : .orange.opacity(0.09),
+            in: RoundedRectangle(cornerRadius: 8)
+        )
+        .overlay {
+            if reduceTransparency {
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(.orange.opacity(0.4), lineWidth: 1)
+            }
+        }
     }
 
 
@@ -838,6 +1039,8 @@ private struct AccentColorSwatch: View {
     let isSelected: Bool
     let select: () -> Void
 
+    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
+
     var body: some View {
         Button(action: select) {
             ZStack {
@@ -845,7 +1048,7 @@ private struct AccentColorSwatch: View {
                     .fill(choice.color)
                     .frame(width: 16, height: 16)
                     .overlay {
-                        Circle().strokeBorder(.primary.opacity(0.18), lineWidth: 1)
+                        Circle().strokeBorder(.primary.opacity(reduceTransparency ? 0.35 : 0.18), lineWidth: 1)
                     }
 
                 Circle()
@@ -863,7 +1066,7 @@ private struct AccentColorSwatch: View {
         .buttonStyle(.plain)
         .help(choice.title)
         .accessibilityLabel(choice.title)
-        .accessibilityValue(isSelected ? "已选中" : "未选中")
+        .accessibilityValue(isSelected ? L10n.t("Selected") : L10n.t("Not selected"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
@@ -885,7 +1088,7 @@ private struct SoundRow: View {
                 // to appear, or the picker would silently show a different one
                 // and the setting would look like it had changed itself.
                 if !SessionChime.available.contains(name) {
-                    Text("\(name)（不可用）").tag(name)
+                    Text(L10n.t("\(name) (missing)")).tag(name)
                 }
                 ForEach(SessionChime.available, id: \.self) { Text($0).tag($0) }
             }
@@ -897,7 +1100,7 @@ private struct SoundRow: View {
                 Image(systemName: "play.circle")
             }
             .buttonStyle(.borderless)
-            .help("试听 \(name)")
+            .help(L10n.t("Play \(name)"))
         }
     }
 }
@@ -928,6 +1131,8 @@ private struct AccountRow: View {
     /// Called after this row is switched on, so the list can decide where it
     /// now belongs. The row itself cannot: it can see only itself.
     let didConnect: () -> Void
+
+    @Environment(\.codenotchReduceTransparency) private var reduceTransparency
 
     /// The handle only appears under the pointer, so a row at rest stays as
     /// quiet as it was before there was anything to drag.
@@ -983,8 +1188,8 @@ private struct AccountRow: View {
                     .padding(.vertical, 4)
                 }
                 .help(isOrderable
-                      ? "拖动以调整圆环显示顺序。"
-                      : "开启后在面板中显示此账号。")
+                      ? L10n.t("Drag to reorder. The notch draws the rings in this order.")
+                      : L10n.t("Switch this on to give it a ring in the notch."))
                 // Two mechanisms, neither of which covers both halves.
                 // `pointerStyle` draws the hand on an ordinary hover but cannot
                 // re-evaluate under a pointer that has not moved, which is the
@@ -1007,7 +1212,7 @@ private struct AccountRow: View {
                 // Per-provider threshold alerts, muted here rather than in a
                 // separate notifications pane — the thing being muted is this
                 // row's reading, so the control belongs on the row.
-                if isConnected {
+                if isConnected, provider.kind == .usage {
                     Button {
                         preferences.setAlertsMuted(!isMuted, for: provider.id)
                     } label: {
@@ -1017,8 +1222,8 @@ private struct AccountRow: View {
                     }
                     .buttonStyle(.borderless)
                     .help(isMuted
-                          ? "已关闭 \(provider.name) 的提醒，点击可重新开启。"
-                          : "在 \(provider.name) 用量达到 80% 和 100% 时提醒。")
+                          ? L10n.t("Alerts for \(provider.name) are muted. Click to unmute.")
+                          : L10n.t("Alert when \(provider.name) crosses 80% and 100% of a limit."))
                 }
 
                 // Prefers the app that owns the account, and falls back to the
@@ -1039,9 +1244,9 @@ private struct AccountRow: View {
                 // there next to a working account offering to fix nothing — and
                 // when it *was* needed there was no way to tell the two apart.
                 if isConnected, provider.wasRefusedAccess {
-                    Button("允许访问…") { retry(provider.id) }
+                    Button(L10n.t("Allow access…")) { retry(provider.id) }
                         .controlSize(.small)
-                        .help("重新请求访问 \(provider.name) 已保存的登录信息，可选择「始终允许」。")
+                        .help(L10n.t("Asks macOS for \(provider.name)'s saved login again. Choose Always Allow and it will stop asking."))
                 }
 
                 if isConnected, let destination {
@@ -1050,13 +1255,15 @@ private struct AccountRow: View {
                         .help(destination.help)
                 }
 
-                Toggle("", isOn: binding)
+                Toggle(provider.name, isOn: binding)
                     .toggleStyle(.switch)
                     .controlSize(.small)
                     .labelsHidden()
-                    .help(isConnected
-                          ? "关闭后停止读取 \(provider.name) 并清除用量记录。" + provider.signIn.signOutCaveat
-                          : "开启后重新连接并读取 \(provider.name)。")
+                    .help(provider.localModel != nil
+                          ? L10n.t("Show or hide this model in the notch. It stays loaded in Ollama.")
+                          : isConnected
+                          ? L10n.t("Switch off to stop reading \(provider.name) and forget its readings. \(provider.signIn.signOutCaveat)")
+                          : L10n.t("Switch on to sign in and read \(provider.name) again."))
             }
 
             // 48 = the handle, the glyph and the two gaps before the name, so
@@ -1064,6 +1271,20 @@ private struct AccountRow: View {
             detail
                 .font(.caption)
                 .padding(.leading, 48)
+
+            // Outside `detail` on purpose. That chain shows the account summary
+            // whenever there is an account, and an aged-out token still has
+            // one — the credential is there, it is simply too old to use. Put
+            // inside, this warning would be swallowed by the very row that
+            // makes everything look fine.
+            if isConnected, provider.needsSignInRenewal {
+                Text("\(provider.name) usage needs its sign-in renewed — run "
+                     + "`claude` once in a terminal.")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .padding(.leading, 48)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         // The whole row is the drop target, handle or not: a 12pt strip is a
         // hard thing to hit, and there is no ambiguity about which row the
@@ -1107,7 +1328,7 @@ private struct AccountRow: View {
             // stayed gone until the pointer left the row and came back. Dimming
             // cannot fail that way — the worst a stale `isHovering` costs now
             // is a little emphasis.
-            .opacity(isHovering ? 1 : 0.4)
+            .opacity(isHovering ? 1 : (reduceTransparency ? 0.7 : 0.4))
             // Tall enough to be part of a real target rather than a 13pt strip
             // floating in the middle of the row.
             .frame(width: 12, height: 22)
@@ -1115,29 +1336,86 @@ private struct AccountRow: View {
 
     @ViewBuilder
     private var detail: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             accountDetail
             // Google publishes no limit for a bare API key, so the ring has
             // nothing to fill against until the user names a ceiling itself.
             if isConnected, provider.id == "gemini-api" {
-                HStack(spacing: 6) {
-                    Text("每月额度")
-                    TextField("未设置", value: $preferences.geminiAPIMonthlyTokenBudget,
-                              format: .number)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 110)
-                    Text("Token")
+                // The field's own title would be drawn as a leading label
+                // inside a `Form` row, which puts the caption hard against
+                // the box and leaves the unit stranded past it. Hidden, so
+                // the caption above can own the naming and the row can
+                // breathe.
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L10n.t("Monthly budget"))
+                    HStack(spacing: 8) {
+                        TextField(L10n.t("None"), value: $preferences.geminiAPIMonthlyTokenBudget,
+                                  format: .number)
+                            .textFieldStyle(.roundedBorder)
+                            .labelsHidden()
+                            .frame(width: 130)
+                        Text(L10n.t("tokens"))
+                    }
                 }
+                .padding(.top, 2)
                 .foregroundStyle(.secondary)
-                .help("按你设置的上限显示用量进度；Google 未公布 API 密钥的统一额度。")
+                .help(L10n.t("Fills the ring against a ceiling you choose; Google publishes none for an API key."))
+            }
+            // Ollama owns its credential: the user enters an API key here, stored
+            // in the keychain. The env var OLLAMA_API_KEY is checked first, so a
+            // shell that exports one needs no entry here.
+            if provider.id == "ollama" {
+                ollamaKeyEntry
             }
         }
     }
 
+    /// The API key input for Ollama. Stored in the keychain on Save, then a
+    /// refresh is triggered so the ring picks up the new credential without a
+    /// relaunch.
+    @State private var ollamaKey = ""
+    @State private var ollamaKeySaved = false
+
+    private var ollamaKeyEntry: some View {
+        // Laid out like the Gemini budget above it, and for the same reason:
+        // a field's own title becomes a leading label in a `Form` row, which
+        // crowds the box and pins it to the caption. The caption goes on its
+        // own line instead, and `.small` comes off the controls — it bought
+        // nothing but a cramped row.
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Ollama API key")
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                SecureField("Paste your key", text: $ollamaKey)
+                    .textContentType(.password)
+                    .textFieldStyle(.roundedBorder)
+                    .labelsHidden()
+                    .frame(maxWidth: 260)
+                Button("Save") {
+                    guard !ollamaKey.isEmpty else { return }
+                    OllamaCredentials.store(ollamaKey)
+                    ollamaKey = ""
+                    ollamaKeySaved = true
+                    _ = signIn(provider.id)
+                }
+                .disabled(ollamaKey.isEmpty)
+                if ollamaKeySaved {
+                    Text("Saved")
+                        .foregroundStyle(.green)
+                }
+            }
+        }
+        .padding(.top, 2)
+    }
+
     @ViewBuilder
     private var accountDetail: some View {
-        if !isConnected {
-            Text("已断开连接，不再读取或保留用量记录。")
+        if let model = provider.localModel {
+            Text(isConnected ? L10n.t("\(model.memoryText) \(model.memoryLabel) · via Ollama")
+                 : L10n.t("Hidden from the notch · Loaded in Ollama"))
+                .foregroundStyle(.secondary)
+        } else if !isConnected {
+            Text(L10n.t("Signed out — nothing is read, and no readings are kept."))
                 .foregroundStyle(.tertiary)
         } else if let account = provider.account {
             VStack(alignment: .leading, spacing: 2) {
@@ -1146,7 +1424,7 @@ private struct AccountRow: View {
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                     if canOpenSignIn {
-                        Button("切换…") { _ = switchAccount(provider.id) }
+                        Button(L10n.t("Switch…")) { _ = switchAccount(provider.id) }
                             .buttonStyle(.link)
                             .help(provider.signIn.switchHint)
                     }
@@ -1161,7 +1439,7 @@ private struct AccountRow: View {
             // Not a sign-in problem, so do not send them off to sign in. The
             // credential is right there and macOS is the one saying no — the
             // remedy is the button on this same row.
-            Text("macOS 尚未允许读取 \(provider.name) 的登录信息，请点击上方「允许访问…」，再选择「始终允许」。")
+            Text(L10n.t("macOS is not letting Codenotch read \(provider.name)'s saved login. Choose Allow access… above, then Always Allow."))
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         } else {
@@ -1185,17 +1463,17 @@ private struct AccountRow: View {
 
         var title: String {
             switch self {
-            case .app(_, let name):     return "打开 \(name)"
-            case .website(_, let host): return "打开 \(host)"
+            case .app(_, let name):     return L10n.t("Open \(name)")
+            case .website(_, let host): return L10n.t("Open \(host)")
             }
         }
 
         var help: String {
             switch self {
             case .app(_, let name):
-                return "打开此账号登录所在的 \(name)。"
+                return L10n.t("Opens \(name), which is where this account is signed in.")
             case .website(_, let host):
-                return "在浏览器中打开 \(host)，网站登录与此处读取的凭据相互独立。"
+                return L10n.t("Opens \(host) in your browser. That site has its own sign-in, separate from the credential read here.")
             }
         }
     }
@@ -1254,9 +1532,9 @@ private struct AccountRow: View {
                     didConnect()
                     // Nothing to open for Claude Code — but then there is no
                     // account either, so `detail` is already showing what to do.
-                    _ = signIn(provider.id)
+                    if provider.localModel == nil { _ = signIn(provider.id) }
                 } else {
-                    signOut(provider.id)
+                    if provider.localModel == nil { signOut(provider.id) }
                     preferences.setConnected(false, for: provider.id)
                 }
             }

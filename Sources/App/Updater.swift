@@ -1,8 +1,18 @@
 import Foundation
 import Sparkle
 
-/// The compact fork updates through its repository, never the official feed.
-/// Keeping Sparkle dormant also ignores an old official build's saved opt-in.
+/// Keeps the app up to date on its own.
+///
+/// Silent by design: `SUAutomaticallyUpdate` and `SUEnableAutomaticChecks` in
+/// the Info.plist mean Sparkle checks, downloads and installs without asking,
+/// and without the first-launch permission prompt it otherwise shows. For an
+/// agent app with no windows that is the only sensible behaviour — there is no
+/// natural moment to interrupt someone who never looks at it.
+///
+/// Two things it still cannot do silently, which is macOS rather than Sparkle:
+/// the app has to be writable by the user installing the update (true for a
+/// normal drag to /Applications, false if it was copied there with `sudo`), and
+/// the replacement is applied on relaunch rather than mid-flight.
 @MainActor
 final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
     /// What the last check came to, in words the settings sheet can show.
@@ -22,14 +32,13 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
         var message: String? {
             switch self {
             case .idle:          return nil
-            case .checking:      return "Checking…"
-            case .upToDate:      return "Codenotch is up to date."
-            case .found(let v):  return "Version \(v) is available and will install shortly."
+            case .checking:      return L10n.t("Checking…")
+            case .upToDate:      return L10n.t("Codenotch is up to date.")
+            case .found(let v):  return L10n.t("Version \(v) is available and will install shortly.")
             case .unreachable:
                 // The one people actually hit, and the one Sparkle's wording
                 // hides: nothing is wrong with the app or the machine.
-                return "Couldn't reach the update server. Codenotch will try "
-                     + "again on its own — nothing is wrong with this copy."
+                return L10n.t("Couldn't reach the update server. Codenotch will try again on its own — nothing is wrong with this copy.")
             case .failed(let why): return why
             }
         }
@@ -41,11 +50,9 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
         startingUpdater: true, updaterDelegate: self, userDriverDelegate: nil
     )
 
-    /// Read-only in the compact build to prevent replacing personal changes.
-    var automatic: Bool {
-        get { false }
-        set { /* Custom builds are updated from the fork, never the upstream feed. */ }
-    }
+    /// Mirrors the preference, so switching it off really does stop the checks
+    /// rather than only hiding them.
+    var automatic: Bool { get { false } set {} }
 
     var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
@@ -61,7 +68,7 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
     /// This one *does* show UI — it was asked for, so silence would read as a
     /// broken button.
     func checkNow() {
-        outcome = .failed("定制版通过自己的仓库更新；上游支持缩放和拖动后，可换回官方版。")
+        outcome = .failed("请到个人仓库 Releases 下载 CodenotchT 更新。")
     }
 
     // MARK: - SPUUpdaterDelegate

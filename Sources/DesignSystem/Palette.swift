@@ -14,6 +14,10 @@ enum Palette {
     static let watch         = Color(hex: 0xF2FF00)           // yellow
     static let critical      = Color(hex: 0xFF3F00)           // orange
 
+    // Generation-speed bands are independent of cloud quota usage.
+    static let generationFast = Color(hex: 0x0A84FF)          // blue
+    static let generationSlow = Color(hex: 0xFF453A)          // red
+
     static let textPrimary   = Color.white
     static let textSecondary = Color(hex: 0x808080)
 }
@@ -29,3 +33,17 @@ extension Color {
         )
     }
 }
+
+private struct CodenotchReduceTransparencyKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+extension EnvironmentValues {
+    /// True when macOS Accessibility "Reduce Transparency" is enabled in system settings,
+    /// or explicitly overridden via `.environment(\.codenotchReduceTransparency, ...)`.
+    var codenotchReduceTransparency: Bool {
+        get { self[CodenotchReduceTransparencyKey.self] || self.accessibilityReduceTransparency }
+        set { self[CodenotchReduceTransparencyKey.self] = newValue }
+    }
+}
+

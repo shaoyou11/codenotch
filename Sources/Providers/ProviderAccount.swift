@@ -20,7 +20,7 @@ struct ProviderAccount: Equatable {
 
     /// One line for the settings row.
     var summary: String {
-        [label, plan.map { $0.capitalized }, "via \(source)"]
+        [label, plan.map { $0.capitalized }, L10n.t("via \(source)")]
             .compactMap { $0 }
             .joined(separator: " · ")
     }
@@ -42,16 +42,16 @@ enum SignInRoute: Equatable {
 
     var actionTitle: String? {
         switch self {
-        case .modal(let name):     return "登录 \(name)"
-        case .openApp(_, let name): return "打开 \(name)"
+        case .modal(let name):     return L10n.t("Sign in to \(name)")
+        case .openApp(_, let name): return L10n.t("Open \(name)")
         case .guidance:            return nil
         }
     }
 
     var explanation: String {
         switch self {
-        case .modal(let name):      return "登录 \(name) 后读取此账号。"
-        case .openApp(_, let name): return "请先在 \(name) 中登录此账号。"
+        case .modal(let name):      return L10n.t("Sign in to \(name) to read this account.")
+        case .openApp(_, let name): return L10n.t("Sign in with \(name) to read this account.")
         case .guidance(let text):   return text
         }
     }
@@ -63,9 +63,9 @@ enum SignInRoute: Equatable {
     /// where to go.
     var switchHint: String {
         switch self {
-        case .modal(let name):      return "在 \(name) 窗口中退出后，可登录其他账号。"
-        case .openApp(_, let name): return "在 \(name) 中切换账号，面板会随之更新。"
-        case .guidance:             return "在原工具中切换账号，面板会随之更新。"
+        case .modal(let name):      return L10n.t("Sign out in the \(name) window to use another account.")
+        case .openApp(_, let name): return L10n.t("Switch accounts in \(name); the notch follows.")
+        case .guidance:             return L10n.t("Switch accounts in the tool that owns it; the notch follows.")
         }
     }
 
@@ -74,11 +74,11 @@ enum SignInRoute: Equatable {
     var signOutCaveat: String {
         switch self {
         case .modal(let name):
-            return "退出由 CodenotchT 管理的 \(name) 会话。"
+            return L10n.t("Signs out of \(name) — the session belongs to Codenotch.")
         case .openApp(_, let name):
-            return "\(name) 中仍保持登录，如需退出请在该工具中操作。"
+            return L10n.t("You stay signed in to \(name) — end that session in \(name) itself.")
         case .guidance:
-            return "原工具中的账号仍保持登录。"
+            return L10n.t("You stay signed in to the tool that owns the account.")
         }
     }
 }
@@ -92,7 +92,7 @@ extension UsageProvider {
     func account() -> ProviderAccount? { nil }
 
     var signInRoute: SignInRoute {
-        .guidance("请先在此账号所属的工具中登录。")
+        .guidance(L10n.t("Sign in with the tool that owns this account."))
     }
 
     /// Nothing of our own to discard, by default.
@@ -108,11 +108,14 @@ extension UsageProvider {
 
 /// A provider as the settings sheet needs it.
 struct ProviderSummary: Identifiable, Equatable {
+    var kind: ProviderKind = .usage
+    var localModel: LocalRuntimeReading.Model? = nil
+    var sourceProviderID: String? = nil
     /// Whether this provider's credential lives in the keychain, and so can be
     /// refused. Codex still reads an ordinary file and never prompts. Cursor
     /// does too when the editor is signed in, but `cursor-agent` files its
     /// JWT in the login keychain — without this flag a declined prompt would
-    /// have no "允许访问…" to put the dialogue back.
+    /// have no "Allow access…" to put the dialogue back.
     var usesKeychain: Bool {
         ClaudeProfile.isClaude(providerID: id) || id == "gemini" || id == "cursor"
     }
@@ -123,7 +126,7 @@ struct ProviderSummary: Identifiable, Equatable {
     let account: ProviderAccount?
     let signIn: SignInRoute
     /// Whether macOS refused this credential on the last fetch — the one state
-    /// "允许访问…" can actually repair.
+    /// "Allow access…" can actually repair.
     ///
     /// Deliberately *not* read off the snapshot's status. A refusal leaves the
     /// last reading standing and its status untouched, because the number is
@@ -132,4 +135,12 @@ struct ProviderSummary: Identifiable, Equatable {
     /// cure for an illness the provider does not have, and a button that does
     /// nothing is indistinguishable from a broken one.
     var wasRefusedAccess: Bool = false
+    /// Whether this provider's saved login has aged out and Codenotch could not
+    /// renew it, so someone has to run the tool that owns it.
+    ///
+    /// Deliberately *not* read off the snapshot's status, for the same reason
+    /// `wasRefusedAccess` is not: an expired token leaves the last reading in
+    /// place and looking fine. Tying the warning to "is there a reading" would
+    /// hide it behind exactly the stale number it is warning about.
+    var needsSignInRenewal: Bool = false
 }

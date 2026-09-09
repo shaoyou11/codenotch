@@ -10,7 +10,7 @@ struct CodenotchMain: App {
         Settings { EmptyView() }
             .commands {
                 CommandGroup(replacing: .appSettings) {
-                    Button("设置…") { appDelegate.showSettings() }
+                    Button("Settings…") { appDelegate.openSettings() }
                         .keyboardShortcut(",", modifiers: .command)
                 }
             }

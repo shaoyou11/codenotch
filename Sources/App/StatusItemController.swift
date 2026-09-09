@@ -33,7 +33,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = Self.icon()
-        item.button?.toolTip = "CodenotchT"
+        item.button?.toolTip = L10n.t("Codenotch")
 
         let menu = NSMenu()
         menu.delegate = self
@@ -61,7 +61,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     func rebuild(menu: NSMenu, now: Date) {
         menu.removeAllItems()
         if snapshots.isEmpty {
-            let empty = NSMenuItem(title: "正在等待首次读取…", action: nil, keyEquivalent: "")
+            let empty = NSMenuItem(title: L10n.t("Waiting for the first reading…"), action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         } else {
@@ -77,14 +77,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         }
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "全部刷新", action: #selector(refreshAll), keyEquivalent: "r"
+            withTitle: L10n.t("Refresh all"), action: #selector(refreshAll), keyEquivalent: "r"
         ).target = self
         menu.addItem(
-            withTitle: "设置…", action: #selector(openSettings), keyEquivalent: ","
+            withTitle: L10n.t("Settings…"), action: #selector(openSettings), keyEquivalent: ","
         ).target = self
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "退出 CodenotchT", action: #selector(quit), keyEquivalent: "q"
+            withTitle: L10n.t("Quit Codenotch"), action: #selector(quit), keyEquivalent: "q"
         ).target = self
     }
 

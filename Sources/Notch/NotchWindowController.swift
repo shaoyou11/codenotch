@@ -5,10 +5,6 @@ import Combine
 @MainActor
 final class NotchWindowController {
     let model = NotchViewModel()
-    var hideInFullscreen = true { didSet { updateFullscreenVisibility() } }
-    private var suppressedByFullscreen = false
-    var fullscreenCheck: (NSScreen) -> Bool = { FullscreenDetector.covers($0) }
-    var panelVisibleForTesting: Bool { panel?.isVisible ?? false }
     var displayPreference: DisplayPreference = .followActiveWindow
 
     /// The panel's content view, so a test can check what SwiftUI is and is not
@@ -20,12 +16,12 @@ final class NotchWindowController {
     var panelFrameForTesting: CGRect? { panel?.frame }
     var panelAlphaForTesting: CGFloat { panel?.alphaValue ?? 0 }
 
-    /// Hooked up by the app delegate; drives the menu's "立即刷新".
+    /// Hooked up by the app delegate; drives the menu's "Refresh now".
     var onRefresh: (() -> Void)?
     /// One "Sign in to …" item per provider that needs a browser session.
     var signInItems: [(title: String, action: () -> Void)] = []
     /// Refetch a single provider, asked for by clicking its ring.
-    var onRefreshProvider: ((String) -> Void)?
+    var onRefreshProvider: ((String) async -> Void)?
     /// Open the settings window, asked for by clicking the handle.
     var onOpenSettings: (() -> Void)?
     /// An ⌥-drag on the pill settled at a new `model.alongOffset`. The
@@ -42,7 +38,6 @@ final class NotchWindowController {
     var assignedScreen: NSScreen?
     private var cancellables = Set<AnyCancellable>()
     private var mouseMonitors: [Any] = []
-    private var firstTooltipHover = FirstTooltipHover()
     private var clearHoverWork: DispatchWorkItem?
     private var clockTimer: Timer?
     private var cursorTimer: Timer?
@@ -78,14 +73,40 @@ final class NotchWindowController {
     private var visibility: NotchVisibility = .onHover
     /// Whether we have pushed the pointing hand onto the cursor stack.
     private var isPointing = false
-    /// The usable area the panel was last placed against.
-    ///
-    /// The notch is pinned to `visibleFrame` so it rests on the Dock rather than
-    /// under it — but an auto-hiding Dock revealing or concealing itself fires
-    /// no screen-parameter notification, so nothing would tell us the space had
-    /// come back. The cursor poll is already running; noticing there costs one
-    /// rect comparison every 0.3s and needs no new machinery.
-    private var lastVisibleFrame: CGRect?
+
+    /// Determines whether a full-screen application window is active on this notch's display.
+    /// Default implementation queries WindowServer and NSWorkspace; overridable for testing.
+    lazy var isFullScreenActive: () -> Bool = { [weak self] in
+        FullScreenDetector.isFullScreenAppFrontmost(on: self?.currentScreen())
+    }
+
+    /// When a full-screen app is active on the current space, auto-folds the notch.
+    /// When returning to a desktop space with `isAlwaysOn`, restores the unfolded state.
+    func handleActiveSpaceOrAppChange() { updateFullscreenVisibility() }
+    func foldForFullScreen() { updateFullscreenVisibility(force: true) }
+
+    var hideInFullscreen = true { didSet { updateFullscreenVisibility() } }
+    var fullscreenCheck: (NSScreen) -> Bool = { CustomFullscreenDetector.covers($0) }
+    var panelVisibleForTesting: Bool { panel?.isVisible ?? false }
+    private var suppressedByFullscreen = false
+    private var firstTooltipHover = FirstTooltipHover()
+
+    @discardableResult
+    private func updateFullscreenVisibility(force: Bool = false) -> Bool {
+        let suppress = hideInFullscreen && (force || (currentScreen().map(fullscreenCheck) ?? false))
+        let wasSuppressed = suppressedByFullscreen
+        suppressedByFullscreen = suppress
+        if suppress {
+            if panel?.isVisible == true { panel?.orderOut(nil) }
+            clearHoverWork?.cancel(); clearHoverWork = nil
+            foldWork?.cancel(); foldWork = nil
+            if model.hoveredIndex != nil { model.hoveredIndex = nil }
+            setPointing(false)
+        } else if wasSuppressed && visibility != .hidden {
+            panel?.orderFrontRegardless()
+        }
+        return suppress
+    }
 
     func show() {
         relocate()
@@ -100,23 +121,34 @@ final class NotchWindowController {
         }
         .store(in: &cancellables)
 
+        NSWorkspace.shared.notificationCenter.publisher(
+            for: NSWorkspace.activeSpaceDidChangeNotification
+        )
+        .sink { [weak self] _ in
+            MainActor.assumeIsolated { self?.handleActiveSpaceOrAppChange() }
+        }
+        .store(in: &cancellables)
+
+        NSWorkspace.shared.notificationCenter.publisher(
+            for: NSWorkspace.didActivateApplicationNotification
+        )
+        .sink { [weak self] _ in
+            MainActor.assumeIsolated { self?.handleActiveSpaceOrAppChange() }
+        }
+        .store(in: &cancellables)
+
         model.$hoveredIndex
             .sink { [weak self] _ in
                 MainActor.assumeIsolated { self?.updateInteractiveRects() }
             }
             .store(in: &cancellables)
 
-        // The notch is as tall as the provider list, so gaining or losing one
-        // has to resize the panel, not just redraw inside it.
+        // A model can gain speed rows without changing the cell count. Read
+        // after Published's willSet so sizing sees the new card contents too.
         model.$snapshots
-            .map(\.count)
             .removeDuplicates()
-            .sink { [weak self] count in
-                // The count comes from the emission, not from re-reading the
-                // model: `@Published` fires in `willSet`, so `model.snapshots`
-                // is still the previous array at this point.
-                MainActor.assumeIsolated { self?.relocate(cellCount: count) }
-            }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.relocate() }
             .store(in: &cancellables)
     }
 
@@ -130,6 +162,7 @@ final class NotchWindowController {
         clockTimer?.invalidate()
         mouseMonitors.forEach(NSEvent.removeMonitor)
         mouseMonitors.removeAll()
+        cancellables.removeAll()
     }
 
     // MARK: - Placement
@@ -151,15 +184,15 @@ final class NotchWindowController {
     }
 
     func relocate(cellCount: Int? = nil) {
-        guard let screen = currentScreen() else { return }
         defer { updateFullscreenVisibility() }
+        guard let screen = currentScreen() else { return }
         model.adopt(screen: screen)
         let size = model.panelSize(cellCount: cellCount ?? model.snapshots.count)
         let frame = NotchGeometry.panelFrame(
             for: screen, panelSize: size, edge: model.edge,
-            alongOffset: model.alongOffset, slack: model.slack
+            alongOffset: model.alongOffset, slack: model.slack,
+            trailingExtent: model.trailingExtent
         )
-        lastVisibleFrame = screen.visibleFrame
 
         if let panel {
             panel.setFrame(frame, display: true)
@@ -167,7 +200,7 @@ final class NotchWindowController {
             let panel = NotchPanel(contentRect: frame)
             let hosting = NotchHostingView(rootView: NotchRootView(model: model))
             panel.contextMenuProvider = { [weak self] in self?.contextMenu() }
-            panel.onClick = { [weak self] in self?.handleClick() }
+            panel.onClick = { [weak self] point in self?.handleClick(at: point) }
             panel.onDrag = { [weak self] dx, dy in self?.dragged(dx: dx, dy: dy) }
             panel.onDragEnd = { [weak self] in
                 guard let self else { return }
@@ -199,6 +232,16 @@ final class NotchWindowController {
             self.panel = panel
             self.hostingView = hosting
         }
+        // Use the actual panel origin: near a corner its transparent padding
+        // can extend offscreen, while the tooltip itself must stay visible.
+        if let panel {
+            let visible = panel.frame.intersection(screen.frame)
+            let range: ClosedRange<CGFloat> = model.edge.isVertical
+                ? (panel.frame.maxY - visible.maxY)...(panel.frame.maxY - visible.minY)
+                : (visible.minX - panel.frame.minX)...(visible.maxX - panel.frame.minX)
+            if model.visibleAlongRange != range { model.visibleAlongRange = range }
+        }
+
         // The frame AppKit actually gave us, which is what the flush right-hand
         // edge depends on.
         if let panel {
@@ -236,8 +279,8 @@ final class NotchWindowController {
         placement.rect(
             along: model.slack,
             across: 0,
-            length: model.shapeLength,
-            depth: model.notchDepth
+            length: model.shapeLength * model.sizeScale,
+            depth: model.notchDepth * model.sizeScale
         )
     }
 
@@ -248,12 +291,12 @@ final class NotchWindowController {
         // Whatever the resting shape is — the pill, or the display's own notch
         // when it is joining one — the region that wakes it is that plus a
         // generous band, because both are small targets on a screen edge.
-        let length = max(model.restingLength, NotchLayout.pillHotZone)
+        let length = max(model.restingLength * model.sizeScale, NotchLayout.pillHotZone)
         return placement.rect(
-            along: model.slack + (model.shapeLength - length) / 2,
+            along: model.slack + (model.shapeLength * model.sizeScale - length) / 2,
             across: 0,
             length: length,
-            depth: model.restingDepth + NotchLayout.pillHotZone
+            depth: model.restingDepth * model.sizeScale + NotchLayout.pillHotZone
         )
     }
 
@@ -263,7 +306,8 @@ final class NotchWindowController {
     private var handleRect: CGRect {
         let side = NotchLayout.orbHotZone
         let boxes = model.orbHandlePoints.map { point -> CGRect in
-            let centre = placement.point(along: model.slack + point.x, across: point.y)
+            let centre = placement.point(along: model.slack + point.x * model.sizeScale,
+                                         across: point.y * model.sizeScale)
             return CGRect(x: centre.x - side / 2, y: centre.y - side / 2,
                           width: side, height: side)
         }
@@ -273,8 +317,13 @@ final class NotchWindowController {
     /// Whether the pointer is on the handle itself rather than merely inside
     /// the box that contains it.
     private func isOverHandle(_ local: CGPoint) -> Bool {
-        model.isOnOrbHandle(along: placement.along(of: local) - model.slack,
-                            across: placement.across(of: local))
+        // Back into the notch's own measurements, which is what `isOnOrbHandle`
+        // is written in — the orb scales with the notch, so its hit test has to
+        // be asked in the same space the shape was drawn in.
+        model.isOnOrbHandle(
+            along: (placement.along(of: local) - model.slack) / model.sizeScale,
+            across: placement.across(of: local) / model.sizeScale
+        )
     }
 
     /// The only region that takes the mouse. Everything else in the panel is a
@@ -293,19 +342,26 @@ final class NotchWindowController {
         let snapshot = model.snapshots[index]
         let cardHeight = NotchLayout.cardHeight(
             windowCount: snapshot.windows.count,
-            sessionCount: model.activity(for: snapshot.id)?.sessions.count ?? 0,
+            groupCount: snapshot.windowGroupCount,
+            sessionCount: snapshot.localModel == nil ? (model.activity(for: snapshot.id)?.sessions.count ?? 0) : 0,
             sessionCap: model.sessionCap,
             statusMessage: snapshot.statusMessage,
-            blockMessage: snapshot.block?.summary(now: model.now)
+            blockMessage: snapshot.block?.summary(now: model.now),
+            hasTokenUsage: snapshot.tokenUsage != nil,
+            localModelName: snapshot.localModel?.name,
+            showsLocalPerformance: snapshot.showsLocalPerformance,
+            compactRowCount: snapshot.compactRowCount
         )
         // Across the stack the region is the card, its tail, and the gap the
         // pointer has to cross. Along it, the card's own extent.
         let cardAcross = model.edge.isVertical ? NotchLayout.cardWidth : cardHeight
         let cardAlong = model.edge.isVertical ? cardHeight : NotchLayout.cardWidth
-        let centre = model.slack + model.ringCenter(index: index)
+        let centre = model.tooltipAlong(index: index, length: cardAlong)
         return placement.rect(
             along: centre - cardAlong / 2,
-            across: model.contentInset + NotchLayout.bodyDepth(for: model.edge),
+            // The card's own extent does not scale, and it begins where the
+            // drawn notch ends.
+            across: model.notchDrawnDepth,
             length: cardAlong,
             depth: NotchLayout.tailGap + NotchLayout.tailLength + cardAcross
         )
@@ -316,10 +372,9 @@ final class NotchWindowController {
         if model.isExpanded, let index = model.hoveredIndex, let card = tooltipRect(index: index) {
             rects.append(card)
         }
-        if hostingView?.interactiveRects != rects { hostingView?.interactiveRects = rects }
+        hostingView?.interactiveRects = rects
         if let panel {
-            let ignores = !rects.contains { $0.contains(localCursor(in: panel.frame)) }
-            if panel.ignoresMouseEvents != ignores { panel.ignoresMouseEvents = ignores }
+            panel.ignoresMouseEvents = !rects.contains { $0.contains(localCursor(in: panel.frame)) }
         }
     }
 
@@ -335,10 +390,6 @@ final class NotchWindowController {
     private func startWatchingCursor() {
         let poll = Timer(timeInterval: 0.3, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
-                // Only on the poll, not on every mouse-moved event: this reads
-                // the screen list, and doing that per event would be work at
-                // 60Hz to answer a question that changes twice a minute.
-                self?.followUsableAreaIfItMoved()
                 self?.updateFullscreenVisibility()
                 self?.cursorMoved()
             }
@@ -364,33 +415,6 @@ final class NotchWindowController {
     private func localCursor(in frame: CGRect) -> CGPoint {
         let mouse = NSEvent.mouseLocation
         return CGPoint(x: mouse.x - frame.minX, y: frame.maxY - mouse.y)
-    }
-
-    /// Has the Dock appeared, gone away, moved or resized since we last placed
-    /// the panel? Nothing notifies us, so this is asked rather than told.
-    private func followUsableAreaIfItMoved() {
-        guard let screen = currentScreen() else { return }
-        guard screen.visibleFrame != lastVisibleFrame else { return }
-        relocate()
-    }
-
-    @discardableResult
-    private func updateFullscreenVisibility() -> Bool {
-        let suppress = hideInFullscreen && (currentScreen().map(fullscreenCheck) ?? false)
-        let wasSuppressed = suppressedByFullscreen
-        suppressedByFullscreen = suppress
-        if suppress {
-            if panel?.isVisible == true { panel?.orderOut(nil) }
-            clearHoverWork?.cancel()
-            clearHoverWork = nil
-            foldWork?.cancel()
-            foldWork = nil
-            if model.hoveredIndex != nil { model.hoveredIndex = nil }
-            setPointing(false)
-        } else if wasSuppressed && visibility != .hidden {
-            panel?.orderFrontRegardless()
-        }
-        return suppress
     }
 
     private func cursorMoved() {
@@ -419,8 +443,7 @@ final class NotchWindowController {
             Self.wantsPointingHand(isExpanded: model.isExpanded, cellIndex: target) || overHandle
         )
 
-        target = firstTooltipHover.target(target, pinned: model.staysOpen,
-                                          now: ProcessInfo.processInfo.systemUptime)
+        target = firstTooltipHover.target(target, pinned: model.staysOpen, now: ProcessInfo.processInfo.systemUptime)
         if let target {
             clearHoverWork?.cancel()
             clearHoverWork = nil
@@ -497,17 +520,22 @@ final class NotchWindowController {
 
     /// A click on a ring refetches that provider; a click anywhere else on the
     /// open notch pins it. The ring is the more specific target, so it wins.
-    func handleClick() {
+    func handleClick(at locationInWindow: CGPoint) {
         guard let panel else {
             setExpanded(true)
             return
         }
-        let local = localCursor(in: panel.frame)
+        // Use the event position even if the pointer has moved since the click.
+        let local = CGPoint(x: locationInWindow.x, y: panel.frame.height - locationInWindow.y)
 
         // The handle sits inside the notch, so it has to be tested before the
         // cells — otherwise the cell band nearest the foot of the stack swallows
         // it and clicking the gear refetches a provider instead.
         if model.isExpanded, isOverHandle(local) {
+            // The same turn the SwiftUI tap gives it, so the gear responds
+            // however the click reached it — this path and the tap gesture
+            // are two routes to one action.
+            model.settingsSpins += 1
             onOpenSettings?()
             return
         }
@@ -546,7 +574,10 @@ final class NotchWindowController {
         if notchRect.contains(local),
            let index = cellIndex(along: placement.along(of: local)),
            model.snapshots.indices.contains(index) {
-            onRefreshProvider?(model.snapshots[index].id)
+            if let onRefreshProvider {
+                let snapshot = model.snapshots[index]
+                Task { await model.refresh(snapshot, using: onRefreshProvider) }
+            }
             return
         }
         togglePinned()
@@ -564,6 +595,69 @@ final class NotchWindowController {
     /// animation can smooth over, and animating a panel across a corner looks
     /// like a bug rather than a choice — hence the crossing rather than a
     /// slide.
+    /// A new size choice: set it, then rebuild the panel around it.
+    ///
+    /// Set-then-relocate rather than a subscription on `model.$sizeScale`,
+    /// because `@Published` fires in `willSet` — a sink here would recompute
+    /// the panel from the size that is being replaced. `apply(edge:)` is the
+    /// same shape for the same reason.
+    func apply(scale: CGFloat) {
+        guard model.sizeScale != scale else { return }
+
+        // A drag arrives as a stream of tiny deltas; a preset, or a switch
+        // between the two controls, arrives as one large one.
+        let isDrag = abs(scale - model.sizeScale) < Self.steppedScaleDelta
+
+        // The drawn shape follows every tick — that part is a redraw and it is
+        // cheap. Re-laying the *window* out is not: `relocate` recomputes the
+        // panel size through `maxCardHeight` and the `sessionCap` search, then
+        // asks the compositor to resize a full-height window. Sixty of those a
+        // second is what makes a drag feel like it is pulling something heavy.
+        model.sizeScale = scale
+        if isDrag {
+            coalesceRelocate()
+        } else {
+            pendingRelocate?.cancel()
+            pendingRelocate = nil
+            relocate()
+            updateInteractiveRects()
+        }
+    }
+
+    /// Above this, a size change was *chosen* rather than dragged. The
+    /// smallest gap between two presets is 0.2 and a drag tick is a fraction
+    /// of a percent, so there is a wide margin either way.
+    private static let steppedScaleDelta: CGFloat = 0.05
+
+    /// The window is re-laid out at most this often while a drag is in
+    /// flight. The panel is larger than the notch by the whole tooltip slack,
+    /// so it can be a tenth of a second out of date without anything showing.
+    private static let relocateInterval: TimeInterval = 0.1
+
+    /// Resize the window on a budget, and always once the drag has stopped.
+    private func coalesceRelocate() {
+        let now = Date()
+        if now.timeIntervalSince(lastRelocate) >= Self.relocateInterval {
+            lastRelocate = now
+            relocate()
+            return
+        }
+        // Too soon. Replace any pending catch-up with one scheduled from now,
+        // so a drag that stops mid-interval still ends up correctly sized.
+        pendingRelocate?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.lastRelocate = Date()
+            self.relocate()
+            self.updateInteractiveRects()
+        }
+        pendingRelocate = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.relocateInterval,
+                                      execute: work)
+    }
+
+    private var lastRelocate = Date.distantPast
+    private var pendingRelocate: DispatchWorkItem?
     func apply(edge: NotchEdge) {
         guard model.edge != edge else { return }
         guard let panel else {   // before there is anything on screen to fade
@@ -762,10 +856,10 @@ final class NotchWindowController {
         updateInteractiveRects()
     }
 
-    private func cellIndex(along: CGFloat) -> Int? {
-        let pitch = NotchLayout.cellPitch(for: model.edge)
+    func cellIndex(along: CGFloat) -> Int? {
+        let pitch = model.cellPitch * model.sizeScale
         for index in model.snapshots.indices {
-            let centre = model.slack + model.ringCenter(index: index)
+            let centre = model.slack + model.ringCenter(index: index) * model.sizeScale
             if abs(along - centre) <= pitch / 2 { return index }
         }
         return nil
@@ -789,7 +883,7 @@ final class NotchWindowController {
         // below. Turning it off means every item has to say so for itself.
         menu.autoenablesItems = false
         let keepOpen = NSMenuItem(
-            title: "保持展开",
+            title: L10n.t("Keep open"),
             action: #selector(MenuActions.togglePinned(_:)),
             keyEquivalent: ""
         )
@@ -801,13 +895,13 @@ final class NotchWindowController {
         keepOpen.state = model.staysOpen ? .on : .off
         keepOpen.isEnabled = !model.isAlwaysOn
         keepOpen.toolTip = model.isAlwaysOn
-            ? "当前已设为始终显示，可在设置中更改。"
+            ? L10n.t("Codenotch is set to Always show. Change it in Settings.")
             : nil
         menu.addItem(keepOpen)
         menu.addItem(.separator())
 
         let refresh = NSMenuItem(
-            title: "立即刷新",
+            title: L10n.t("Refresh now"),
             action: #selector(MenuActions.refreshNow(_:)),
             keyEquivalent: "r"
         )
@@ -828,7 +922,7 @@ final class NotchWindowController {
         }
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "退出 CodenotchT",
+            withTitle: L10n.t("Quit Codenotch"),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ).isEnabled = true

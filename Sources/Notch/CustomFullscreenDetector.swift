@@ -3,7 +3,7 @@ import AppKit
 /// Window geometry is available without capturing screen contents or requesting
 /// Accessibility access. Covers native full-screen and borderless video windows.
 @MainActor
-enum FullscreenDetector {
+enum CustomFullscreenDetector {
     private static var checkedAt: TimeInterval = -1
     private static var frames: [CGRect] = []
     private static var queryInFlight = false

@@ -73,6 +73,7 @@ enum Percent {
 /// and the longer all-models window), others have one.
 struct LimitWindow: Identifiable, Codable, Equatable {
     let id: String
+    let group: String?
     let label: String
     /// 0...1+, where 1 means the limit is spent. Nil when the provider reports
     /// what is left but never says what the limit was — Perplexity does exactly
@@ -86,14 +87,20 @@ struct LimitWindow: Identifiable, Codable, Equatable {
     /// Nil when the provider does not say when the window rolls over.
     let resetsAt: Date?
 
-    init(id: String, label: String, usedFraction: Double? = nil,
-         remaining: Int? = nil, used: Int? = nil, resetsAt: Date? = nil) {
+    /// Exact cycle length when known; optional to keep older archives readable.
+    let duration: TimeInterval?
+
+    init(id: String, group: String? = nil, label: String, usedFraction: Double? = nil,
+         remaining: Int? = nil, used: Int? = nil, resetsAt: Date? = nil,
+         duration: TimeInterval? = nil) {
         self.id = id
+        self.group = group
         self.label = label
         self.usedFraction = usedFraction
         self.remaining = remaining
         self.used = used
         self.resetsAt = resetsAt
+        self.duration = duration
     }
 
     /// A count short enough to sit inside a 44 pt ring.
@@ -108,7 +115,9 @@ struct LimitWindow: Identifiable, Codable, Equatable {
     }
 
     /// What the tooltip says on the line under the bar.
-    var summary: String {
+    var summary: String { summary(locale: L10n.locale) }
+
+    func summary(locale: Locale = L10n.locale) -> String {
         if let usedFraction {
             // Both ends of the same figure. Vendors do not agree on which to
             // show — Codex writes "87% remaining", Claude writes "% used" — so
@@ -117,15 +126,19 @@ struct LimitWindow: Identifiable, Codable, Equatable {
             // different numbers rather than one seen from either end. That is
             // what made a correct reading look wrong.
             let halves = Percent.halves(for: usedFraction)
-            return "\(halves.used)% Used · \(halves.left)% left"
+            return L10n.t("\(halves.used)% Used · \(halves.left)% left", locale: locale)
         }
         if let remaining {
-            return remaining == 1 ? "1 left" : "\(Self.compact(remaining)) left"
+            return remaining < 10_000
+                ? L10n.t("\(remaining) left", locale: locale)
+                : L10n.t("\(Self.compact(remaining)) left", locale: locale)
         }
         if let used {
-            return used == 1 ? "1 used" : "\(Self.compact(used)) used"
+            return used < 10_000
+                ? L10n.t("\(used) used", locale: locale)
+                : L10n.t("\(Self.compact(used)) used", locale: locale)
         }
-        return "No reading"
+        return L10n.t("No reading", locale: locale)
     }
 }
 
@@ -142,15 +155,22 @@ struct UsageBlock: Equatable {
     let resetsAt: Date?
 
     /// The line the tooltip leads with.
-    func summary(now: Date = Date(), calendar: Calendar = .current) -> String {
+    func summary(now: Date = Date(), calendar: Calendar = .current,
+                 locale: Locale = L10n.locale) -> String {
         guard let resetsAt, resetsAt > now else { return reason }
         let formatter = ResetCopy.formatter(for: calendar)
+        formatter.locale = locale
         // The same clock the vendor's own banner uses — "4:13 PM" — rather
         // than a countdown, because that is what you are waiting for.
-        formatter.dateFormat = ResetCopy.daysApart(from: now, to: resetsAt,
-                                                   calendar: calendar) >= 1
+        let template = ResetCopy.daysApart(from: now, to: resetsAt,
+                                           calendar: calendar) >= 1
             ? "E h:mm a" : "h:mm a"
-        return "\(reason) until \(formatter.string(from: resetsAt))"
+        if locale.language.languageCode?.identifier == "en" {
+            formatter.dateFormat = template
+        } else {
+            formatter.setLocalizedDateFormatFromTemplate(template)
+        }
+        return L10n.t("\(reason) until \(formatter.string(from: resetsAt))", locale: locale)
     }
 }
 
@@ -169,6 +189,31 @@ struct ProviderSnapshot: Identifiable, Equatable {
     /// Set when something is blocked right now. Deliberately separate from the
     /// windows: it is not a measurement, it is a door being shut.
     var block: UsageBlock?
+    var kind: ProviderKind = .usage
+    var localRuntime: LocalRuntimeReading?
+    var localModel: LocalRuntimeReading.Model?
+    var localPerformance: LocalModelPerformance?
+    var showsLocalPerformance = false
+    /// A model cell has its own display preference, but polling belongs to the
+    /// runtime that supplied it.
+    var sourceProviderID: String?
+
+    var providerID: String { sourceProviderID ?? id }
+
+    var notchSnapshots: [ProviderSnapshot] {
+        guard kind == .localRuntime, localModel == nil else { return [self] }
+        return (localRuntime?.models ?? []).map { model in
+            ProviderSnapshot(id: "\(id):model:\(model.id)", displayName: displayName,
+                             glyph: model.brand?.glyph ?? glyph,
+                             fidelity: fidelity, status: status, windows: [],
+                             kind: kind, localModel: model, sourceProviderID: id)
+        }
+    }
+    /// Codex's account-wide token activity, when its profile endpoint returned
+    /// it. The optional top model is an enrichment from the desktop breakdown
+    /// endpoint; it never changes the profile token buckets. Other providers
+    /// leave this nil because they do not expose the same account-level data.
+    var tokenUsage: CodexTokenUsage? = nil
 
     /// The number on the cell: the provider's declared primary window — for
     /// Claude, the current session.
@@ -190,15 +235,28 @@ struct ProviderSnapshot: Identifiable, Equatable {
 
     /// What the cell prints under the ring.
     var headlineText: String {
+        if kind == .localRuntime {
+            return showsLocalPerformance ? (localPerformance?.headlineText ?? "— tok/s")
+                : (localModel?.memoryText ?? "—")
+        }
         if let usedFraction { return Percent.text(for: usedFraction) + "%" }
         if let remaining = headline?.remaining { return LimitWindow.compact(remaining) }
         if let used = headline?.used { return LimitWindow.compact(used) }
         return "—"
     }
 
-    /// True when there is no reading to show — the cell draws an empty ring and
-    /// a dash rather than an authoritative-looking 0%.
-    var hasReading: Bool { !windows.isEmpty }
+    /// An empty local inventory still confirms server connectivity; an absent
+    /// reading must not be shown as measured zero usage.
+    var hasReading: Bool { localRuntime != nil || localModel != nil || !windows.isEmpty }
+
+    /// Group headings occupy space in both the card and its hover region.
+    var windowGroupCount: Int { Set(windows.compactMap(\.group)).count }
+
+    /// How many windows are count-only (no fraction, no bar) — they render as
+    /// single-line rows and take less vertical space than full bar rows.
+    var compactRowCount: Int {
+        windows.filter { $0.usedFraction == nil && $0.used != nil }.count
+    }
 
     /// A ring can only be drawn when the provider said what the limit was.
     var ringFraction: Double? { usedFraction }
@@ -206,36 +264,53 @@ struct ProviderSnapshot: Identifiable, Equatable {
     /// Signing in means something different per provider, so the prompt has to
     /// say which door to knock on.
     private var authPrompt: String {
+        let locale = L10n.locale
         switch id {
-        case "claude":     return "Sign in to Claude Code to read your usage"
+        case "claude":     return L10n.t("Sign in to Claude Code to read your usage", locale: locale)
         // A profile is signed in by running Claude Code against its directory,
         // which is worth saying: plain `claude` signs the default one in.
         case _ where ClaudeProfile.isClaude(providerID: id):
             let slug = ClaudeProfile.slug(fromProviderID: id) ?? ""
-            return "Sign in to Claude Code in ~/.claude-\(slug) to read your usage"
-        case "cursor":     return "Sign in to Cursor in the editor"
-        case "codex":      return "Sign in to Codex to read your usage"
-        case "gemini":     return "Sign in to Antigravity to read your usage"
-        case "glm":        return "Set up a GLM Coding Plan key for a coding tool to read your usage"
-        case "copilot":    return "Sign in with GitHub CLI to read your Copilot usage"
-        case "opencode":   return "Connect the Go plan in OpenCode to read your usage"
-        default:           return "Sign in to \(displayName) to read your usage"
+            return L10n.t("Sign in to Claude Code in ~/.claude-\(slug) to read your usage", locale: locale)
+        case "cursor":     return L10n.t("Sign in to Cursor in the editor", locale: locale)
+        case "codex":      return L10n.t("Sign in to Codex to read your usage", locale: locale)
+        case _ where CodexProfile.slug(fromProviderID: id) != nil:
+            let slug = CodexProfile.slug(fromProviderID: id)!
+            return L10n.t("Sign in to Codex in ~/.codex-\(slug) to read your usage", locale: locale)
+        case "gemini":     return L10n.t("Sign in to Antigravity to read your usage", locale: locale)
+        case "glm":        return L10n.t("Set up a GLM Coding Plan key for a coding tool to read your usage", locale: locale)
+        case "copilot":    return L10n.t("Sign in with GitHub CLI to read your Copilot usage", locale: locale)
+        case "opencode":   return L10n.t("Connect the Go plan in OpenCode to read your usage", locale: locale)
+        case "commandcode": return L10n.t("Sign in with the Command Code app to read your usage", locale: locale)
+        // Two Ollamas, and they are stuck for different reasons: the hosted
+        // one wants a key, the local one wants the daemon running.
+        case "ollama":       return L10n.t("Enter an Ollama API key in Settings, or export OLLAMA_API_KEY", locale: locale)
+        case "ollama-local": return L10n.t("Start Ollama to monitor your local models", locale: locale)
+        default:           return L10n.t("Sign in to \(displayName) to read your usage", locale: locale)
         }
     }
 
     /// What the tooltip says instead of limit rows when there is nothing to show.
     var statusMessage: String? {
+        if kind == .localRuntime {
+            if localModel != nil { return nil }
+            if let localRuntime {
+                return localRuntime.models.isEmpty ? localRuntime.summary : nil
+            }
+            if case .error(let why) = status { return why }
+            return "Connecting to \(displayName)…"
+        }
         if hasReading { return nil }
+        let locale = L10n.locale
         switch status {
         case .needsAuth:      return authPrompt
         case .accessDenied:
             // Says what happened and what fixes it. "Sign in to Claude Code"
             // would send someone who *is* signed in to fix the wrong thing.
-            return "Codenotch was refused access to \(displayName)'s saved "
-                 + "login. Click this ring to ask again, and choose Always Allow."
+            return L10n.t("Codenotch was refused access to \(displayName)'s saved login. Click this ring to ask again, and choose Always Allow.", locale: locale)
         case .unsupported(let why): return why
-        case .error(let why): return "Couldn't read usage — \(why)"
-        case .stale, .ok:     return "Waiting for the first reading…"
+        case .error(let why): return L10n.t("Couldn't read usage — \(why)", locale: locale)
+        case .stale, .ok:     return L10n.t("Waiting for the first reading…", locale: locale)
         }
     }
 }

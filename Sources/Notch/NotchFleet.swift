@@ -20,6 +20,15 @@ final class NotchFleet {
     private var edge: NotchEdge
     private var visibility: NotchVisibility = .onHover
     private var snapshots: [ProviderSnapshot] = []
+    private(set) var thinkingModels: [String: Date] = [:]
+    private var performances: [String: LocalModelPerformance] = [:]
+    private var localMetricsEnabled = false
+
+    func setLocalMetricsEnabled(_ enabled: Bool) {
+        localMetricsEnabled = enabled
+        if !enabled { performances = [:]; thinkingModels = [:] }
+        for controller in controllers.values { controller.model.setLocalMetricsEnabled(enabled) }
+    }
     private var refreshing: Set<String> = []
     /// Exposed read-only rather than private: completion-watching needs the
     /// merged dict after a fan-out, the same way it read `controller.model
@@ -31,7 +40,6 @@ final class NotchFleet {
     /// `NotchWindowController.currentScreen()`.
     private var displayPreference: DisplayPreference = .followActiveWindow
     private var hideInFullscreen = true
-    private var interfaceSize: InterfaceSize = .standard
     private var usageDisplayMode: UsageDisplayMode = .used
     private var resetTimeFormat: ResetTimeFormat = .automatic
     private var accentColor: AccentColorChoice = .system
@@ -39,10 +47,13 @@ final class NotchFleet {
     /// fleet, the same as `edge` itself — displays do not each get their own
     /// edge, so they do not each get their own nudge either.
     private var alongOffset: CGFloat = 0
+    /// One size for the whole fleet, for the same reason the edge is: a notch
+    /// that were larger on one display than another would read as a bug.
+    private var scale: CGFloat = 1
 
     /// Hooked up by the app delegate; driven by the notch's own chrome.
     var onRefresh: (() -> Void)?
-    var onRefreshProvider: ((String) -> Void)?
+    var onRefreshProvider: ((String) async -> Void)?
     var onOpenSettings: (() -> Void)?
     var signInItems: [(title: String, action: () -> Void)] = []
     /// An ⌥-drag on any one panel settled at a new offset. Persisting it is
@@ -125,25 +136,11 @@ final class NotchFleet {
 
     func apply(hideInFullscreen: Bool) {
         self.hideInFullscreen = hideInFullscreen
-        for controller in controllers.values {
-            controller.hideInFullscreen = hideInFullscreen
-        }
+        for controller in controllers.values { controller.hideInFullscreen = hideInFullscreen }
     }
-
-    func apply(interfaceSize: InterfaceSize) {
-        self.interfaceSize = interfaceSize
-        Design.interfaceScale = interfaceSize.scale
-        for controller in controllers.values {
-            controller.model.interfaceSize = interfaceSize
-            controller.relocate()
-        }
-    }
-
     func apply(usageDisplayMode: UsageDisplayMode) {
         self.usageDisplayMode = usageDisplayMode
-        for controller in controllers.values {
-            controller.model.usageDisplayMode = usageDisplayMode
-        }
+        for controller in controllers.values { controller.model.usageDisplayMode = usageDisplayMode }
     }
 
     func apply(resetTimeFormat: ResetTimeFormat) {
@@ -167,16 +164,38 @@ final class NotchFleet {
         }
     }
 
+    /// Through `controller.apply(size:)` rather than by setting the model
+    /// directly, because the panel has to be rebuilt around the new size —
+    /// the same division `apply(edge:)` keeps.
+    func apply(scale: CGFloat) {
+        self.scale = scale
+        for controller in controllers.values {
+            controller.apply(scale: scale)
+        }
+    }
+
     // MARK: - Readings
 
     func setSnapshots(_ snapshots: [ProviderSnapshot]) {
         self.snapshots = snapshots
         let now = Date()
         for controller in controllers.values {
-            withAnimation(NotchMotion.unfold) {
-                controller.model.snapshots = snapshots
-            }
+            controller.model.updateSnapshots(snapshots)
             controller.model.now = now
+        }
+    }
+
+    func setThinkingModels(_ models: [String: Date]) {
+        thinkingModels = models
+        for controller in controllers.values {
+            controller.model.thinkingModels = models
+        }
+    }
+
+    func setPerformances(_ measurements: [String: LocalModelPerformance]) {
+        performances = measurements
+        for controller in controllers.values {
+            controller.model.updatePerformances(measurements)
         }
     }
 
@@ -289,21 +308,26 @@ final class NotchFleet {
     private func makeController(on screen: NSScreen) -> NotchWindowController {
         let controller = NotchWindowController()
         controller.assignedScreen = screen
-        controller.hideInFullscreen = hideInFullscreen
         controller.displayPreference = displayPreference
         controller.model.edge = edge
         controller.model.alongOffset = alongOffset
+        // Set before `show()`, so a display plugged in later builds its panel
+        // at the current size rather than at medium and resizing a beat later.
+        controller.model.sizeScale = scale
+        controller.hideInFullscreen = hideInFullscreen
+        controller.model.usageDisplayMode = usageDisplayMode
         controller.model.resetTimeFormat = resetTimeFormat
         controller.model.accentColor = accentColor
-        controller.model.usageDisplayMode = usageDisplayMode
-        controller.model.interfaceSize = interfaceSize
         controller.onRefresh = onRefresh
         controller.onRefreshProvider = onRefreshProvider
         controller.onOpenSettings = onOpenSettings
         controller.model.onOpenSettings = onOpenSettings
         controller.onReposition = onReposition
         controller.signInItems = signInItems
-        controller.model.snapshots = snapshots
+        controller.model.updateSnapshots(snapshots)
+        controller.model.thinkingModels = thinkingModels
+        controller.model.setLocalMetricsEnabled(localMetricsEnabled)
+        controller.model.updatePerformances(performances)
         controller.model.refreshing = refreshing
         controller.model.sessions = sessions
         controller.model.now = Date()

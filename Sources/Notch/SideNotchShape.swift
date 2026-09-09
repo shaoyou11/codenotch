@@ -79,9 +79,7 @@ struct SideNotchShape: Shape {
         // body, which is exactly what happens when the notch folds to its pill:
         // a 10pt-wide shape came out with square corners. The corner is claimed
         // first, out of half the width, and the flare takes what is left.
-        // The camera housing is physical; its corners cannot shrink with the UI.
-        let wanted = max(0, min(joining.map { $0.height / 2 } ?? cornerRadius,
-                                cornerCap, rect.width / 2))
+        let wanted = max(0, min(cornerRadius, cornerCap, rect.width / 2))
         let curl = max(0, min(flare, rect.height / 2, rect.width - wanted))
         let corner = max(0, min(wanted, (rect.height - 2 * curl) / 2))
         let bodyTop = rect.minY + curl

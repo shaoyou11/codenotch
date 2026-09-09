@@ -32,6 +32,13 @@ actor ClaudeOAuthProvider: UsageProvider {
     /// Held between refreshes so the keychain is read once per token, not once
     /// per minute — a keychain read can put a prompt in front of the user.
     private var credentials: ClaudeCredentials?
+    /// When the token runs out, as of the last keychain read — expired or not.
+    ///
+    /// Read-only bookkeeping for `ClaudeTokenRefresher`, which has to know how
+    /// long is left *before* deciding to do anything. Kept here because this is
+    /// already the one place that reads the item, so exposing it costs no extra
+    /// keychain traffic and no extra prompt.
+    private(set) var tokenExpiry: Date?
     /// Set when the endpoint returns 429. Until it passes, refreshes are
     /// skipped without touching the network — a poll that keeps firing into a
     /// rate limit is how you stay rate limited.
@@ -227,6 +234,7 @@ actor ClaudeOAuthProvider: UsageProvider {
         // own window never expired and the keychain was never read again.
         let fresh = try loadCredentials()
         Log.usage.debug("\(self.id, privacy: .public): read keychain token, expires \(fresh.expiresAt, privacy: .public)")
+        tokenExpiry = fresh.expiresAt
         // Expired is not signed out. Claude Code rotates this token whenever it
         // runs, and this app deliberately does not — minting one would mean
         // writing a credential it does not own, and racing the owner for it. So
@@ -271,10 +279,23 @@ actor ClaudeOAuthProvider: UsageProvider {
     nonisolated var signInRoute: SignInRoute {
         // Names the command for a profile, because that is the only way to
         // reach it: plain `claude` signs the default one in, not this.
-        .guidance("先运行 `\(profile.signInCommand)` 完成登录，随后即可读取用量。切换账号请在该工具中使用 /login。")
+        .guidance(L10n.t("Run `\(profile.signInCommand)` once — it signs in and is what these readings come from. Use /login there to change account."))
     }
 
     nonisolated func forgetCachedCredential() { keychain.forgetCached() }
+
+    /// Read the keychain again, ignoring anything held, and report the expiry.
+    ///
+    /// The after-check for `ClaudeTokenRefresher`, and the only caller that
+    /// should want it: everything else is served from the cache precisely so
+    /// that the keychain — and its prompt — is touched as rarely as possible.
+    func reloadTokenExpiry() -> Date? {
+        keychain.forgetCached()
+        credentials = nil
+        guard let fresh = try? loadCredentials() else { return nil }
+        tokenExpiry = fresh.expiresAt
+        return fresh.expiresAt
+    }
 
     nonisolated func account() -> ProviderAccount? {
         let manageURL = URL(string: "https://claude.ai/settings/usage")
@@ -297,7 +318,14 @@ actor ClaudeOAuthProvider: UsageProvider {
             )
         }
 
-        guard let credentials = try? keychain.load() else { return nil }
+        // Through the injected source, not `keychain` directly. In production
+        // the source *is* `keychain.load()` — the default set in `init` — so
+        // nothing about how this reads, caches or prompts changes. What it buys
+        // is that a test can build a real provider without the call reaching
+        // the login keychain: it used to, and a test host rebuilt with a fresh
+        // ad-hoc signature would sit behind an authorization prompt nobody was
+        // there to answer, hanging the whole suite on `providerSummaries`.
+        guard let credentials = try? loadCredentials() else { return nil }
         return ProviderAccount(
             label: profile.signedInAddress(),
             plan: credentials.subscriptionType,
@@ -390,7 +418,8 @@ struct UsageResponse: Decodable {
                 id: limit.kind,
                 label: limit.windowLabel,
                 usedFraction: limit.percent / 100,
-                resetsAt: resetsAt
+                resetsAt: resetsAt,
+                duration: Self.duration(forKind: limit.kind)
             )
         }
 
@@ -406,24 +435,30 @@ struct UsageResponse: Decodable {
             else { return }
             windows.append(LimitWindow(id: id, label: label,
                                        usedFraction: window.utilization / 100,
-                                       resetsAt: resetsAt))
+                                       resetsAt: resetsAt, duration: Self.duration(forKind: id)))
         }
-        merge(fiveHour, id: "session", label: "Current session")
-        merge(sevenDay, id: "weekly_all", label: "All models")
+        merge(fiveHour, id: "session", label: L10n.t("Current session"))
+        merge(sevenDay, id: "weekly_all", label: L10n.t("All models"))
 
         return windows.sorted(by: UsageResponse.displayOrder)
+    }
+
+    static func duration(forKind kind: String) -> TimeInterval? {
+        if kind == "session" { return 5 * 3600 }
+        if kind.hasPrefix("weekly_") { return 7 * 86400 }
+        return nil
     }
 
     /// The frame's wording, for the kinds it drew.
     static func label(forKind kind: String) -> String {
         switch kind {
-        case "session":       return "Current session"
-        case "weekly_all":    return "All models"
-        case "weekly_opus":   return "Opus"
-        case "weekly_sonnet": return "Sonnet"
+        case "session":       return L10n.t("Current session")
+        case "weekly_all":    return L10n.t("All models")
+        case "weekly_opus":   return L10n.t("Opus")
+        case "weekly_sonnet": return L10n.t("Sonnet")
         // Only reached when the response names no model for the window, which
         // is the one case where there is nothing better to call it.
-        case "weekly_scoped", "scoped": return "Scoped"
+        case "weekly_scoped", "scoped": return L10n.t("Scoped")
         default:
             return kind
                 .replacingOccurrences(of: "weekly_", with: "")

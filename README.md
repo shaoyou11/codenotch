@@ -1,6 +1,6 @@
 <div align="center">
 
-# Codenotch
+![Codenotch](docs/design/codenotch-banner.png)
 
 [![CI](https://github.com/vinzdg/codenotch/actions/workflows/ci.yml/badge.svg)](https://github.com/vinzdg/codenotch/actions/workflows/ci.yml)
 ![Platform](https://img.shields.io/badge/platform-macOS%2026%2B-black)
@@ -19,6 +19,28 @@ Hover a ring for its limit windows and when they reset. Claude's ring shows the
 same **current session** window Claude Code's own `/usage` leads with, so the
 two never disagree.
 
+## Download
+
+[**Latest release**](../../releases/latest) — signed, notarized, and updating
+itself from then on. Take this one unless you have a reason not to.
+
+To try unreleased `main` without an Xcode install, the [preview
+build](../../releases/tag/preview) is rebuilt from every commit, and the
+Package workflow keeps a per-commit disk image on each of its
+[runs](../../actions/workflows/package.yml). Neither is notarized — they are
+ad-hoc signed, because the Developer ID certificate exists on one machine — so
+macOS quarantines the download. Clear the flag once, after dragging the app to
+Applications:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Codenotch.app
+```
+
+If macOS says the app is *damaged*, that is the quarantine flag rather than a bad download — run the command above.
+
+Universal binary. macOS 15 or later. To build and install a copy from source
+instead, see [Building](#building).
+
 ## Windows
 
 A Windows port — Rust/Tauri 2, same design and providers — lives in [`windows/`](windows/README.md).
@@ -32,15 +54,32 @@ A Windows port — Rust/Tauri 2, same design and providers — lives in [`window
 | **Codex** | official | ChatGPT's usage endpoint, using the local Codex sign-in. Shows the 5-hour and weekly limits when available. |
 | **Antigravity** | official where licensed, otherwise a request count | Antigravity's local language server first, then Google's quota endpoint; a plain count when neither will answer for the account. |
 | **GLM** | official | Z.ai's Coding Plan monitor endpoint, with a key borrowed from whichever coding tool already holds one — Claude Code's `settings.json`, ZCode, or OpenCode. |
+| **Ollama (Local)** | local runtime | Automatically detected local models, RAM/VRAM, unload time and context. Optional response capture adds thinking and generation speed. |
 | **Grok** | official | The Grok CLI session in `~/.grok/auth.json`, against the same credits billing endpoint `/usage` uses. |
 | **OpenCode** | official | The Go plan's official usage endpoint, with the `opencode-go` key OpenCode itself stores on sign-in. |
+| **Command Code** | official | The GOAT plan's `/alpha` billing endpoints, with the key the Command Code app writes to `~/.commandcode/auth.json`. |
 | **GitHub Copilot** | official | GitHub's Copilot quota endpoint, authenticated with the GitHub CLI session already on the Mac (`gh auth login`). |
 
-Codenotch never signs in anywhere. Every reading is borrowed from a credential
-or session a tool on your Mac already holds — install and sign in to any of
-them, and its ring appears. Switching a provider off in Settings stops its
-credential being read at all and forgets the readings taken from it; it does
-not sign you out of the tool that owns the account, and the row says so.
+Most providers borrow a credential or session from a tool already on your Mac.
+Ollama Cloud accepts an API key in Settings. Switching a provider off stops its
+usage polling and forgets its readings; borrowed accounts stay signed in to
+the tools that own them.
+
+**Local Ollama is detected automatically.** Configure its address or stop monitoring in **Settings → Ollama**.
+Each loaded model gets a notch cell; reorder or hide it in **Settings → Accounts**.
+Hover for RAM/VRAM, unload time, context limit and quantization.
+
+For generation speed (**tok/s**) and live **Thinking**, enable **Measure speed and thinking**
+in Settings → Ollama, keep Codenotch open and connect through its local relay:
+
+```sh
+OLLAMA_HOST=http://127.0.0.1:11435 ollama run gemma4:e4b --think
+```
+
+Speed updates after completed native Ollama responses; thinking requires streamed
+reasoning. Direct requests to Ollama's default port (`11434`) only provide model
+detection. Monitoring never initiates inference or saves prompts, reasoning or replies.
+See [Ollama details](docs/plans/2026-09-07-local-llm-provider-plan.md).
 
 Settings lists the connected providers in the order the notch draws them, and
 you can drag one by its handle to move it. The order is remembered across
@@ -59,6 +98,31 @@ personal one, with its own limits, its own sessions and its own row in Settings.
 Any `~/.claude-<slug>` directory Claude Code has run against is found at launch;
 the default `~/.claude` always comes first, the rest in alphabetical order, so the
 rings never swap places.
+
+Codex accounts work the same way: `~/.codex` stays the **Codex** ring, and each
+used `~/.codex-<slug>` directory adds a **Codex (slug)** ring with its own limits,
+activity and Settings row. Profiles are discovered at launch, default first,
+then alphabetically. To connect a second account, sign in through Codex CLI
+using a separate home directory:
+
+```sh
+mkdir -p "$HOME/.codex-work"
+CODEX_HOME="$HOME/.codex-work" codex -c 'cli_auth_credentials_store="file"' login
+```
+
+Choose the second account during sign-in, then restart Codenotch. Run that
+account's CLI sessions with `CODEX_HOME="$HOME/.codex-work" codex` as well.
+Repeat with another name, such as `.codex-personal`, for more accounts.
+Settings shows each account's email and profile directory; each ring can be
+reordered or switched off independently. Switching one off forgets only its
+Codenotch readings and leaves the Codex login intact.
+
+Codenotch reads each profile's `auth.json`; keychain-only or API-key-only
+logins cannot provide these ChatGPT account limits. It never copies, refreshes
+or writes Codex credentials. If a login expires, use that profile's Codex CLI
+to renew it. Directories outside the `~/.codex-<slug>` convention are not
+discovered automatically, and adding a profile requires restarting Codenotch,
+just as it does for Claude.
 
 ## When a session ends
 
@@ -104,10 +168,19 @@ is asked on the first real alert rather than at launch.
 
 The notch lives on any of the four screen edges. Right and left keep a
 vertical column; top and bottom lay the readings out side by side. It pins
-itself to the *usable* edge, so a bottom notch rests on the Dock and follows
-when the Dock hides or moves. On a Mac with a hardware notch, the top
+itself to the physical screen edge, so showing or hiding the Dock does not
+move it. Hold Option and drag to move along the selected edge; each edge
+remembers its position. On a Mac with a hardware notch, the top
 placement takes its exact shape, so the two read as one rather than as a bar
 parked underneath it.
+
+Along that edge it sits wherever you put it: hold ⌥ and drag the notch to
+slide it, and each edge remembers where you left it, so moving the notch to the
+top and back does not lose the place you chose on the right. **Recentre** in
+Settings → Appearance puts the current edge back in the middle.
+
+**Size** in the same place draws the whole notch — rings, text, tooltip and all
+— smaller or larger. Medium is the size it was designed at.
 
 At rest it is a small pill on the screen edge that unfolds when the pointer
 reaches it — configurable in Settings to always show, or to hide entirely.
@@ -144,6 +217,19 @@ certificate and an App Store Connect notary profile, and is only ever run by
 the maintainer to cut an official release. See
 [CONTRIBUTING.md](CONTRIBUTING.md). CI runs the same unit tests unsigned via
 `make test-ci`.
+
+A Debug build is ad-hoc signed, which means it has no stable code identity, so
+macOS cannot match it to a saved keychain "Always Allow" — the prompt to read a
+tool's token returns on every launch. To make the grant stick during local
+development, sign the built app with a stable self-signed identity:
+
+```sh
+Scripts/sign-local.sh   # signs /Applications/Codenotch.app (pass a path to override)
+```
+
+It creates a reusable `Codenotch Local Signing` certificate in your login
+keychain (no Apple Developer account needed) and re-signs the app. Grant the
+keychain prompt once more after signing; it will not ask again.
 
 Run with `CODENOTCH_DEMO=1` to see fixed sample data instead of live readings.
 

@@ -56,7 +56,7 @@ actor GeminiAPIProvider: UsageProvider {
     }
 
     nonisolated var signInRoute: SignInRoute {
-        .guidance("无需额外登录，用量根据 Gemini CLI、OpenCode 和 Hermes 已记录的调用统计，不读取你的 API 密钥。")
+        .guidance(L10n.t("There is nothing to sign in to: the count is added up from what Gemini CLI, OpenCode and Hermes recorded about their own calls. Your API key is never read."))
     }
 
     nonisolated func account() -> ProviderAccount? {
@@ -73,7 +73,7 @@ actor GeminiAPIProvider: UsageProvider {
         // ever run here, so there is genuinely nothing being metered.
         guard !sources.isEmpty else {
             throw UsageProviderError.nothingMetered(
-                "No Gemini CLI, OpenCode or Hermes sessions found")
+                L10n.t("No Gemini CLI, OpenCode or Hermes sessions found"))
         }
         lastTools = sources.map(\.name)
         return Self.snapshot(sources: sources, budget: budget(), now: now)
@@ -107,6 +107,7 @@ actor GeminiAPIProvider: UsageProvider {
         let budget = budget.flatMap { $0 > 0 ? $0 : nil }
         let total = sources.reduce(GeminiTokenUsage.zero) { $0.adding($1.usage) }
         let calendar = GeminiTokenUsage.calendar
+        let month = calendar.dateInterval(of: .month, for: now)
 
         var windows = [
             LimitWindow(
@@ -115,7 +116,8 @@ actor GeminiAPIProvider: UsageProvider {
                     ?? "Tokens this month · billed per token, no limit",
                 usedFraction: budget.map { Double(total.tokensThisMonth) / Double($0) },
                 used: total.tokensThisMonth,
-                resetsAt: calendar.dateInterval(of: .month, for: now)?.end
+                resetsAt: month?.end,
+                duration: month?.duration
             ),
             LimitWindow(
                 id: "today",

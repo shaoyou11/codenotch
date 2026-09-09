@@ -19,6 +19,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let switchAccount: (String) -> Bool
     private let retry: (String) -> Void
     private let updater: Updater
+    private let ollamaRelay: OllamaActivityRelay?
+    private let usageStore: UsageStore?
+    private let resetPosition: () -> Void
 
     init(preferences: Preferences,
          providers: @escaping () -> [ProviderSummary],
@@ -26,7 +29,13 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
          signOut: @escaping (String) -> Void,
          signIn: @escaping (String) -> Bool,
          switchAccount: @escaping (String) -> Bool,
-         retry: @escaping (String) -> Void) {
+         retry: @escaping (String) -> Void,
+         resetPosition: @escaping () -> Void,
+         usageStore: UsageStore? = nil,
+         ollamaRelay: OllamaActivityRelay? = nil) {
+        self.ollamaRelay = ollamaRelay
+        self.usageStore = usageStore
+        self.resetPosition = resetPosition
         self.switchAccount = switchAccount
         self.retry = retry
         self.updater = updater
@@ -96,6 +105,26 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         layoutTrafficLights(in: window)
     }
 
+    /// Put the window away if it is already in front, otherwise bring it up.
+    ///
+    /// Only the notch's own gear calls this. A menu item reading "Settings…"
+    /// and the first-launch introduction both `show()` instead, because a
+    /// command that names a destination should go there rather than toggle.
+    ///
+    /// The condition is *key*, not merely visible. Clicking the gear while the
+    /// window is open but behind something else should fetch it forward — the
+    /// intent there is plainly "show me that", and closing it would be the one
+    /// thing the click could not have meant.
+    func toggle() {
+        if let window, window.isVisible, window.isKeyWindow {
+            // `isReleasedWhenClosed` is false, so this hides it and keeps the
+            // window itself for the next `show()`.
+            window.close()
+            return
+        }
+        show()
+    }
+
     func show() {
         if let window {
             // Re-centered every time, not only at creation: a window is
@@ -143,7 +172,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
                                    signIn: signIn,
                                    switchAccount: switchAccount,
                                    retry: retry,
-                                   updater: updater)
+                                   resetPosition: resetPosition,
+                                   updater: updater,
+                                   ollamaRelay: ollamaRelay, usageStore: usageStore)
         )
         window.center()
         window.isReleasedWhenClosed = false

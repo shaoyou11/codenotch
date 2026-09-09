@@ -18,7 +18,7 @@ actor GitHubCopilotProvider: UsageProvider {
     }
 
     nonisolated var signInRoute: SignInRoute {
-        .guidance("请先运行 `gh auth login` 登录 GitHub CLI，再开启 GitHub Copilot。")
+        .guidance(L10n.t("Sign in with GitHub CLI using `gh auth login`, then enable GitHub Copilot."))
     }
 
     nonisolated func account() -> ProviderAccount? {
@@ -178,7 +178,7 @@ enum GitHubCopilotUsage {
             return window(id: key, quota: quota, root: root)
         }
         guard !windows.isEmpty else {
-            throw UsageProviderError.nothingMetered("GitHub Copilot reported no metered quotas")
+            throw UsageProviderError.nothingMetered(L10n.t("GitHub Copilot reported no metered quotas"))
         }
         return windows
     }
@@ -196,7 +196,8 @@ enum GitHubCopilotUsage {
         if let entitlement, entitlement > 0 {
             let consumed = used ?? max(0, entitlement - (remaining ?? entitlement))
             return LimitWindow(id: id, label: label(for: id),
-                               usedFraction: max(0, consumed / entitlement), resetsAt: reset)
+                               usedFraction: max(0, consumed / entitlement), resetsAt: reset,
+                               duration: monthlyDuration(endingAt: reset))
         }
         if let remaining, remaining >= 0, used == nil {
             return remaining == 0 && entitlement == 0 ? nil
@@ -208,6 +209,18 @@ enum GitHubCopilotUsage {
                                used: Int(used.rounded()), resetsAt: reset)
         }
         return nil
+    }
+
+    /// Copilot allowances reset at midnight UTC on the first of each month.
+    private static func monthlyDuration(endingAt reset: Date?) -> TimeInterval? {
+        guard let reset else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let parts = calendar.dateComponents([.day, .hour, .minute, .second], from: reset)
+        guard parts.day == 1, parts.hour == 0, parts.minute == 0, parts.second == 0,
+              let previousMonth = calendar.date(byAdding: .second, value: -1, to: reset)
+        else { return nil }
+        return calendar.dateInterval(of: .month, for: previousMonth)?.duration
     }
 
     private static func number(_ value: Any?) -> Double? {

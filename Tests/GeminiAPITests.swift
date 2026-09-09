@@ -469,6 +469,7 @@ final class GeminiAPISnapshotTests: XCTestCase {
         )
         XCTAssertEqual(snapshot.fidelity, .manual)
         XCTAssertEqual(try XCTUnwrap(snapshot.headline?.usedFraction), 0.3255, accuracy: 0.0001)
+        XCTAssertEqual(snapshot.headline?.duration, 30 * 86400)
         XCTAssertTrue(snapshot.windows[0].label.contains("2.0M"),
                       "budget label was \(snapshot.windows[0].label)")
     }
@@ -496,7 +497,7 @@ final class GeminiAPISnapshotTests: XCTestCase {
     func testTheAccountNamesTheKeyAndTheToolsItWasReadFrom() {
         let account = GeminiAPICredentials.account(
             tools: ["Gemini CLI", "OpenCode"], authType: "gemini-api-key")
-        XCTAssertEqual(account?.label, "API 密钥")
+        XCTAssertEqual(account?.label, "API key")
         XCTAssertEqual(account?.plan, "metered")
         XCTAssertEqual(account?.source, "Gemini CLI, OpenCode")
     }
@@ -506,7 +507,7 @@ final class GeminiAPISnapshotTests: XCTestCase {
     func testAGoogleAccountLoginIsNotMetered() {
         let account = GeminiAPICredentials.account(
             tools: ["Gemini CLI"], authType: "oauth-personal")
-        XCTAssertEqual(account?.label, "Google 账号")
+        XCTAssertEqual(account?.label, "Google account")
         XCTAssertNil(account?.plan)
     }
 

@@ -139,7 +139,8 @@ struct CursorCredentials {
             return .openApp(bundleID: bundleID, name: "Cursor")
         }
         return .guidance(
-            "请先运行 `cursor-agent login`，面板会读取该会话；也支持读取已登录的 Cursor 编辑器。"
+            "Run `cursor-agent login` once — the notch reads that session. "
+            + "The Cursor editor works the same way, if you have it."
         )
     }
 

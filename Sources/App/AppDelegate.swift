@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var notchFleet: NotchFleet?
     private var store: UsageStore?
     private var monitors: [String: any AgentActivityMonitor] = [:]
+    private var ollamaRelay: OllamaActivityRelay?
     private var preferences: Preferences?
     private var settings: SettingsWindowController?
     private var whatsNew: WhatsNewWindowController?
@@ -13,6 +14,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var updater: Updater?
     private var thresholdNotifier: ThresholdNotifier?
     private var statusItem: StatusItemController?
+    /// Keeps the Claude keychain token from ageing out on a Mac where the CLI
+    /// is never run by hand. See `ClaudeTokenRefresher`.
+    private var tokenRefresher: ClaudeTokenRefresher?
     private var cancellables = Set<AnyCancellable>()
     /// Turns the monitors' running commentary into the one event worth
     /// interrupting for: an agent that has just stopped working.
@@ -32,6 +36,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// provider and a session monitor of its own, keyed by the same id, so a
     /// work login's sessions spin the work ring and nobody else's.
     private let claudeProfiles = ClaudeProfile.discover()
+    private let codexProfiles = CodexProfile.discover()
+    /// Held as concrete providers, not just handed to the store: the token
+    /// refresher needs to ask one of them how long its token has left, and the
+    /// protocol has no business carrying that.
+    private var claudeProviders: [ClaudeOAuthProvider] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Set here, not in the Info.plist: this call is applied at launch and
@@ -47,7 +56,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Preferences.migrateFromPreviousName()
         let preferences = Preferences()
         self.preferences = preferences
-        Design.interfaceScale = preferences.interfaceSize.scale
 
         // One notch per display: the fleet owns a controller for each screen
         // the scope asks for and fans every reading out to all of them. The
@@ -67,7 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // site behind bot management, and re-registering is one line.
             let webProviders: [WebSessionProvider] = []
             fleet.signInItems = webProviders.map { provider in
-                (title: "登录 \(provider.displayName)…",
+                (title: L10n.t("Sign in to \(provider.displayName)…"),
                  action: { [weak provider] in provider?.presentSignIn() })
             }
 
@@ -80,11 +88,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // it drew every provider from the archive and only dropped the
             // switched-off ones once the binding below delivered.
             Log.usage.info("claude profiles: \(self.claudeProfiles.map(\.displayPath).joined(separator: ", "), privacy: .public)")
+            Log.usage.info("codex profiles: \(self.codexProfiles.map(\.displayPath).joined(separator: ", "), privacy: .public)")
+            let claudeProviders = claudeProfiles.map { ClaudeOAuthProvider(profile: $0) }
+            self.claudeProviders = claudeProviders
             let store = UsageStore(
-                providers: claudeProfiles.map { ClaudeOAuthProvider(profile: $0) }
-                    + [CursorLocalProvider(), CodexLocalProvider(), AntigravityProvider(),
+                providers: claudeProviders
+                    + [CursorLocalProvider()]
+                    + codexProfiles.map { CodexLocalProvider(profile: $0) }
+                    + [AntigravityProvider(),
                        GLMProvider(), GrokLocalProvider(), OpenCodeProvider(),
-                       GitHubCopilotProvider(),
+                       CommandCodeProvider(), GitHubCopilotProvider(),
+                       OllamaLocalProvider(endpoint: URL(string: preferences.ollamaEndpoint)!),
+                       OllamaProvider(),
                        // A closure, not the value: the provider is an actor and
                        // re-reads the budget on every fetch, so a ceiling typed
                        // into Settings applies without a restart.
@@ -103,6 +118,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let updater = Updater()
             self.updater = updater
 
+            let relay = OllamaActivityRelay()
+            self.ollamaRelay = relay
+            // A single publisher chain exceeds Swift's type-checking time limit.
+            let relayPreferences = Publishers.CombineLatest3(
+                preferences.$disconnectedProviders,
+                preferences.$ollamaEndpoint,
+                preferences.$ollamaMetricsEnabled)
+            let relayConfiguration = relayPreferences.map { values in
+                (enabled: !values.0.contains("ollama-local") && values.2, endpoint: values.1)
+            }.eraseToAnyPublisher()
+            relayConfiguration
+                .removeDuplicates { $0.enabled == $1.enabled && $0.endpoint == $1.endpoint }
+                .receive(on: RunLoop.main)
+                .sink { [weak relay, weak fleet] configuration in
+                    fleet?.setLocalMetricsEnabled(configuration.enabled)
+                    relay?.configure(enabled: configuration.enabled, endpoint: configuration.endpoint)
+                }
+                .store(in: &cancellables)
+            relay.$thinkingModels
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet, weak store] models in
+                    let previous = fleet?.thinkingModels ?? [:]
+                    fleet?.setThinkingModels(models)
+                    if models.keys.contains(where: { previous[$0] == nil }) { store?.refresh(providerID: "ollama-local") }
+                }
+                .store(in: &cancellables)
+
+            relay.$performances
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet, weak store] measurements in
+                    fleet?.setPerformances(measurements)
+                    if !measurements.isEmpty { store?.refresh(providerID: "ollama-local") }
+                }
+                .store(in: &cancellables)
+
             let settings = SettingsWindowController(
                 preferences: preferences,
                 // A closure so the sheet re-reads accounts each time it comes
@@ -115,9 +165,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 switchAccount: { [weak store] in
                     store?.openAccountSource(providerID: $0) ?? false
                 },
-                retry: { [weak store] in store?.reauthorize(providerID: $0) }
+                retry: { [weak store] in store?.reauthorize(providerID: $0) },
+                // Both halves, because the stored nudge and the live one are
+                // kept apart on purpose — clearing only the preference would
+                // leave the notch where it is until the next edge change, and
+                // moving only the panel would put it back on relaunch.
+                resetPosition: { [weak fleet, weak preferences] in
+                    preferences?.setOffset(0, for: preferences?.notchEdge ?? .right)
+                    fleet?.apply(alongOffset: 0)
+                },
+                usageStore: store, ollamaRelay: relay
             )
-            fleet.onOpenSettings = { [weak settings] in settings?.show() }
+            // The gear toggles; everything else that opens settings opens it.
+            fleet.onOpenSettings = { [weak settings] in settings?.toggle() }
             self.settings = settings
 
             // What changed, once per version — including on a fresh install,
@@ -172,6 +232,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 .store(in: &cancellables)
 
+            // Three inputs, one answer: which control is in charge, and the
+            // value each of them holds. Any of them changing has to re-ask
+            // `notchScale` rather than trust the value it was handed, since
+            // the preset and the slider each keep their own.
+            //
+            // `dropFirst` on each, because `@Published` publishes the value it
+            // is given at init — without it every launch would open the notch
+            // three times over before anyone had touched anything.
+            Publishers.MergeMany(
+                preferences.$notchSize.dropFirst().map { _ in () }.eraseToAnyPublisher(),
+                preferences.$usesCustomNotchScale.dropFirst().map { _ in () }.eraseToAnyPublisher(),
+                preferences.$customNotchScale.dropFirst().map { _ in () }.eraseToAnyPublisher()
+            )
+            // `DispatchQueue.main`, not `RunLoop.main`, and this is the one
+            // subscription where the difference is visible. Combine's RunLoop
+            // scheduler delivers in `.default` mode, which AppKit starves for
+            // as long as a drag is in progress — the loop is in
+            // `NSEventTrackingRunLoopMode` the whole time a slider is held. So
+            // the notch sat unchanged until the mouse came up, then jumped.
+            // Every `Timer` here is registered `forMode: .common` against the
+            // same hazard; the scheduler offers no way to say that, and the
+            // dispatch queue is not bound to run loop modes at all.
+            .receive(on: DispatchQueue.main)
+            .sink { [weak fleet, weak preferences] in
+                guard let preferences, let fleet else { return }
+                fleet.apply(scale: preferences.notchScale)
+                // Resizing something you cannot see is guesswork. On the
+                // hover setting the notch is folded away for as long as the
+                // pointer is in Settings, which is exactly when the size is
+                // being chosen — so it is opened for a moment to show what
+                // just changed. Dragging the slider keeps re-arming this, so
+                // it simply stays open until the drag stops. `peek` still
+                // declines outright when the notch is set to Hide.
+                fleet.peek(for: 1.2, focusing: nil)
+            }
+            .store(in: &cancellables)
+
             preferences.$notchScope
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(scope: $0) }
@@ -190,12 +287,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(hideInFullscreen: $0) }
                 .store(in: &cancellables)
-
-            preferences.$interfaceSize
-                .receive(on: RunLoop.main)
-                .sink { [weak fleet] in fleet?.apply(interfaceSize: $0) }
-                .store(in: &cancellables)
-
             preferences.$usageDisplayMode
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(usageDisplayMode: $0) }
@@ -214,6 +305,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferences.$disconnectedProviders
                 .receive(on: RunLoop.main)
                 .sink { [weak store] in store?.disconnected = $0 }
+                .store(in: &cancellables)
+
+            preferences.$ollamaEndpoint
+                .receive(on: RunLoop.main)
+                .sink { [weak store] address in
+                    guard let endpoint = try? OllamaEndpoint.parse(address) else { return }
+                    store?.updateOllamaEndpoint(endpoint)
+                }
                 .store(in: &cancellables)
 
             preferences.$providerOrder
@@ -244,17 +343,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             self.thresholdNotifier = notifier
 
+            store.$notchSnapshots
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.setSnapshots($0) }
+                .store(in: &cancellables)
+
             store.$snapshots
                 .receive(on: RunLoop.main)
-                .sink { [weak fleet, weak statusItem] snapshots in
-                    fleet?.setSnapshots(snapshots)
+                .sink { [weak statusItem] snapshots in
                     statusItem?.snapshots = snapshots
                     notifier.observe(snapshots)
                 }
                 .store(in: &cancellables)
             store.start()
             fleet.onRefresh = { [weak store] in store?.refreshNow() }
-            fleet.onRefreshProvider = { [weak store] id in store?.refresh(providerID: id) }
+            fleet.onRefreshProvider = { [weak store] id in
+                await store?.refresh(providerID: id)?.value
+            }
             store.$refreshing
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] ids in fleet?.setRefreshing(ids) }
@@ -279,13 +384,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // still working without you switching to it.
         var monitors: [String: any AgentActivityMonitor] = [
             "cursor": CursorActivityMonitor(),
-            "codex": CodexActivityMonitor(),
             "gemini": AntigravityActivityMonitor(),
             "grok": GrokActivityMonitor(),
-            "gemini-api": GeminiCLIActivityMonitor()
+            "gemini-api": GeminiCLIActivityMonitor(),
         ]
+        var claudeMonitors: [ClaudeSessionMonitor] = []
         for profile in claudeProfiles {
-            monitors[profile.id] = ClaudeSessionMonitor(directory: profile.sessionsDirectory)
+            let monitor = ClaudeSessionMonitor(
+                directory: profile.sessionsDirectory,
+                projects: profile.projectsDirectory
+            )
+            claudeMonitors.append(monitor)
+            monitors[profile.id] = monitor
+        }
+        for profile in codexProfiles {
+            monitors[profile.id] = CodexActivityMonitor(profile: profile)
+        }
+
+        // Renewing the token runs the Claude command, which registers a session
+        // of its own for the second it lives. Every Claude monitor is told to
+        // step over that pid, so it never reaches the notch and never counts as
+        // work in progress.
+        //
+        // Only the default profile is renewed. The command writes whichever
+        // directory `CLAUDE_CONFIG_DIR` names, so a second profile would need
+        // that passed through — behaviour nobody has been able to try on a Mac
+        // with two of them, and an unverified guess is worse here than a ring
+        // that ages the way it already does.
+        if let defaultProvider = claudeProviders.first(where: { $0.profile.slug == nil }) {
+            let refresher = ClaudeTokenRefresher(
+                expiry: { await defaultProvider.tokenExpiry },
+                reload: { await defaultProvider.reloadTokenExpiry() }
+            )
+            for monitor in claudeMonitors {
+                monitor.ignoredPIDs = { [weak refresher] in
+                    guard let pid = refresher?.launchedPID else { return [] }
+                    return [pid]
+                }
+            }
+            // The one place the failure becomes visible. The store carries the
+            // fact; nothing here retries, and the warning clears itself the
+            // moment a reading comes back.
+            refresher.$outcome
+                .receive(on: RunLoop.main)
+                .sink { [weak self] outcome in
+                    guard case .failed = outcome else { return }
+                    self?.store?.reportRenewalFailed(providerID: defaultProvider.id)
+                }
+                .store(in: &cancellables)
+
+            refresher.start()
+            tokenRefresher = refresher
         }
         for (id, monitor) in monitors {
             monitor.sessionsPublisher
@@ -320,6 +469,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // so this has to be the very last thing that can create one.
         fleet.apply(displayPreference: preferences.displayPreference)
         fleet.apply(alongOffset: preferences.offset(for: preferences.notchEdge))
+        fleet.apply(scale: preferences.notchScale)
         fleet.apply(resetTimeFormat: preferences.resetTimeFormat)
         fleet.apply(accentColor: preferences.accentColor)
         fleet.show()
@@ -367,15 +517,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// otherwise nothing left to click — choosing Hide would be a one-way door.
     /// Launching the app again while it is already running lands here, so
     /// opening it from Applications or Spotlight reopens settings.
-    @MainActor func showSettings() { settings?.show() }
-
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows: Bool) -> Bool {
-        settings?.show()
+        openSettings()
         return true
     }
 
+    @MainActor func openSettings() { settings?.show() }
+
     func applicationWillTerminate(_ notification: Notification) {
+        ollamaRelay?.configure(enabled: false, endpoint: OllamaEndpoint.defaultAddress)
+        tokenRefresher?.stop()
         store?.stop()
         monitors.values.forEach { $0.stop() }
         notchFleet?.stop()
