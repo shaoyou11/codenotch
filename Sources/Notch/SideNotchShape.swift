@@ -30,15 +30,21 @@ struct SideNotchShape: Shape {
     var curlRadius: CGFloat = NotchLayout.curlRadius
     var cornerRadius: CGFloat = NotchLayout.cornerRadius
 
+    /// Derive the resting outline from the presented size, never the target
+    /// expanded state: swapping shape types turns the full panel into a pill.
+    var capsuleDepth: CGFloat? = nil
+
     func path(in rect: CGRect) -> Path {
         // Canonical space: depth across the shape, length along it. For a side
         // edge that is already width x height; for a horizontal one it is the
         // rect turned on its side. The bezel is at `maxX`.
         let depth = edge.isVertical ? rect.width : rect.height
         let length = edge.isVertical ? rect.height : rect.width
+        let unfold = capsuleDepth.map { max(0, min(1, (depth / $0 - 1) / 2)) } ?? 1
         let canonical = canonicalPath(
             in: CGRect(x: 0, y: 0, width: depth, height: length),
-            flare: joining == nil ? curlRadius : NotchLayout.bezelFillet,
+            flare: joining == nil ? curlRadius * unfold : NotchLayout.bezelFillet,
+            bezelCorner: min(depth, length) / 2 * (1 - unfold),
             // Half the hardware's height is the most the resting shape can
             // carry; holding it there keeps every frame of the expansion the
             // same shape, only bigger.
@@ -72,7 +78,7 @@ struct SideNotchShape: Shape {
         }
     }
 
-    private func canonicalPath(in rect: CGRect, flare: CGFloat,
+    private func canonicalPath(in rect: CGRect, flare: CGFloat, bezelCorner: CGFloat,
                                cornerCap: CGFloat = .greatestFiniteMagnitude) -> Path {
         // Order matters. Clamping the corner by `width - curl` — the obvious
         // reading — collapses it to zero as soon as the flare is as wide as the
@@ -80,14 +86,37 @@ struct SideNotchShape: Shape {
         // a 10pt-wide shape came out with square corners. The corner is claimed
         // first, out of half the width, and the flare takes what is left.
         let wanted = max(0, min(cornerRadius, cornerCap, rect.width / 2))
-        let curl = max(0, min(flare, rect.height / 2, rect.width - wanted))
+        let curl = max(0, min(flare, rect.height / 2, rect.width - wanted - bezelCorner))
         let corner = max(0, min(wanted, (rect.height - 2 * curl) / 2))
         let bodyTop = rect.minY + curl
         let bodyBottom = rect.maxY - curl
 
+        if capsuleDepth != nil {
+            let b = bezelCorner
+            let k: CGFloat = 0.5522847498
+            var p = Path()
+            p.move(to: CGPoint(x: rect.maxX, y: rect.minY + b))
+            p.addCurve(to: CGPoint(x: rect.maxX - curl - b, y: bodyTop),
+                       control1: CGPoint(x: rect.maxX, y: rect.minY + b + k * (curl - b)),
+                       control2: CGPoint(x: rect.maxX - (curl + b) * (1 - k), y: bodyTop))
+            p.addLine(to: CGPoint(x: rect.minX + corner, y: bodyTop))
+            p.addCurve(to: CGPoint(x: rect.minX, y: bodyTop + corner),
+                       control1: CGPoint(x: rect.minX + corner * (1 - k), y: bodyTop),
+                       control2: CGPoint(x: rect.minX, y: bodyTop + corner * (1 - k)))
+            p.addLine(to: CGPoint(x: rect.minX, y: bodyBottom - corner))
+            p.addCurve(to: CGPoint(x: rect.minX + corner, y: bodyBottom),
+                       control1: CGPoint(x: rect.minX, y: bodyBottom - corner * (1 - k)),
+                       control2: CGPoint(x: rect.minX + corner * (1 - k), y: bodyBottom))
+            p.addLine(to: CGPoint(x: rect.maxX - curl - b, y: bodyBottom))
+            p.addCurve(to: CGPoint(x: rect.maxX, y: rect.maxY - b),
+                       control1: CGPoint(x: rect.maxX - (curl + b) * (1 - k), y: bodyBottom),
+                       control2: CGPoint(x: rect.maxX, y: rect.maxY - b - k * (curl - b)))
+            p.closeSubpath()
+            return p
+        }
         var path = Path()
         // Screen edge, above the body.
-        path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.move(to: CGPoint(x: rect.maxX - bezelCorner, y: rect.minY))
         // Flare inward and down onto the top edge. Absent when flush: the
         // shape meets the bezel square, as the hardware notch does.
         if curl > 0 {

@@ -10,6 +10,17 @@ final class LocalizationTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 1_787_900_000)
     private let resetNow = Date(timeIntervalSince1970: 1_700_000_000)
 
+    func testCustomStatisticsTranslations() {
+        let value = "20.2"
+        XCTAssertEqual(L10n.t("\(value)% deficit", locale: zhHans), "20.2% 透支")
+        XCTAssertEqual(L10n.t("\(value)% reserved", locale: zhHans), "20.2% 预留")
+        XCTAssertEqual(L10n.t("Lifetime tokens", locale: zhHans), "累计令牌")
+        XCTAssertEqual(L10n.t("30-day tokens", locale: zhHans), "近 30 天令牌")
+        XCTAssertEqual(L10n.t("\(5)h \(7)m", locale: zhHans), "5 小时 7 分钟")
+        XCTAssertEqual(L10n.t("\(13)d", locale: zhHans), "13 天")
+        XCTAssertEqual(L10n.t("\(value)% deficit", locale: english), "20.2% deficit")
+    }
+
     // MARK: - ElapsedCopy
 
     func testElapsedCopyInSimplifiedChinese() {

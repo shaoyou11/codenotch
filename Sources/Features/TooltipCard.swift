@@ -482,14 +482,14 @@ private enum UsageFormat {
         let hours = minutes / 60
         let remainder = minutes % 60
         if hours > 0 {
-            return remainder == 0 ? "\(hours)h" : "\(hours)h \(remainder)m"
+            return remainder == 0 ? L10n.t("\(hours)h") : L10n.t("\(hours)h \(remainder)m")
         }
-        return "\(minutes)m"
+        return L10n.t("\(minutes)m")
     }
 
     static func days(_ value: Int?) -> String {
         guard let value else { return "—" }
-        return "\(value)d"
+        return L10n.t("\(value)d")
     }
 }
 
@@ -569,22 +569,22 @@ private struct CodexUsageSection: View {
     }
 
     private var todayText: String {
-        usage.usageToday(now: now).map { UsageFormat.tokens($0) } ?? "Pending"
+        usage.usageToday(now: now).map { UsageFormat.tokens($0) } ?? L10n.t("Pending")
     }
 
     private var metrics: [CodexMetric] {
         let summary = usage.summary
         return [
             CodexMetric(id: "lifetime", value: UsageFormat.tokens(summary?.lifetimeTokens),
-                        label: "Lifetime tokens"),
+                        label: L10n.t("Lifetime tokens")),
             CodexMetric(id: "peak", value: UsageFormat.tokens(summary?.peakDailyTokens),
-                        label: "Peak tokens"),
+                        label: L10n.t("Peak tokens")),
             CodexMetric(id: "longest", value: UsageFormat.duration(
-                seconds: summary?.longestRunningTurnSeconds), label: "Longest chat"),
+                seconds: summary?.longestRunningTurnSeconds), label: L10n.t("Longest chat")),
             CodexMetric(id: "current-streak", value: UsageFormat.days(
-                summary?.currentStreakDays), label: "Current streak"),
+                summary?.currentStreakDays), label: L10n.t("Current streak")),
             CodexMetric(id: "longest-streak", value: UsageFormat.days(
-                summary?.longestStreakDays), label: "Longest streak")
+                summary?.longestStreakDays), label: L10n.t("Longest streak"))
         ]
     }
 
@@ -603,9 +603,9 @@ private struct CodexUsageSection: View {
                 .fill(Palette.ringTrack)
                 .frame(height: NotchLayout.hairline)
 
-            SplitRow(leading: "Today", trailing: todayText)
+            SplitRow(leading: L10n.t("Today"), trailing: todayText)
                 .padding(.top, NotchLayout.blockSpacing)
-            SplitRow(leading: "30-day tokens",
+            SplitRow(leading: L10n.t("30-day tokens"),
                      trailing: UsageFormat.tokens(usage.usageInLast30Days(now: now)))
                 .padding(.top, NotchLayout.codexUsageRowGap)
             CodexDailyUsageChart(buckets: buckets, maximum: maximum)

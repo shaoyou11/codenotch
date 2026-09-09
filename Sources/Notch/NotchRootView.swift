@@ -84,7 +84,7 @@ struct NotchRootView: View {
             // Swapping cards is a movement like any other here.
             .animation(motion(NotchMotion.glide), value: model.hoveredIndex)
         }
-        .animation(motion(NotchMotion.unfold), value: model.isExpanded)
+        .animation(motion(model.isExpanded ? NotchMotion.unfold : .easeInOut(duration: 0.24)), value: model.isExpanded)
         .tint(model.accentColor.color)
         .environment(\.codenotchAccentColor, model.accentColor.color)
     }
@@ -99,9 +99,9 @@ struct NotchRootView: View {
             : NotchMotion.merge
     }
 
-    private var notchOutline: AnyShape {
-        if !model.isExpanded && model.hardwareNotch == nil { return AnyShape(Capsule()) }
-        return AnyShape(SideNotchShape(edge: model.edge, joining: model.joinedNotch))
+    private var notchOutline: SideNotchShape {
+        SideNotchShape(edge: model.edge, joining: model.joinedNotch,
+                       capsuleDepth: model.hardwareNotch == nil ? 10 / model.sizeScale : nil)
     }
 
     private func notch(_ place: NotchPlacement) -> some View {
