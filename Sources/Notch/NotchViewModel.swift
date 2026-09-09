@@ -474,13 +474,12 @@ final class NotchViewModel: ObservableObject {
     /// budgeted for, and run off the bottom of a small display.
     private func cardBudget(cellCount: Int) -> CGFloat {
         if edge.isVertical {
-            return screenSize.height / sizeScale
-                - shapeLength(cellCount: cellCount)
+            return screenSize.height
+                - shapeLength(cellCount: cellCount) * sizeScale
                 - 2 * NotchLayout.cardCorner
         }
-        return screenSize.height / sizeScale
-            - contentInset
-            - NotchLayout.bodyDepth(for: edge)
+        return screenSize.height
+            - (contentInset + NotchLayout.bodyDepth(for: edge)) * sizeScale
             - NotchLayout.tailLength
             - NotchLayout.tailGap
     }

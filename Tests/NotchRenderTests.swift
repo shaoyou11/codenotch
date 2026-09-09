@@ -306,6 +306,7 @@ final class EdgeArrivalTests: XCTestCase {
 
     private func openController() -> NotchWindowController {
         let controller = NotchWindowController()
+        controller.hideInFullscreen = false
         controller.show()
         controller.model.snapshots = (0..<3).map { index in
             ProviderSnapshot(id: "p\(index)", displayName: "P", glyph: .claude,

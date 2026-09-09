@@ -131,8 +131,8 @@ final class MergedTopNotchTests: XCTestCase {
     func testWithoutAHardwareNotchItStillFoldsToItsPill() {
         let m = model(cells: 4, screen: plain)
         m.isExpanded = false
-        XCTAssertEqual(m.notchLength, NotchLayout.pillHeight, accuracy: 0.001)
-        XCTAssertEqual(m.notchDepth, NotchLayout.pillWidth, accuracy: 0.001)
+        XCTAssertEqual(m.notchLength * m.sizeScale, 40, accuracy: 0.001)
+        XCTAssertEqual(m.notchDepth * m.sizeScale, 10, accuracy: 0.001)
     }
 
     func testAScreenWithoutOneInsetsNothing() {
