@@ -363,15 +363,16 @@ final class Preferences: ObservableObject {
         self.hideInFullscreen = defaults.object(forKey: "hideInFullscreen") as? Bool ?? true
         self.usageDisplayMode = defaults.string(forKey: "usageDisplayMode").flatMap(UsageDisplayMode.init(rawValue:)) ?? .used
         let legacySize = defaults.object(forKey: "interfaceSize") as? Int ?? 70
-        self.notchSize = defaults.string(forKey: Keys.size)
+        let initialSize = defaults.string(forKey: Keys.size)
             .flatMap(NotchSize.init(rawValue:)) ?? NotchSize.presets.first { Int(($0.scale * 100).rounded()) == legacySize } ?? .seventy
+        self.notchSize = initialSize
         // Absent means never chosen, and the presets are what every earlier
         // version had — so the slider is opt-in rather than the default.
         self.usesCustomNotchScale = defaults.bool(forKey: Keys.usesCustomSize)
         let stored = defaults.object(forKey: Keys.customSize) as? Double
         self.customNotchScale = stored.map {
             min(max($0, Self.customScaleRange.lowerBound), Self.customScaleRange.upperBound)
-        } ?? Double(self.notchSize.scale)
+        } ?? Double(initialSize.scale)
         self.displayPreference = defaults.string(forKey: Keys.display)
             .map(DisplayPreference.display) ?? .followActiveWindow
         self.resetTimeFormat = defaults.string(forKey: Keys.resetTimeFormat)
