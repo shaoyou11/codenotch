@@ -4598,6 +4598,28 @@
           }
         }
       }
+    },
+    "Alert when %@ crosses 80%% and 100%% of a limit.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当 %@ 的额度达到 80%% 和 100%% 时提醒。"
+          }
+        }
+      }
+    },
+    "%@ · Local": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 本地"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

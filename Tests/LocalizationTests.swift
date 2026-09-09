@@ -11,6 +11,7 @@ final class LocalizationTests: XCTestCase {
     private let resetNow = Date(timeIntervalSince1970: 1_700_000_000)
 
     func testCustomStatisticsTranslations() {
+        XCTAssertEqual(L10n.t("Alert when \("Codex") crosses 80% and 100% of a limit.", locale: zhHans), "当 Codex 的额度达到 80% 和 100% 时提醒。")
         let value = "20.2"
         XCTAssertEqual(L10n.t("\(value)% deficit", locale: zhHans), "20.2% 透支")
         XCTAssertEqual(L10n.t("\(value)% reserved", locale: zhHans), "20.2% 预留")
