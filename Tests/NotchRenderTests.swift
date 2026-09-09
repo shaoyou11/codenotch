@@ -1,5 +1,6 @@
 import SwiftUI
 import XCTest
+import Combine
 @testable import Codenotch
 
 /// The layout maths can be right in every unit and still put nothing on the
@@ -337,13 +338,19 @@ final class EdgeArrivalTests: XCTestCase {
     func testItLandsFoldedAndThenOpens() {
         let controller = openController()
         defer { controller.stop() }
-
+        // Record transitions, rather than polling a sub-frame alpha change:
+        // a busy render runner may complete the entire fade between polls.
+        var folded = false
+        var reopened = false
+        let observation = controller.model.$isExpanded.dropFirst().sink { expanded in
+            if !expanded { folded = true }
+            else if folded { reopened = true }
+        }
+        defer { observation.cancel() }
         controller.apply(edge: .top)
-        XCTAssertTrue(wait { controller.panelAlphaForTesting < 1 }, "it never went away")
-        XCTAssertTrue(wait { controller.panelAlphaForTesting == 1 }, "it never came back")
-        XCTAssertFalse(controller.model.isExpanded,
-                       "it arrived at full size instead of opening into place")
-        XCTAssertTrue(wait { controller.model.isExpanded }, "it never opened")
+        XCTAssertTrue(wait { folded && reopened }, "it must arrive folded before reopening")
+        XCTAssertEqual(controller.model.edge, .top)
+        XCTAssertEqual(controller.panelAlphaForTesting, 1)
     }
 
     /// And it is on screen while it opens, not still fading in underneath.
