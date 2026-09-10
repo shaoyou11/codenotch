@@ -252,10 +252,9 @@ final class NotchRenderTests: XCTestCase {
         }
     }
 
-    /// The glass style only reaches the notch once it is open. At rest the pill
-    /// has to read as part of the bezel — as the hardware notch itself, on a
-    /// MacBook — and a translucent one would not.
-    func testTheFoldedPillIsOpaqueInTheGlassStyle() {
+    /// Glass applies only while open. CodenotchT keeps the requested 72%
+    /// black capsule at rest on displays without a hardware notch.
+    func testTheFoldedPillKeepsCustomOpacityInTheGlassStyle() {
         for edge in NotchEdge.allCases {
             let m = model(edge: edge)
             m.surfaceStyle = .glass
@@ -275,8 +274,8 @@ final class NotchRenderTests: XCTestCase {
                 y: min(rep.pixelsHigh - 1, max(0, Int(onBezel.y)))
             )
             XCTAssertEqual(
-                colour?.alphaComponent ?? 0, 1, accuracy: 0.01,
-                "\(edge): the folded pill is see-through in the glass style"
+                colour?.alphaComponent ?? 0, 0.72, accuracy: 0.01,
+                "\(edge): the folded pill lost its custom translucent black fill"
             )
         }
     }
