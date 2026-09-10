@@ -27,12 +27,14 @@ final class FullscreenTests: XCTestCase {
         XCTAssertTrue(controller.model.isPinned)
         controller.fullscreenCheck = { _ in false }
         controller.hideInFullscreen = true
-        XCTAssertTrue(controller.panelVisibleForTesting)
+        XCTAssertFalse(controller.fullscreenSuppressedForTesting)
+        XCTAssertFalse(controller.panelVisibleForTesting)
         XCTAssertTrue(controller.model.isPinned)
         XCTAssertTrue(controller.model.isExpanded)
         controller.fullscreenCheck = { _ in true }
         controller.hideInFullscreen = false
-        XCTAssertTrue(controller.panelVisibleForTesting)
+        XCTAssertFalse(controller.fullscreenSuppressedForTesting)
+        XCTAssertFalse(controller.panelVisibleForTesting)
     }
 
     func testFullscreenPreferencePersists() {
