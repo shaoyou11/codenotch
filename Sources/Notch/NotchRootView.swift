@@ -75,7 +75,7 @@ struct NotchRootView: View {
                             .position(moveCentre(place))
                             .scaleEffect(model.isExpanded ? 1 : model.orbMergeScale)
                             .opacity(model.showsChrome ? 1 : 0)
-                        .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
+                            .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
                             .animation(motion(orbMotion), value: model.isExpanded)
                 }
 
@@ -274,8 +274,7 @@ struct NotchRootView: View {
                 // edge that is the ring alone — the label sits below it, in the
                 // notch's depth, and claims nothing here.
                 .frame(width: model.edge.isVertical ? nil : NotchLayout.cellAlong(for: model.edge))
-                .opacity(model.showsChrome ? 1 : 0)
-                        .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
+                .opacity(model.isExpanded ? 1 : 0)
                 // A short slide toward the edge, no scaling: the clip is
                 // already doing the concealing, and scaling on top of it
                 // reads as two effects fighting.
