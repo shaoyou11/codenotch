@@ -101,10 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // the page-local requests are refreshed only after that login.
             let deepSeek = WebSessionProvider(site: Sites.deepSeek)
             let webProviders: [WebSessionProvider] = [deepSeek]
-            fleet.signInItems = webProviders.map { provider in
-                (title: L10n.t("Sign in to \(provider.displayName)…"),
-                 action: { [weak provider] in provider?.presentSignIn() })
-            }
+            // Account login stays in Settings → Accounts, separate from refresh.
 
             // Cursor reads the editor's session, or cursor-agent's if the
             // editor is missing — never a browser one: signing into

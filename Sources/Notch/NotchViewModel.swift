@@ -95,6 +95,11 @@ final class NotchViewModel: ObservableObject {
 
     /// Held open, by either route. What the folding logic actually asks.
     var staysOpen: Bool { isPinned || isAlwaysOn }
+    @Published var isPointerOverSurface = false
+    /// Fixed panels stay quiet until the user reaches for their controls.
+    var showsChrome: Bool {
+        isExpanded && (!staysOpen || isPointerOverSurface || isHoveringSettings || isHoveringMove || isMoving)
+    }
     /// Providers with a fetch in flight, driven by the store.
     @Published var refreshing: Set<String> = []
     /// Bumped each time the settings orb is clicked, by either route.

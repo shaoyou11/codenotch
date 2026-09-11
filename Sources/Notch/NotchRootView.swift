@@ -55,7 +55,8 @@ struct NotchRootView: View {
                         // only there to guarantee nothing is left on screen
                         // once the notch has folded — it is never what the eye
                         // sees the arc leave by.
-                        .opacity(model.isExpanded ? 1 : 0)
+                        .opacity(model.showsChrome ? 1 : 0)
+                        .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
                         .animation(motion(orbMotion), value: model.isExpanded)
 
                 // The move handle, mirroring the settings orb at the other end
@@ -73,7 +74,8 @@ struct NotchRootView: View {
                             .scaleEffect(model.sizeScale)
                             .position(moveCentre(place))
                             .scaleEffect(model.isExpanded ? 1 : model.orbMergeScale)
-                            .opacity(model.isExpanded ? 1 : 0)
+                            .opacity(model.showsChrome ? 1 : 0)
+                        .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
                             .animation(motion(orbMotion), value: model.isExpanded)
                 }
 
@@ -272,7 +274,8 @@ struct NotchRootView: View {
                 // edge that is the ring alone — the label sits below it, in the
                 // notch's depth, and claims nothing here.
                 .frame(width: model.edge.isVertical ? nil : NotchLayout.cellAlong(for: model.edge))
-                .opacity(model.isExpanded ? 1 : 0)
+                .opacity(model.showsChrome ? 1 : 0)
+                        .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
                 // A short slide toward the edge, no scaling: the clip is
                 // already doing the concealing, and scaling on top of it
                 // reads as two effects fighting.

@@ -474,7 +474,9 @@ final class NotchWindowController {
         let overTooltip = model.hoveredIndex
             .flatMap(tooltipRect(index:))
             .map { model.isExpanded && $0.contains(local) } ?? false
-        setExpanded(liveRect.contains(local) || overTooltip)
+        let overSurface = liveRect.contains(local) || overTooltip
+        if model.isPointerOverSurface != overSurface { model.isPointerOverSurface = overSurface }
+        setExpanded(overSurface)
 
         var target: Int?
         if model.isExpanded, notchRect.contains(local) {
