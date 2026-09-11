@@ -427,6 +427,63 @@ final class AntigravityQuotaTests: XCTestCase {
         XCTAssertEqual(thirdPartyWeekly.usedFraction ?? 0, 0.15, accuracy: 0.0001)
     }
 
+    func testCodexBarQuotaSummaryEnvelopeIsNormalizedForEverySource() throws {
+        let body = Data("""
+        {
+          "groups": [
+            {
+              "displayName": "Gemini Models",
+              "buckets": [
+                {
+                  "bucketId": "gemini-5h",
+                  "displayName": "5-hour Limit",
+                  "remaining": {"case": "remainingFraction", "value": 0.86}
+                },
+                {
+                  "bucketId": "gemini-weekly",
+                  "displayName": "Weekly Limit",
+                  "remaining": {"remainingFraction": 0.55}
+                }
+              ]
+            },
+            {
+              "displayName": "Claude and GPT models",
+              "buckets": [
+                {
+                  "bucketId": "3p-5h",
+                  "displayName": "5-hour Limit",
+                  "remainingFraction": 1
+                },
+                {
+                  "bucketId": "3p-weekly",
+                  "displayName": "Weekly Limit",
+                  "remainingFraction": 1
+                }
+              ]
+            }
+          ]
+        }
+        """.utf8)
+
+        let providerWindows = AntigravityProvider.windows(in: body)
+        let bridgeWindows = AntigravityBridge.windows(in: body)
+
+        XCTAssertEqual(bridgeWindows, providerWindows)
+        XCTAssertEqual(providerWindows.count, 4)
+        XCTAssertEqual(providerWindows[0].id, "gemini-5h")
+        XCTAssertEqual(providerWindows[1].id, "gemini-weekly")
+        XCTAssertEqual(providerWindows[2].id, "3p-5h")
+        XCTAssertEqual(providerWindows[3].id, "3p-weekly")
+        XCTAssertEqual(providerWindows[0].duration, 5 * 3600)
+        XCTAssertEqual(providerWindows[1].duration, 7 * 86400)
+        XCTAssertEqual(providerWindows[2].duration, 5 * 3600)
+        XCTAssertEqual(providerWindows[3].duration, 7 * 86400)
+        XCTAssertEqual(providerWindows[0].usedFraction ?? -1, 0.14, accuracy: 0.0001)
+        XCTAssertEqual(providerWindows[1].usedFraction ?? -1, 0.45, accuracy: 0.0001)
+        XCTAssertEqual(providerWindows[2].usedFraction ?? -1, 0, accuracy: 0.0001)
+        XCTAssertEqual(providerWindows[3].usedFraction ?? -1, 0, accuracy: 0.0001)
+    }
+
     func testDirectCloudCodeIgnoresInvalidFractions() {
         let body = Data("""
         {
@@ -663,6 +720,17 @@ final class AntigravityBridgeTests: XCTestCase {
 /// hourly — so it is read about hourly, not twice a minute.
 final class CredentialCacheTests: XCTestCase {
     private struct Token { let expired: Bool }
+
+    /// -60008 is what a refusal looks like when a prompt was needed and could
+    /// not be shown — seen five seconds before a clamshell sleep. It has to
+    /// age the reading like a dark wake does, not sign the account out.
+    func testAPromptThatCouldNotBeShownIsTransientNotASignOut() {
+        XCTAssertTrue(ClaudeCredentials.wasTransient(-60008))
+        XCTAssertTrue(ClaudeCredentials.wasTransient(-25320))
+        XCTAssertFalse(ClaudeCredentials.wasTransient(errSecItemNotFound))
+        XCTAssertFalse(ClaudeCredentials.wasTransient(errSecAuthFailed),
+                       "an explicit refusal stays a refusal, and is not re-asked on a timer")
+    }
 
     func testItReadsOnceAndThenHoldsWhatItHas() throws {
         var reads = 0
@@ -1356,12 +1424,49 @@ final class KeychainRefusalTests: XCTestCase {
         )
         let message = snapshot.statusMessage ?? ""
         XCTAssertTrue(message.contains("refused"))
-        XCTAssertTrue(message.contains("Always Allow"))
+        XCTAssertTrue(message.contains("Allow access"),
+                      "it has to name the control that actually asks again")
         XCTAssertFalse(message.contains("Sign in"), "it tells a signed-in user to sign in")
+        XCTAssertFalse(message.contains("ring"),
+                       "clicking a ring only refreshes, and a refresh never prompts")
+        XCTAssertFalse(message.contains("fix-keychain"),
+                       "the script is in the repository, not in the installed app")
     }
 
     /// The credential is still valid — we were simply not let in to re-read it.
     /// Throwing the last reading away would punish a mis-click.
+    /// An emptied credential is not the same as never having signed in, and
+    /// the difference is the whole point: the last reading survives. Claude
+    /// Code empties every profile at once after it updates itself, and blanking
+    /// the rings turned an overnight glitch into "the app lost my data".
+    func testAnEmptiedCredentialKeepsTheLastReading() {
+        XCTAssertFalse(UsageStore.supersedesHistory(.signedOutByOwner))
+    }
+
+    /// Whereas a profile nobody ever signed into has nothing worth keeping.
+    func testNeverSignedInStillClearsTheHistory() {
+        XCTAssertTrue(UsageStore.supersedesHistory(.needsAuth))
+    }
+
+    func testAnEmptiedCredentialMapsToItsOwnStatus() {
+        guard case .signedOutByOwner =
+            UsageStore.statusForTesting(UsageProviderError.signedOutByOwner) else {
+            return XCTFail("an emptied credential was reported as something else")
+        }
+    }
+
+    func testTheMessageNamesTheCauseAndSaysSignInAgain() {
+        let snapshot = ProviderSnapshot(
+            id: "claude-work", displayName: "Claude (work)", glyph: .claude,
+            fidelity: .official, status: .signedOutByOwner, windows: []
+        )
+        let message = snapshot.statusMessage ?? ""
+        XCTAssertTrue(message.contains("Claude Code emptied"))
+        XCTAssertTrue(message.contains("updates itself"),
+                      "it has to name the trigger, or this reads as our bug")
+        XCTAssertTrue(message.contains("Sign in again"))
+    }
+
     func testARefusalKeepsTheLastReading() {
         XCTAssertFalse(UsageStore.supersedesHistory(.accessDenied))
     }

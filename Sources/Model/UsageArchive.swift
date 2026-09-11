@@ -22,6 +22,7 @@ struct UsageArchive {
         /// Optional so archives written before Codex token activity existed
         /// continue to open and show their last quota reading.
         let tokenUsage: CodexTokenUsage?
+        let usageDetail: ProviderUsageDetail?
     }
 
     private let defaults: UserDefaults
@@ -82,13 +83,14 @@ struct UsageArchive {
             let snapshot = ProviderSnapshot(
                 id: entry.id,
                 displayName: entry.displayName,
-                glyph: entry.glyph,
+                glyph: entry.id == "devin" && entry.glyph == .third ? .devin : entry.glyph,
                 fidelity: entry.fidelity,
                 status: .stale(since: entry.fetchedAt),
                 windows: entry.windows,
                 headlineID: entry.headlineID,
                 weeklyID: entry.weeklyID,
-                tokenUsage: entry.tokenUsage
+                tokenUsage: entry.tokenUsage,
+                usageDetail: entry.usageDetail
             )
             result[entry.id] = (snapshot, entry.fetchedAt)
         }
@@ -106,7 +108,8 @@ struct UsageArchive {
                 fetchedAt: $0.fetchedAt,
                 headlineID: $0.snapshot.headlineID,
                 weeklyID: $0.snapshot.weeklyID,
-                tokenUsage: $0.snapshot.tokenUsage
+                tokenUsage: $0.snapshot.tokenUsage,
+                usageDetail: $0.snapshot.usageDetail
             )
         }
         guard let data = try? JSONEncoder().encode(entries) else { return }

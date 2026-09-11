@@ -62,12 +62,13 @@ actor AntigravityProvider: UsageProvider {
         .openApp(bundleID: "com.google.antigravity", name: "Antigravity")
     }
 
-    nonisolated func forgetCachedCredential() { AntigravityCredentials.forgetCached() }
+    /// Reached only from "Allow access…", so it may let the next read prompt.
+    nonisolated func forgetCachedCredential() { AntigravityCredentials.askAgain() }
 
     nonisolated func account() -> ProviderAccount? {
         if AntigravityCredentials.isSignedIn(), let held = AntigravityCredentials.held {
             let email = held.email
-            let plan = held.authMethod == "consumer" ? "Personal" : held.authMethod
+            let plan = held.authMethod == "consumer" ? L10n.t("Personal") : held.authMethod
             return ProviderAccount(
                 label: email,
                 plan: plan,
@@ -106,7 +107,7 @@ actor AntigravityProvider: UsageProvider {
             return ProviderSnapshot(id: id, displayName: displayName, glyph: glyph,
                                     fidelity: .official, status: .ok, windows: windows,
                                     headlineID: resolveHeadlineID(for: windows),
-                                    weeklyID: "gemini-weekly")
+                                    weeklyID: resolveWeeklyID(for: windows))
         }
 
         if localQuotaOverride != nil && everBridged {
@@ -121,7 +122,7 @@ actor AntigravityProvider: UsageProvider {
             return ProviderSnapshot(id: id, displayName: displayName, glyph: glyph,
                                     fidelity: .official, status: .ok, windows: windows,
                                     headlineID: resolveHeadlineID(for: windows),
-                                    weeklyID: "gemini-weekly")
+                                    weeklyID: resolveWeeklyID(for: windows))
         }
 
         // 2. Fallback to OMP SQLite store if offline or direct call fails
@@ -130,7 +131,7 @@ actor AntigravityProvider: UsageProvider {
             return ProviderSnapshot(id: id, displayName: displayName, glyph: glyph,
                                     fidelity: .official, status: .ok, windows: ompWindows,
                                     headlineID: resolveHeadlineID(for: ompWindows),
-                                    weeklyID: "gemini-weekly")
+                                    weeklyID: resolveWeeklyID(for: ompWindows))
         }
 
         if everBridged { throw UsageProviderError.credentialExpired }
@@ -159,18 +160,59 @@ actor AntigravityProvider: UsageProvider {
         )
     }
 
-    private func resolveHeadlineID(for windows: [LimitWindow]) -> String {
+    nonisolated func resolveHeadlineID(for windows: [LimitWindow]) -> String {
         let preferredLimit = Preferences.storedAntigravityHeadlineLimit()
-        
+        let preferredModel = Preferences.storedAntigravityHeadlineModel()
+        let modelCandidates = windows.filter { $0.id.hasPrefix(preferredModel.rawValue) }
+        let candidates = modelCandidates.isEmpty ? windows : modelCandidates
+
         if preferredLimit != .automatic {
-            let candidates = windows.filter { $0.id.hasSuffix(preferredLimit.rawValue) }
-            if let mostConstrained = candidates.max(by: { ($0.usedFraction ?? 0) < ($1.usedFraction ?? 0) }) {
+            let limitCandidates = candidates.filter { matches($0, cadence: preferredLimit) }
+            if let mostConstrained = limitCandidates.max(by: constrainedBefore) {
                 return mostConstrained.id
             }
         }
-        
-        let mostConstrained = windows.max(by: { ($0.usedFraction ?? 0) < ($1.usedFraction ?? 0) })
-        return mostConstrained?.id ?? "gemini-5h"
+
+        // Match CodexBar's default: an exhausted lane does not displace a
+        // usable lane unless every lane is exhausted.
+        let fractional = candidates.filter { $0.usedFraction != nil }
+        let usable = fractional.filter { ($0.usedFraction ?? 0) < 1 }
+        return (usable.isEmpty ? fractional : usable).max(by: constrainedBefore)?.id
+            ?? candidates.first?.id
+            ?? "\(preferredModel.rawValue)-hourly"
+    }
+
+    private nonisolated func matches(_ window: LimitWindow, cadence: AntigravityHeadlineLimit) -> Bool {
+        let value = "\(window.id) \(window.label)".lowercased()
+        switch cadence {
+        case .fiveHour:
+            return window.duration == 5 * 3600 ||
+                ["5h", "5-hour", "five hour", "five-hour", "hourly", "session"]
+                    .contains(where: { value.contains($0) })
+        case .weekly:
+            return window.duration == 7 * 86400 || value.contains("weekly")
+        case .automatic:
+            return true
+        }
+    }
+
+    private nonisolated func constrainedBefore(_ lhs: LimitWindow, _ rhs: LimitWindow) -> Bool {
+        let left = lhs.usedFraction ?? 0
+        let right = rhs.usedFraction ?? 0
+        if left != right { return left < right }
+        return lhs.id > rhs.id
+    }
+
+    nonisolated func resolveWeeklyID(for windows: [LimitWindow]) -> String? {
+        let preferredModel = Preferences.storedAntigravityHeadlineModel()
+        let modelCandidates = windows.filter { $0.id.hasPrefix(preferredModel.rawValue) }
+        let candidates = modelCandidates.isEmpty ? windows : modelCandidates
+        let weekly = candidates.filter { window in
+            window.duration == 7 * 86400 ||
+                window.id.lowercased().hasSuffix("-weekly") ||
+                window.label.lowercased().contains("weekly")
+        }
+        return weekly.max(by: constrainedBefore)?.id
     }
 
     /// Ask Antigravity's language server, if it is running.
@@ -232,148 +274,10 @@ actor AntigravityProvider: UsageProvider {
     /// Both the local language server (which already provides grouped buckets)
     /// and direct Google Cloud Code PA `retrieveUserQuota` responses (which list
     /// individual model buckets) are normalized into this standard 4-window structure.
-    static func windows(in data: Data, now: Date = Date()) -> [LimitWindow] {
-        struct DirectResponse: Decodable {
-            struct Bucket: Decodable {
-                let modelId: String?
-                let bucketId: String?
-                let name: String?
-                let displayName: String?
-                let remainingFraction: Double?
-                let used: Double?
-                let limit: Double?
-                let resetTime: String?
-                let window: String?
-            }
-            struct Group: Decodable {
-                let displayName: String?
-                let buckets: [Bucket]?
-            }
-            let buckets: [Bucket]?
-            let groups: [Group]?
-            let quotaGroups: [Group]?
-            let response: GroupBody?
-            struct GroupBody: Decodable {
-                let groups: [Group]?
-            }
-        }
-
-        guard let decoded = try? JSONDecoder().decode(DirectResponse.self, from: data) else { return [] }
-
-        // Pre-grouped response from local server or legacy wrapper
-        let groups = (decoded.response?.groups ?? []) + (decoded.groups ?? []) + (decoded.quotaGroups ?? [])
-        if !groups.isEmpty {
-            return groups.flatMap { group -> [LimitWindow] in
-                (group.buckets ?? []).compactMap { bucket in
-                    let rawID = bucket.bucketId ?? bucket.modelId ?? bucket.name ?? group.displayName ?? "quota"
-                    if let remaining = bucket.remainingFraction, remaining >= 0, remaining <= 1 {
-                        var bucketLabel = bucket.displayName ?? L10n.t("Usage")
-                        if bucketLabel.hasSuffix(" Remaining") {
-                            bucketLabel = String(bucketLabel.dropLast(" Remaining".count))
-                        }
-                        if bucketLabel == "Five Hour Limit" {
-                            bucketLabel = "5-hour Limit"
-                        }
-                        let groupLabel = group.displayName ?? ""
-                        return LimitWindow(
-                            id: rawID,
-                            group: groupLabel.isEmpty ? nil : groupLabel,
-                            label: bucketLabel,
-                            usedFraction: 1 - remaining,
-                            resetsAt: bucket.resetTime.flatMap(AntigravityCredentials.parse),
-                            duration: bucket.window == "weekly" ? 7 * 86400 : nil
-                        )
-                    }
-                    if let limit = bucket.limit, limit > 0, let used = bucket.used, used >= 0, used <= limit * 1.5 {
-                        let label = bucket.displayName ?? rawID
-                        return LimitWindow(
-                            id: rawID,
-                            group: group.displayName,
-                            label: label,
-                            usedFraction: used / limit,
-                            resetsAt: bucket.resetTime.flatMap(AntigravityCredentials.parse)
-                        )
-                    }
-                    return nil
-                }
-            }
-        }
-
-        // Direct model-level buckets from Google Cloud Code PA `retrieveUserQuota`
-        guard let buckets = decoded.buckets, !buckets.isEmpty else { return [] }
-
-        // If buckets are in legacy/explicit used and limit format
-        if buckets.contains(where: { $0.limit != nil }) {
-            return buckets.compactMap { bucket in
-                guard let limit = bucket.limit, limit > 0,
-                      let used = bucket.used, used >= 0, used <= limit * 1.5
-                else { return nil }
-                let rawID = bucket.name ?? bucket.modelId ?? bucket.bucketId ?? "quota"
-                let label = bucket.displayName ?? rawID
-                return LimitWindow(
-                    id: rawID,
-                    label: label,
-                    usedFraction: used / limit,
-                    resetsAt: bucket.resetTime.flatMap(AntigravityCredentials.parse)
-                )
-            }
-        }
-
-        struct Candidate {
-            let remaining: Double
-            let resetDate: Date?
-            let isWeekly: Bool
-        }
-
-        var geminiHourly: [Candidate] = []
-        var geminiWeekly: [Candidate] = []
-        var thirdPartyHourly: [Candidate] = []
-        var thirdPartyWeekly: [Candidate] = []
-
-        for bucket in buckets {
-            guard let rem = bucket.remainingFraction, rem >= 0, rem <= 1 else { continue }
-            let model = (bucket.modelId ?? bucket.bucketId ?? "").lowercased()
-            guard !model.isEmpty && !model.starts(with: "chat_") else { continue }
-
-            let resetDate = bucket.resetTime.flatMap(AntigravityCredentials.parse)
-            let isWeekly = (bucket.window == "weekly") || (resetDate.map { $0.timeIntervalSince(now) > 24 * 3600 } ?? false)
-            let cand = Candidate(remaining: rem, resetDate: resetDate, isWeekly: isWeekly)
-
-            if model.contains("gemini") {
-                if isWeekly { geminiWeekly.append(cand) } else { geminiHourly.append(cand) }
-            } else if model.contains("claude") || model.contains("gpt") || model.contains("openai") {
-                if isWeekly { thirdPartyWeekly.append(cand) } else { thirdPartyHourly.append(cand) }
-            }
-        }
-
-        func aggregate(candidates: [Candidate], id: String, group: String, label: String, isWeekly: Bool) -> LimitWindow? {
-            guard !candidates.isEmpty else { return nil }
-            let best = candidates.min(by: { $0.remaining < $1.remaining })!
-            return LimitWindow(
-                id: id,
-                group: group,
-                label: label,
-                usedFraction: 1 - best.remaining,
-                resetsAt: best.resetDate,
-                duration: isWeekly ? 7 * 86400 : nil
-            )
-        }
-
-        var windows: [LimitWindow] = []
-        if let w = aggregate(candidates: geminiHourly, id: "gemini-hourly", group: "Gemini Models", label: "5-hour Limit", isWeekly: false) {
-            windows.append(w)
-        }
-        if let w = aggregate(candidates: geminiWeekly, id: "gemini-weekly", group: "Gemini Models", label: "Weekly Limit", isWeekly: true) {
-            windows.append(w)
-        }
-        if let w = aggregate(candidates: thirdPartyHourly, id: "3p-hourly", group: "Claude and GPT models", label: "5-hour Limit", isWeekly: false) {
-            windows.append(w)
-        }
-        if let w = aggregate(candidates: thirdPartyWeekly, id: "3p-weekly", group: "Claude and GPT models", label: "Weekly Limit", isWeekly: true) {
-            windows.append(w)
-        }
-        return windows
+    nonisolated static func windows(in data: Data, now: Date = Date()) -> [LimitWindow] {
+        AntigravityQuotaParser.parse(data, now: now)
     }
+
 
     static func ompUsageWindows(forEmail email: String? = nil) -> [LimitWindow] {
         let dbURL = URL(fileURLWithPath: ("~/.omp/agent/agent.db" as NSString).expandingTildeInPath)
@@ -430,9 +334,9 @@ actor AntigravityProvider: UsageProvider {
             let resetsAt = (resetsAtMs > 0) ? Date(timeIntervalSince1970: resetsAtMs / 1000.0) : nil
 
             let isGemini = limitId.contains(":google:") || rawLabel.contains("Google")
-            let groupName = isGemini ? "Gemini Models" : "Claude and GPT models"
+            let groupName = isGemini ? L10n.t("Gemini Models") : L10n.t("Claude and GPT models")
             let isWeekly = windowLabel.contains("weekly")
-            let labelName = isWeekly ? "Weekly Limit" : "5-hour Limit"
+            let labelName = isWeekly ? L10n.t("Weekly Limit") : L10n.t("5-hour Limit")
             let standardID = isGemini ? (isWeekly ? "gemini-weekly" : "gemini-hourly") : (isWeekly ? "3p-weekly" : "3p-hourly")
 
             if latestByID[standardID] == nil {
@@ -441,10 +345,10 @@ actor AntigravityProvider: UsageProvider {
         }
 
         let standardSlots: [(id: String, group: String, label: String, isWeekly: Bool)] = [
-            ("gemini-hourly", "Gemini Models", "5-hour Limit", false),
-            ("gemini-weekly", "Gemini Models", "Weekly Limit", true),
-            ("3p-hourly", "Claude and GPT models", "5-hour Limit", false),
-            ("3p-weekly", "Claude and GPT models", "Weekly Limit", true)
+            ("gemini-hourly", L10n.t("Gemini Models"), L10n.t("5-hour Limit"), false),
+            ("gemini-weekly", L10n.t("Gemini Models"), L10n.t("Weekly Limit"), true),
+            ("3p-hourly", L10n.t("Claude and GPT models"), L10n.t("5-hour Limit"), false),
+            ("3p-weekly", L10n.t("Claude and GPT models"), L10n.t("Weekly Limit"), true)
         ]
 
         var windows: [LimitWindow] = []
@@ -471,6 +375,30 @@ actor AntigravityProvider: UsageProvider {
         }
         return windows
     }
+
+    /// Known quota group names, so an English API value still localizes.
+    private static func quotaGroupName(_ name: String?) -> String? {
+        guard let name, !name.isEmpty else { return nil }
+        switch name {
+        case "Gemini Models": return L10n.t("Gemini Models")
+        case "Claude and GPT models": return L10n.t("Claude and GPT models")
+        default: return name
+        }
+    }
+
+    /// Known window titles, including the wording the language server uses.
+    private static func quotaWindowLabel(_ name: String) -> String {
+        var label = name
+        if label.hasSuffix(" Remaining") {
+            label = String(label.dropLast(" Remaining".count))
+        }
+        switch label {
+        case "Five Hour Limit", "5-hour Limit": return L10n.t("5-hour Limit")
+        case "Weekly Limit": return L10n.t("Weekly Limit")
+        default: return label
+        }
+    }
+
     /// The plan's display name, for the message the cell shows.
     static func tier(in data: Data) -> String {
         struct Response: Decodable {

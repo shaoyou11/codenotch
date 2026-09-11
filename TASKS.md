@@ -65,6 +65,9 @@ Design spec in [`docs/specs/2026-08-28-usage-notch-design.md`](docs/specs/2026-0
       reports neither
 - [x] **`WebSessionProvider`** — the browser plumbing written once; `Sites`
       carries the per-site origin, script and parser
+- [x] **DeepSeek Platform** — explicit WebView login, account funded/spent
+      summary, aggregate tokens/cost/requests/API-key metrics, and 30-day
+      daily token/cost charts from the Platform usage endpoints
 - [x] **Cursor** via the same route, pinned by `CursorUsageTests`
 - [x] Cursor's glyph, flattened from its own SVG rather than traced from the
       design frame — exact at any size. See "Flattening an SVG" below
@@ -164,8 +167,9 @@ means work is happening. `CodexActivityMonitor` errs short: the ring stops eight
 seconds after the last write rather than claiming activity it cannot see. If
 Codex grows a real status field, that should replace this.
 
-Perplexity's adapter is kept but unregistered. `WebSessionProvider` is the
-working pattern for a site behind bot management, and re-registering is one line.
+Perplexity's adapter is kept but unregistered. DeepSeek is the first registered
+Platform-login site using `WebSessionProvider`; its login remains explicit and
+its account data stays in the provider's own WebView session.
 
 ### Cursor
 
@@ -330,6 +334,21 @@ is signed with a stable Developer ID identity (`project.yml`) — an unsigned or
 ad-hoc build gets a new identity every rebuild and the prompt would come back
 after every `make run`. Click **Always Allow** once and it sticks. A refusal
 backs the provider off for five minutes so a denied prompt cannot spam.
+
+### Own items prompt too after an ad-hoc rebuild
+
+Items this app stores itself (`lmstudio-api-token`, `ollama-api-key`) are
+ACL-bound to the signing identity just like a borrowed one — an ad-hoc Debug
+build is a new identity every time, so the app goes back to being a stranger
+to its own item. `LMStudioCredentials`/`OllamaCredentials` were reading it
+uncached from the 1 s local-runtime timer, the 2 s `LMStudioLink` reconnect
+loop, and twice per render of `LMStudioSettingsRow.isPresent` — one prompt
+turned into one every few seconds. Both now sit behind `CredentialCache` +
+`KeychainItem.modifiedAt`, `isPresent` is an attribute probe rather than a
+data read, and `store`/`delete`/`forgetCachedCredential()` call
+`forgetCached()`. A free `Apple Development` certificate makes the `Makefile`
+sign Debug builds with a stable identity, so "Always Allow" survives rebuilds
+the same way it does for Claude/Cursor/Antigravity.
 
 ## M4b — Is it working? (agent activity)
 
@@ -828,8 +847,7 @@ credential, which is the same control under an honest name.
 - [x] `WebSessionProvider.signOut()` clears its own cookies — the one true
       logout in the app, because that session is the only one Codenotch created.
       Scoped to the site's host: the data store is shared, so emptying it would
-      sign the user out of every other web provider too. Nothing ships on this
-      path today, but the button would silently lie without it.
+      sign the user out of every other web provider too.
 - [x] Each row shows the account it reads (address and plan), with **Open** going
       to that vendor's own usage page.
 - [x] Every row states what signing out does *not* reach
@@ -1125,12 +1143,25 @@ it and then notice when the answer changes.
 - [x] Counts are compacted for the ring (`651k`, `1.1M`). A 44 pt ring cannot
       hold seven digits, and below 10 000 the digits are printed verbatim so no
       existing request or credit count changes.
-- [x] Busy detection watches **Gemini CLI only**, by modification date. The
-      session file holds no pid, so `ProcessLiveness` has nothing to verify, but
-      the CLI patches `lastUpdated` on every message — the same mtime substitute
-      Antigravity and Cursor use. OpenCode's and Hermes's databases are written
-      for reasons that have nothing to do with a Gemini call, so their mtimes
-      would report work that is not this provider's.
+- [x] Busy detection watches **Gemini CLI**, by modification date: the session
+      file holds no pid, so `ProcessLiveness` has nothing to verify, but the CLI
+      patches `lastUpdated` on every message — the same mtime substitute
+      Antigravity and Cursor use. The ring now merges three readers under
+      `gemini-api`, in tooltip order (Gemini CLI, OpenCode, Hermes), because
+      OpenCode's and Hermes's databases do carry a per-call marker that is
+      unambiguously a Gemini call, even though their mtimes alone would report
+      work that is not this provider's. OpenCode's marker is the newest
+      assistant message in a recently updated session with `providerID =
+      google` and no `time.completed`; sub-agent sessions fold into their
+      parent via `parent_id`, and the query is restricted to
+      `session.time_updated` within 45 s because `message` has no time index.
+      Hermes's marker is an open (`ended_at IS NULL`) session with
+      `billing_provider = gemini` whose `last_activity_at` is within 45 s, or an
+      unexpired row in `session_turn_leases`. None of the three tools persists
+      a "waiting for the user" state on disk — OpenCode exposes one only on its
+      password-protected local server's SSE stream — so the provider reports
+      busy or nothing, like Cursor and Antigravity, not Claude's busy/waiting/
+      idle.
 - [x] **Two departures from the provider template**, both deliberate. The
       protocol extension's default `signInRoute` offers to sign in, and here
       there is nothing to sign into, so this provider overrides it with a

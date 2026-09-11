@@ -15,19 +15,29 @@ import SwiftUI
 final class NotchFleet {
     private var controllers: [NSNumber: NotchWindowController] = [:]
     private var cancellables = Set<AnyCancellable>()
+    /// A model with no panel: what the menu bar's menu reads. Fed everything
+    /// the displays' models are fed, so a model's line there is decorated —
+    /// speed, context, phase, today's tokens — exactly as its cell is.
+    let menuModel = NotchViewModel()
+    /// Every model a reading has to reach.
+    private var models: [NotchViewModel] { [menuModel] + controllers.values.map(\.model) }
 
     private(set) var scope: NotchScreenScope
     private var edge: NotchEdge
     private var visibility: NotchVisibility = .onHover
     private var snapshots: [ProviderSnapshot] = []
     private(set) var thinkingModels: [String: Date] = [:]
-    private var performances: [String: LocalModelPerformance] = [:]
+    /// Per source, the way the view model keeps them: the Ollama relay and
+    /// the LM Studio log each replace their own readings wholesale.
+    private var performances: [String: [String: LocalModelPerformance]] = [:]
+    private var localActivities: [String: LocalModelActivity] = [:]
+    private var ledger = LocalTokenLedger()
     private var localMetricsEnabled = false
 
     func setLocalMetricsEnabled(_ enabled: Bool) {
         localMetricsEnabled = enabled
-        if !enabled { performances = [:]; thinkingModels = [:] }
-        for controller in controllers.values { controller.model.setLocalMetricsEnabled(enabled) }
+        if !enabled { performances[NotchViewModel.ollamaSource] = nil; thinkingModels = [:] }
+        for model in models { model.setLocalMetricsEnabled(enabled) }
     }
     private var refreshing: Set<String> = []
     /// Exposed read-only rather than private: completion-watching needs the
@@ -46,6 +56,7 @@ final class NotchFleet {
     /// One choice for the whole fleet, like the edge and the size: a weekly
     /// ring on one display and not another would read as a bug.
     private var weeklyRing: WeeklyRing = .off
+    private var showsMoveHandle = true
     private var surfaceStyle: NotchSurfaceStyle = .glass
     /// The ⌥-drag nudge along the current edge. One value for the whole
     /// fleet, the same as `edge` itself — displays do not each get their own
@@ -57,12 +68,16 @@ final class NotchFleet {
 
     /// Hooked up by the app delegate; driven by the notch's own chrome.
     var onRefresh: (() -> Void)?
+    var onToggleKeepOpen: (() -> Void)?
     var onRefreshProvider: ((String) async -> Void)?
     var onOpenSettings: (() -> Void)?
     var signInItems: [(title: String, action: () -> Void)] = []
     /// An ⌥-drag on any one panel settled at a new offset. Persisting it is
     /// Preferences' job, same division `apply(edge:)` already keeps.
     var onReposition: ((CGFloat) -> Void)?
+    /// A move handle carried a notch to another edge. Persisting it is
+    /// Preferences' job, the same division `onReposition` keeps.
+    var onMoveToEdge: ((NotchEdge) -> Void)?
 
     /// What the fleet settled on, for tests that need to see panels come and
     /// go rather than take our word for it.
@@ -154,6 +169,13 @@ final class NotchFleet {
         }
     }
 
+    func apply(showsMoveHandle: Bool) {
+        self.showsMoveHandle = showsMoveHandle
+        for controller in controllers.values {
+            controller.apply(showsMoveHandle: showsMoveHandle)
+        }
+    }
+
     func apply(weeklyRing: WeeklyRing) {
         self.weeklyRing = weeklyRing
         for controller in controllers.values {
@@ -178,7 +200,7 @@ final class NotchFleet {
     func apply(alongOffset: CGFloat) {
         self.alongOffset = alongOffset
         for controller in controllers.values {
-            controller.model.alongOffset = alongOffset
+            controller.apply(alongOffset: alongOffset)
         }
     }
 
@@ -197,23 +219,38 @@ final class NotchFleet {
     func setSnapshots(_ snapshots: [ProviderSnapshot]) {
         self.snapshots = snapshots
         let now = Date()
-        for controller in controllers.values {
-            controller.model.updateSnapshots(snapshots)
-            controller.model.now = now
+        for model in models {
+            model.updateSnapshots(snapshots)
+            model.now = now
         }
     }
 
-    func setThinkingModels(_ models: [String: Date]) {
-        thinkingModels = models
-        for controller in controllers.values {
-            controller.model.thinkingModels = models
+    func setThinkingModels(_ thinking: [String: Date]) {
+        thinkingModels = thinking
+        for model in models {
+            model.thinkingModels = thinking
         }
     }
 
-    func setPerformances(_ measurements: [String: LocalModelPerformance]) {
-        performances = measurements
-        for controller in controllers.values {
-            controller.model.updatePerformances(measurements)
+    func setPerformances(_ measurements: [String: LocalModelPerformance],
+                         source: String = NotchViewModel.ollamaSource) {
+        performances[source] = measurements
+        for model in models {
+            model.updatePerformances(measurements, source: source)
+        }
+    }
+
+    func setLocalActivities(_ activities: [String: LocalModelActivity]) {
+        localActivities = activities
+        for model in models {
+            model.localActivities = activities
+        }
+    }
+
+    func setLedger(_ ledger: LocalTokenLedger) {
+        self.ledger = ledger
+        for model in models {
+            model.updateLedger(ledger)
         }
     }
 
@@ -236,6 +273,8 @@ final class NotchFleet {
     func setSessions(providerID id: String, sessions live: [AgentSession]) {
         sessions[id] = live
         let now = Date()
+        menuModel.sessions[id] = live
+        menuModel.now = now
         for controller in controllers.values {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
                 controller.model.sessions[id] = live
@@ -337,17 +376,24 @@ final class NotchFleet {
         controller.model.resetTimeFormat = resetTimeFormat
         controller.model.accentColor = accentColor
         controller.model.weeklyRing = weeklyRing
+        controller.model.showsMoveHandle = showsMoveHandle
         controller.model.surfaceStyle = surfaceStyle
         controller.onRefresh = onRefresh
         controller.onRefreshProvider = onRefreshProvider
         controller.onOpenSettings = onOpenSettings
         controller.model.onOpenSettings = onOpenSettings
         controller.onReposition = onReposition
+        controller.onMoveToEdge = onMoveToEdge
+        controller.onToggleKeepOpen = onToggleKeepOpen
         controller.signInItems = signInItems
         controller.model.updateSnapshots(snapshots)
         controller.model.thinkingModels = thinkingModels
+        controller.model.localActivities = localActivities
         controller.model.setLocalMetricsEnabled(localMetricsEnabled)
-        controller.model.updatePerformances(performances)
+        for (source, measurements) in performances {
+            controller.model.updatePerformances(measurements, source: source)
+        }
+        controller.model.updateLedger(ledger)
         controller.model.refreshing = refreshing
         controller.model.sessions = sessions
         controller.model.now = Date()
