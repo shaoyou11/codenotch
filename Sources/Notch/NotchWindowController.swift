@@ -311,7 +311,8 @@ final class NotchWindowController {
     /// The panel's real size, which AppKit may have rounded up from the one we
     /// asked for — and which the flush edge depends on.
     private var placement: NotchPlacement {
-        NotchPlacement(edge: model.edge, panelSize: panel?.frame.size ?? model.panelSize)
+        NotchPlacement(edge: model.edge, panelSize: panel?.frame.size ?? model.panelSize,
+                       edgeInset: model.surfaceEdgeInset)
     }
 
     /// The notch itself, in panel coordinates with a top-left origin.

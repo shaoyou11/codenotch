@@ -17,9 +17,11 @@ import Foundation
 struct NotchPlacement {
     let edge: NotchEdge
     let panelSize: CGSize
+    var edgeInset: CGFloat = 0
 
     /// A point in panel coordinates.
     func point(along: CGFloat, across: CGFloat) -> CGPoint {
+        let across = across + edgeInset
         switch edge {
         case .right:  return CGPoint(x: panelSize.width - across, y: along)
         case .left:   return CGPoint(x: across, y: along)
@@ -34,6 +36,7 @@ struct NotchPlacement {
     /// anchored at the bezel must not hang off the far side of it, where there
     /// is no screen to be on.
     func rect(along: CGFloat, across: CGFloat, length: CGFloat, depth: CGFloat) -> CGRect {
+        let across = across + edgeInset
         switch edge {
         case .right:
             return CGRect(x: panelSize.width - across - depth, y: along,
@@ -63,10 +66,10 @@ struct NotchPlacement {
     /// And how far in from the bezel.
     func across(of point: CGPoint) -> CGFloat {
         switch edge {
-        case .right:  return panelSize.width - point.x
-        case .left:   return point.x
-        case .top:    return point.y
-        case .bottom: return panelSize.height - point.y
+        case .right:  return panelSize.width - point.x - edgeInset
+        case .left:   return point.x - edgeInset
+        case .top:    return point.y - edgeInset
+        case .bottom: return panelSize.height - point.y - edgeInset
         }
     }
 

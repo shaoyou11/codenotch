@@ -10,7 +10,7 @@ struct NotchRootView: View {
         // AppKit settled on, and the notch has to sit flush against *that*
         // edge, not against the size we asked for.
         GeometryReader { proxy in
-            let place = NotchPlacement(edge: model.edge, panelSize: proxy.size)
+            let place = NotchPlacement(edge: model.edge, panelSize: proxy.size, edgeInset: model.surfaceEdgeInset)
 
             ZStack(alignment: .topLeading) {
                 Color.clear
@@ -124,7 +124,8 @@ struct NotchRootView: View {
 
     private var notchOutline: SideNotchShape {
         SideNotchShape(edge: model.edge, joining: model.joinedNotch,
-                       capsuleDepth: model.hardwareNotch == nil ? 10 / model.sizeScale : nil)
+                       capsuleDepth: model.hardwareNotch == nil ? 10 / model.sizeScale : nil,
+                       floating: model.usesFloatingPill ? 1 : 0)
     }
 
     private func notch(_ place: NotchPlacement) -> some View {
@@ -235,8 +236,8 @@ struct NotchRootView: View {
             // shape must never show, since it is meant to read as part of the
             // frame of the screen. Overhanging costs nothing: the panel ends
             // at the bezel and everything past it is simply not drawn.
-            .offset(x: model.edge.outward.x * Self.bezelBleed,
-                    y: model.edge.outward.y * Self.bezelBleed)
+            .offset(x: model.edge.outward.x * (model.usesFloatingPill ? 0 : Self.bezelBleed),
+                    y: model.edge.outward.y * (model.usesFloatingPill ? 0 : Self.bezelBleed))
     }
 
     /// The bezel side as a scaling anchor: the edge the notch is welded to

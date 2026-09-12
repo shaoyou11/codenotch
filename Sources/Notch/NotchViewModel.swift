@@ -95,6 +95,8 @@ final class NotchViewModel: ObservableObject {
 
     /// Held open, by either route. What the folding logic actually asks.
     var staysOpen: Bool { isPinned || isAlwaysOn }
+    var usesFloatingPill: Bool { staysOpen && hardwareNotch == nil }
+    var surfaceEdgeInset: CGFloat { usesFloatingPill ? 6 : 0 }
     @Published var isPointerOverSurface = false
     /// Fixed panels stay quiet until the user reaches for their controls.
     var showsChrome: Bool {
@@ -530,7 +532,7 @@ final class NotchViewModel: ObservableObject {
     var panelSize: CGSize { panelSize(cellCount: snapshots.count) }
 
     /// How stack space maps onto the panel right now.
-    var placement: NotchPlacement { NotchPlacement(edge: edge, panelSize: panelSize) }
+    var placement: NotchPlacement { NotchPlacement(edge: edge, panelSize: panelSize, edgeInset: surfaceEdgeInset) }
 
     /// Room at each end of the stack, for this edge.
     var slack: CGFloat { slack(cellCount: snapshots.count) }
@@ -698,7 +700,7 @@ final class NotchViewModel: ObservableObject {
             length: shapeLength(cellCount: cellCount) * sizeScale
                 + 2 * NotchLayout.slack(for: edge, maxCardHeight: card, notchScale: sizeScale),
             depth: (contentInset + NotchLayout.bodyDepth(for: edge)) * sizeScale
-                + NotchLayout.tooltipDepth(for: edge, maxCardHeight: card)
+                + NotchLayout.tooltipDepth(for: edge, maxCardHeight: card) + 6
         )
     }
 }
