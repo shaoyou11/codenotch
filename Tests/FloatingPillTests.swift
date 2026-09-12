@@ -23,11 +23,11 @@ final class FloatingPillTests: XCTestCase {
         for scale in [0.3, 0.65, 1.0] {
             model.sizeScale = scale
             XCTAssertTrue(model.usesFloatingPill)
-            XCTAssertEqual(model.surfaceEdgeInset, 6)
+            XCTAssertEqual(model.surfaceEdgeInset, 2)
         }
         model.isPinned = false
         model.isAlwaysOn = true
-        XCTAssertEqual(model.surfaceEdgeInset, 6)
+        XCTAssertEqual(model.surfaceEdgeInset, 2)
     }
 
     func testFloatingPillDropsOnlyFlarePaddingAndCentersItsControls() {
