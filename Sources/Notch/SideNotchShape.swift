@@ -33,11 +33,6 @@ struct SideNotchShape: Shape {
     /// Derive the resting outline from the presented size, never the target
     /// expanded state: swapping shape types turns the full panel into a pill.
     var capsuleDepth: CGFloat? = nil
-    var floating: CGFloat = 0
-    var animatableData: CGFloat {
-        get { floating }
-        set { floating = newValue }
-    }
 
     func path(in rect: CGRect) -> Path {
         // Canonical space: depth across the shape, length along it. For a side
@@ -45,7 +40,7 @@ struct SideNotchShape: Shape {
         // rect turned on its side. The bezel is at `maxX`.
         let depth = edge.isVertical ? rect.width : rect.height
         let length = edge.isVertical ? rect.height : rect.width
-        let unfold = (capsuleDepth.map { max(0, min(1, (depth / $0 - 1) / 2)) } ?? 1) * (1 - max(0, min(1, floating)))
+        let unfold = capsuleDepth.map { max(0, min(1, (depth / $0 - 1) / 2)) } ?? 1
         let canonical = canonicalPath(
             in: CGRect(x: 0, y: 0, width: depth, height: length),
             flare: joining == nil ? curlRadius * unfold : NotchLayout.bezelFillet,
@@ -90,8 +85,7 @@ struct SideNotchShape: Shape {
         // body, which is exactly what happens when the notch folds to its pill:
         // a 10pt-wide shape came out with square corners. The corner is claimed
         // first, out of half the width, and the flare takes what is left.
-        let radius = cornerRadius + (rect.width / 2 - cornerRadius) * max(0, min(1, floating))
-        let wanted = max(0, min(radius, cornerCap, rect.width / 2))
+        let wanted = max(0, min(cornerRadius, cornerCap, rect.width / 2))
         let curl = max(0, min(flare, rect.height / 2, rect.width - wanted - bezelCorner))
         let corner = max(0, min(wanted, (rect.height - 2 * curl) / 2))
         let bodyTop = rect.minY + curl

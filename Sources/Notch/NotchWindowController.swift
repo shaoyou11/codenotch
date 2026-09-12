@@ -143,12 +143,6 @@ final class NotchWindowController {
         }
         .store(in: &cancellables)
 
-        model.$isPinned.combineLatest(model.$isAlwaysOn)
-            .removeDuplicates { $0 == $1 }
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.relocate() }
-            .store(in: &cancellables)
-
         model.$hoveredIndex
             .sink { [weak self] _ in
                 MainActor.assumeIsolated { self?.updateInteractiveRects() }
@@ -317,8 +311,7 @@ final class NotchWindowController {
     /// The panel's real size, which AppKit may have rounded up from the one we
     /// asked for — and which the flush edge depends on.
     private var placement: NotchPlacement {
-        NotchPlacement(edge: model.edge, panelSize: panel?.frame.size ?? model.panelSize,
-                       edgeInset: model.surfaceEdgeInset)
+        NotchPlacement(edge: model.edge, panelSize: panel?.frame.size ?? model.panelSize)
     }
 
     /// The notch itself, in panel coordinates with a top-left origin.
@@ -347,7 +340,7 @@ final class NotchWindowController {
     /// at all. Whether a point is actually *on* the handle is a finer question
     /// than a box can answer — see `isOverHandle`.
     private var handleRect: CGRect {
-        let side = model.usesFloatingPill ? model.controlHotZone * model.sizeScale : NotchLayout.orbHotZone
+        let side = NotchLayout.orbHotZone
         let boxes = (model.orbHandlePoints + model.moveHandlePoints).map { point -> CGRect in
             let centre = placement.point(along: model.slack + point.x * model.sizeScale,
                                          across: point.y * model.sizeScale)

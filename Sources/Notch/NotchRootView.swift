@@ -10,24 +10,13 @@ struct NotchRootView: View {
         // AppKit settled on, and the notch has to sit flush against *that*
         // edge, not against the size we asked for.
         GeometryReader { proxy in
-            let place = NotchPlacement(edge: model.edge, panelSize: proxy.size, edgeInset: model.surfaceEdgeInset)
+            let place = NotchPlacement(edge: model.edge, panelSize: proxy.size)
 
             ZStack(alignment: .topLeading) {
                 Color.clear
 
                 notch(place)
 
-                if model.usesFloatingPill {
-                    compactControl(symbol: "gearshape", hovered: model.isHoveringSettings)
-                        .scaleEffect(model.sizeScale)
-                        .position(orbCentre(place))
-                    if model.showsMoveHandle {
-                        compactControl(symbol: "arrow.up.and.down.and.arrow.left.and.right",
-                                       hovered: model.isHoveringMove || model.isMoving)
-                            .scaleEffect(model.sizeScale)
-                            .position(moveCentre(place))
-                    }
-                } else {
                 // Outside the notch and outside its clip: the orb hangs past
                 // the end of the shape, tucked into the corner the far flare
                 // makes.
@@ -90,8 +79,6 @@ struct NotchRootView: View {
                             .animation(motion(orbMotion), value: model.isExpanded)
                 }
 
-                }
-
                 if let snapshot = model.hoveredSnapshot, let index = model.hoveredIndex,
                    model.isExpanded {
                     TooltipCard(
@@ -125,18 +112,6 @@ struct NotchRootView: View {
         .environment(\.notchSurfaceStyle, model.surfaceStyle)
     }
 
-    private func compactControl(symbol: String, hovered: Bool) -> some View {
-        Image(systemName: symbol)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.white.opacity(hovered ? 1 : 0.85))
-            .frame(width: 24, height: 24)
-            .background(Circle().fill(Color.black.opacity(hovered ? 0.9 : 0.65)))
-            .scaleEffect(hovered ? 1.05 : 1)
-            .opacity(model.showsChrome ? 1 : 0)
-            .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
-            .animation(motion(.easeInOut(duration: 0.12)), value: hovered)
-    }
-
     /// Opening and closing are not mirror images. Appearing, the arc waits its
     /// turn behind the cells before it; hiding, any delay at all lets the notch
     /// start folding first, and the arc reads as going with the frame rather
@@ -149,8 +124,7 @@ struct NotchRootView: View {
 
     private var notchOutline: SideNotchShape {
         SideNotchShape(edge: model.edge, joining: model.joinedNotch,
-                       capsuleDepth: model.hardwareNotch == nil ? 10 / model.sizeScale : nil,
-                       floating: model.usesFloatingPill ? 1 : 0)
+                       capsuleDepth: model.hardwareNotch == nil ? 10 / model.sizeScale : nil)
     }
 
     private func notch(_ place: NotchPlacement) -> some View {
@@ -261,8 +235,8 @@ struct NotchRootView: View {
             // shape must never show, since it is meant to read as part of the
             // frame of the screen. Overhanging costs nothing: the panel ends
             // at the bezel and everything past it is simply not drawn.
-            .offset(x: model.edge.outward.x * (model.usesFloatingPill ? 0 : Self.bezelBleed),
-                    y: model.edge.outward.y * (model.usesFloatingPill ? 0 : Self.bezelBleed))
+            .offset(x: model.edge.outward.x * Self.bezelBleed,
+                    y: model.edge.outward.y * Self.bezelBleed)
     }
 
     /// The bezel side as a scaling anchor: the edge the notch is welded to

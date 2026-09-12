@@ -85,7 +85,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          build_number=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" build/CustomDerivedData/Build/Products/Release/CodenotchT.app/Contents/Info.plist)
+          [[ "$build_number" =~ ^[0-9]+$ ]]
           cat > "$RUNNER_TEMP/release-notes.md" <<EOF
+          构建号：${build_number}
           CodenotchT 基于上游版本 ${RELEASE_VERSION}，保留定制面板、透黑胶囊、中文设置和独立应用标识，可与官方版共存。
 
           本安装包已通过 GitHub 云端单元测试、Release 编译及代码签名校验。
@@ -99,11 +102,12 @@ jobs:
           draft=$(jq --arg tag "$RELEASE_TAG" '[.[] | select(.tagName == $tag and .isDraft == true)] | length' "$RUNNER_TEMP/releases.json")
           if [ "$draft" -eq 0 ]; then
             gh release create "$RELEASE_TAG" --target "$RELEASE_COMMIT" --draft \
-              --title "CodenotchT ${RELEASE_VERSION} · ${RELEASE_COMMIT:0:7}" \
+              --title "CodenotchT ${RELEASE_VERSION} · 构建 ${build_number} · ${RELEASE_COMMIT:0:7}" \
               --notes-file "$RUNNER_TEMP/release-notes.md"
           fi
           gh release upload "$RELEASE_TAG" build/custom/CodenotchT-*.zip --clobber
-          gh release edit "$RELEASE_TAG" --draft=false --latest
+          gh release edit "$RELEASE_TAG" --draft=false --latest \
+            --title "CodenotchT ${RELEASE_VERSION} · 构建 ${build_number} · ${RELEASE_COMMIT:0:7}"
           echo "已发布 ${RELEASE_TAG}；请到 Releases 下载安装。" >> "$GITHUB_STEP_SUMMARY"
       - name: 失败说明
         if: failure()

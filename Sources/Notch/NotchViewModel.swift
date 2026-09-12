@@ -95,8 +95,6 @@ final class NotchViewModel: ObservableObject {
 
     /// Held open, by either route. What the folding logic actually asks.
     var staysOpen: Bool { isPinned || isAlwaysOn }
-    var usesFloatingPill: Bool { staysOpen && hardwareNotch == nil }
-    var surfaceEdgeInset: CGFloat { usesFloatingPill ? 2 : 0 }
     @Published var isPointerOverSurface = false
     /// Fixed panels stay quiet until the user reaches for their controls.
     var showsChrome: Bool {
@@ -251,7 +249,7 @@ final class NotchViewModel: ObservableObject {
 
     /// How much of each end of the bar the flare actually takes.
     var flare: CGFloat {
-        usesFloatingPill ? 0 : (isFlushWithHardware ? NotchLayout.bezelFillet : NotchLayout.curlRadius)
+        isFlushWithHardware ? NotchLayout.bezelFillet : NotchLayout.curlRadius
     }
 
     /// Whether the shape is drawn the way the Mac's own notch is — flush to
@@ -321,10 +319,8 @@ final class NotchViewModel: ObservableObject {
     /// idea, turned inside out. Left where it was it becomes a dot on the
     /// bar's flat edge.
     var orbHugsCorner: Bool { isFlushWithHardware }
-    var controlHotZone: CGFloat { usesFloatingPill ? 28 : NotchLayout.orbHotZone }
 
     var orbAlong: CGFloat {
-        if usesFloatingPill { return shapeLength + 18 }
         guard orbHugsCorner else { return shapeLength }
         return cornerCentreAlong + NotchLayout.orbCornerOffset(corner: drawnCornerRadius)
     }
@@ -340,7 +336,6 @@ final class NotchViewModel: ObservableObject {
     /// orb sits past `shapeLength`, so the pair stay symmetric about the notch
     /// at every size and on every edge.
     var moveAlong: CGFloat {
-        if usesFloatingPill { return -18 }
         guard orbHugsCorner else { return 0 }
         return cornerCentreAlong - shapeLength
             + NotchLayout.orbCornerOffset(corner: drawnCornerRadius)
@@ -365,7 +360,6 @@ final class NotchViewModel: ObservableObject {
     }
 
     var orbInset: CGFloat {
-        if usesFloatingPill { return NotchLayout.bodyDepth(for: edge) / 2 }
         guard orbHugsCorner else { return contentInset + NotchLayout.orbInsetFromEdge }
         return contentInset + NotchLayout.bodyDepth(for: edge)
             - drawnCornerRadius + NotchLayout.orbCornerOffset(corner: drawnCornerRadius)
@@ -423,7 +417,7 @@ final class NotchViewModel: ObservableObject {
     /// the two takes in a great deal of ground that is near neither — which is
     /// why the button used to appear well before the pointer reached the arc.
     func isOnOrbHandle(along: CGFloat, across: CGFloat) -> Bool {
-        let radius = controlHotZone / 2
+        let radius = NotchLayout.orbHotZone / 2
         return orbHandlePoints.contains {
             hypot(along - $0.x, across - $0.y) <= radius
         }
@@ -452,7 +446,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     func isOnMoveHandle(along: CGFloat, across: CGFloat) -> Bool {
-        let radius = controlHotZone / 2
+        let radius = NotchLayout.orbHotZone / 2
         return moveHandlePoints.contains {
             hypot(along - $0.x, across - $0.y) <= radius
         }
@@ -536,7 +530,7 @@ final class NotchViewModel: ObservableObject {
     var panelSize: CGSize { panelSize(cellCount: snapshots.count) }
 
     /// How stack space maps onto the panel right now.
-    var placement: NotchPlacement { NotchPlacement(edge: edge, panelSize: panelSize, edgeInset: surfaceEdgeInset) }
+    var placement: NotchPlacement { NotchPlacement(edge: edge, panelSize: panelSize) }
 
     /// Room at each end of the stack, for this edge.
     var slack: CGFloat { slack(cellCount: snapshots.count) }
@@ -704,7 +698,7 @@ final class NotchViewModel: ObservableObject {
             length: shapeLength(cellCount: cellCount) * sizeScale
                 + 2 * NotchLayout.slack(for: edge, maxCardHeight: card, notchScale: sizeScale),
             depth: (contentInset + NotchLayout.bodyDepth(for: edge)) * sizeScale
-                + NotchLayout.tooltipDepth(for: edge, maxCardHeight: card) + 6
+                + NotchLayout.tooltipDepth(for: edge, maxCardHeight: card)
         )
     }
 }
