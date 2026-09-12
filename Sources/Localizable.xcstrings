@@ -14051,7 +14051,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当某家服务的主额度越过 80% 时发一条系统通知，100% 时再发一次 — 每次越过只发一次，要等额度窗口滚动过后才会再发。可在「账号」里该行旁边的铃铛上静音。"
+            "value": "主要额度用量达到 80% 和 100% 时分别发送一次系统通知，额度周期重置后才会再次提醒。可在“账户”中点击对应行的铃铛关闭提醒。"
           }
         }
       }
@@ -14062,7 +14062,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Codenotch 已经知道助手何时停下来、或停下来问你。刘海展开时点一下，会把那个会话的应用带到前台 — 是应用，不是标签页：只有部分终端允许外部选定标签，所以提示里会写会话名称。"
+            "value": "智能体完成工作或等待你回应时，CodenotchT 会及时识别。点击已展开的面板可切换到该会话所属应用；只有部分终端支持从外部选择标签页，因此详情中会显示会话名称。"
           }
         }
       }
@@ -14073,7 +14073,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "声音走普通输出，不是界面音效通道 — 所以在系统设置 → 声音里关掉「播放用户界面声音效果」之后仍然听得见。"
+            "value": "提示音使用普通音频输出；即使关闭“系统设置 → 声音 → 播放用户界面声音效果”，仍可听到。"
           }
         }
       }
@@ -14084,7 +14084,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "大多数读数借自已经持有该账号的工具。DeepSeek 是例外：点「登录」会打开 Codenotch 自己的 WebView，在这里退出只会清掉这次会话和已保存的读数。"
+            "value": "多数读数来自已经登录的工具。DeepSeek 通过应用内网页登录；在此退出仅清除该网页会话及保存的读数。"
           }
         }
       }
@@ -14095,7 +14095,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "累计 token"
+            "value": "累计令牌"
           }
         }
       }
@@ -14106,7 +14106,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "峰值 token"
+            "value": "单日最高令牌"
           }
         }
       }
@@ -14117,7 +14117,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最长对话"
+            "value": "最长对话时长"
           }
         }
       }
@@ -14128,7 +14128,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前连续"
+            "value": "当前连续使用"
           }
         }
       }
@@ -14139,7 +14139,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最长连续"
+            "value": "最长连续使用"
           }
         }
       }
@@ -14150,7 +14150,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "今日"
+            "value": "今天"
           }
         }
       }
@@ -14161,7 +14161,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 天 token"
+            "value": "近 30 天令牌"
           }
         }
       }
@@ -14172,7 +14172,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待出"
+            "value": "暂无数据"
           }
         }
       }
@@ -14315,7 +14315,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未在监视。"
+            "value": "监测已关闭。"
           }
         }
       }
@@ -14348,7 +14348,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务器地址"
+            "value": "服务地址"
           }
         }
       }
@@ -14480,7 +14480,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "检测到的模型会出现在「账号 → 已连接」。模型加载和卸载每秒检查一次。"
+            "value": "检测到的模型会显示在“账户 → 已连接”中，每秒检查一次模型加载状态。"
           }
         }
       }
@@ -14491,7 +14491,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "测量速度与思考"
+            "value": "监测生成速度与思考状态"
           }
         }
       }
@@ -14502,95 +14502,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "要测量回复，把聊天客户端指向 http://127.0.0.1:11435，并保持 Codenotch 打开。"
-          }
-        }
-      }
-    },
-    "Lifetime tokens": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累计令牌"
-          }
-        }
-      }
-    },
-    "Peak tokens": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "单日最高令牌"
-          }
-        }
-      }
-    },
-    "Longest chat": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最长对话时长"
-          }
-        }
-      }
-    },
-    "Current streak": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前连续使用"
-          }
-        }
-      }
-    },
-    "Longest streak": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最长连续使用"
-          }
-        }
-      }
-    },
-    "Today": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今天"
-          }
-        }
-      }
-    },
-    "30-day tokens": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "近 30 天令牌"
-          }
-        }
-      }
-    },
-    "Pending": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无数据"
+            "value": "要测量响应速度，请将聊天客户端的服务地址设为 http://127.0.0.1:11435，并保持 CodenotchT 运行。"
           }
         }
       }
@@ -14672,17 +14584,6 @@
         }
       }
     },
-    "Open Ollama": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开 Ollama"
-          }
-        }
-      }
-    },
     "Ollama server address": {
       "extractionState": "manual",
       "localizations": {
@@ -14694,83 +14595,6 @@
         }
       }
     },
-    "Server address": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "服务地址"
-          }
-        }
-      }
-    },
-    "Monitoring off.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监测已关闭。"
-          }
-        }
-      }
-    },
-    "Checking Ollama…": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在检查 Ollama…"
-          }
-        }
-      }
-    },
-    "Connecting to Ollama…": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在连接 Ollama…"
-          }
-        }
-      }
-    },
-    "Check connection": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检查连接"
-          }
-        }
-      }
-    },
-    "Apply": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用"
-          }
-        }
-      }
-    },
-    "Measure speed and thinking": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监测生成速度与思考状态"
-          }
-        }
-      }
-    },
     "Speed and thinking": {
       "extractionState": "manual",
       "localizations": {
@@ -14778,28 +14602,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "生成速度与思考状态"
-          }
-        }
-      }
-    },
-    "Detected models appear in Accounts → Connected. Model loading and unloading is checked every second.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检测到的模型会显示在“账户 → 已连接”中，每秒检查一次模型加载状态。"
-          }
-        }
-      }
-    },
-    "To measure responses, point your chat client to http://127.0.0.1:11435 and keep Codenotch open.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "要测量响应速度，请将聊天客户端的服务地址设为 http://127.0.0.1:11435，并保持 CodenotchT 运行。"
           }
         }
       }
@@ -14888,39 +14690,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "吸附在屏幕底部。按住 ⌥ 拖动可左右移动。"
-          }
-        }
-      }
-    },
-    "Codenotch already knows the moment an agent stops working or stops to ask you something. Clicking the notch while it is open brings that session's app to the front — the app, not the tab: only some terminals let anything outside them choose a tab, so the tooltip names the session instead.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "智能体完成工作或等待你回应时，CodenotchT 会及时识别。点击已展开的面板可切换到该会话所属应用；只有部分终端支持从外部选择标签页，因此详情中会显示会话名称。"
-          }
-        }
-      }
-    },
-    "The sound plays on the ordinary output, not the interface sound-effects channel — so it is still heard with “Play user interface sound effects” switched off in System Settings → Sound.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提示音使用普通音频输出；即使关闭“系统设置 → 声音 → 播放用户界面声音效果”，仍可听到。"
-          }
-        }
-      }
-    },
-    "A system notification the moment a provider's headline limit crosses 80%, and again at 100% — once per crossing, and again only after the window rolls over. Mute one from the bell beside its row in Accounts.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "主要额度用量达到 80% 和 100% 时分别发送一次系统通知，额度周期重置后才会再次提醒。可在“账户”中点击对应行的铃铛关闭提醒。"
           }
         }
       }
@@ -15350,17 +15119,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "详情卡片显示更多信息"
-          }
-        }
-      }
-    },
-    "Most readings are borrowed from a tool that already holds the account. DeepSeek is the exception: clicking Sign in opens its own Codenotch WebView, and signing out here clears only that session and its saved reading.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "多数读数来自已经登录的工具。DeepSeek 通过应用内网页登录；在此退出仅清除该网页会话及保存的读数。"
           }
         }
       }

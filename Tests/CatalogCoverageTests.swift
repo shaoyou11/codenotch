@@ -19,6 +19,21 @@ final class CatalogCoverageTests: XCTestCase {
         )
     }
 
+    func testCatalogHasNoDuplicateSourceKeys() throws {
+        // The compiler and JSONDecoder can choose different entries after a
+        // clean Git merge appends the same source key twice.
+        let raw = try loadCatalog().raw
+        let pattern = #"(?m)^    ("(?:[^"\\]|\\.)*"): \{"#
+        let regex = try NSRegularExpression(pattern: pattern)
+        var keys = Set<String>()
+        for match in regex.matches(in: raw, range: NSRange(raw.startIndex..., in: raw)) {
+            let range = try XCTUnwrap(Range(match.range(at: 1), in: raw))
+            let key = String(raw[range])
+            XCTAssertTrue(keys.insert(key).inserted, "Duplicate source key: \(key)")
+        }
+        XCTAssertEqual(keys.count, try loadCatalog().json.strings.count)
+    }
+
     func testRussianCoreCopyIsTranslated() throws {
         let catalog = try loadCatalog().json
         let expected = [
