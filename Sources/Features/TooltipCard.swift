@@ -5,7 +5,7 @@ import SwiftUI
 /// Its shoulders leave the card tangent to the card's edge. That continuous
 /// tangent is what makes the two pieces read as one moulded silhouette rather
 /// than a triangle pasted onto a rounded rectangle.
-private struct TooltipTail: Shape {
+struct TooltipTail: Shape {
     /// Which way the card sits relative to the notch — the tip points back the
     /// other way, at the cell.
     let direction: NotchEdge.TooltipDirection
@@ -462,9 +462,9 @@ private struct MoneyBreakdownView: View {
             .padding(.top, NotchLayout.labelToBar)
 
             HStack(spacing: NotchLayout.blockSpacing) {
-                MoneyStat(label: "Spent", value: amount(money.spent), color: accentColor)
-                MoneyStat(label: "Remaining", value: amount(money.remaining), color: Palette.textSecondary)
-                MoneyStat(label: "Funded", value: amount(money.funded), color: Palette.textPrimary)
+                MoneyStat(label: L10n.t("Spent"), value: amount(money.spent), color: accentColor)
+                MoneyStat(label: L10n.t("Remaining"), value: amount(money.remaining), color: Palette.textSecondary)
+                MoneyStat(label: L10n.t("Funded"), value: amount(money.funded), color: Palette.textPrimary)
             }
             .frame(width: NotchLayout.cardTextWidth)
             .padding(.top, NotchLayout.moneyBarToStats)
@@ -883,6 +883,8 @@ private struct BlockedRow: View {
 private struct SessionRow: View {
     let session: AgentSession
     let now: Date
+    /// Set when rows can be clicked to jump to the session's terminal.
+    var onFocus: ((pid_t) -> Void)? = nil
     @Environment(\.codenotchAccentColor) private var accentColor
 
     private var stateColor: Color {
@@ -924,6 +926,13 @@ private struct SessionRow: View {
             )
             .padding(.top, NotchLayout.sessionRowGap)
         }
+        // Sessions that publish a pid can be jumped to; the rest are text,
+        // and a gesture on them would promise something it cannot do.
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard let pid = session.processID else { return }
+            onFocus?(pid)
+        }
     }
 }
 
@@ -934,6 +943,7 @@ private struct SessionList: View {
     let now: Date
     /// How many rows this screen has room for; the rest are counted.
     let cap: Int
+    var onFocus: ((pid_t) -> Void)? = nil
 
     /// Busy sessions first, so what is hidden is what matters least.
     private var ordered: [AgentSession] {
@@ -959,7 +969,7 @@ private struct SessionList: View {
             // are counted rather than drawn: the card is clipped, not scrolled,
             // so anything past the budget silently pushes the title off the top.
             ForEach(Array(shown.enumerated()), id: \.element.id) { index, session in
-                SessionRow(session: session, now: now)
+                SessionRow(session: session, now: now, onFocus: onFocus)
                     .padding(.top, NotchLayout.blockSpacing)
             }
 
@@ -986,6 +996,9 @@ struct TooltipCard: View {
     var sessionCap: Int = NotchLayout.defaultSessionCap
     var resetTimeFormat: ResetTimeFormat = .automatic
     var tailOffset: CGFloat = 0
+    /// A tap on a session row jumps to that session's terminal — nil leaves
+    /// the rows as plain text.
+    var onFocusSession: ((pid_t) -> Void)? = nil
     @AppStorage(Preferences.showUsagePaceKey) private var showUsagePace = false
 
     /// The phase a local model is in, and the queue behind it, for the header.
@@ -1037,7 +1050,8 @@ struct TooltipCard: View {
                         DeepSeekUsageDetail(detail: usageDetail)
                     }
                     if let activity, snapshot.localModel == nil {
-                        SessionList(summary: activity, now: now, cap: sessionCap)
+                        SessionList(summary: activity, now: now, cap: sessionCap,
+                                    onFocus: onFocusSession)
                     }
                 }
                 // An identity, so one provider's rows are never interpolated
