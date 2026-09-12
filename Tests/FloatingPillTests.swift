@@ -30,6 +30,22 @@ final class FloatingPillTests: XCTestCase {
         XCTAssertEqual(model.surfaceEdgeInset, 6)
     }
 
+    func testFloatingPillDropsOnlyFlarePaddingAndCentersItsControls() {
+        let model = NotchViewModel()
+        model.isExpanded = true
+        let original = model.shapeLength
+        model.isAlwaysOn = true
+        XCTAssertEqual(model.flare, 0)
+        XCTAssertEqual(model.shapeLength, original - 2 * NotchLayout.curlRadius, accuracy: 0.001)
+        XCTAssertEqual(model.shapeLength, model.bodyLength, accuracy: 0.001)
+        XCTAssertEqual(model.orbInset, NotchLayout.bodyDepth(for: model.edge) / 2)
+        XCTAssertEqual(-model.moveAlong, model.orbAlong - model.shapeLength)
+        XCTAssertTrue(model.isOnOrbHandle(along: model.orbAlong, across: model.orbInset))
+        XCTAssertFalse(model.isOnOrbHandle(along: model.shapeLength - 1, across: model.orbInset))
+        XCTAssertTrue(model.isOnMoveHandle(along: model.moveAlong, across: model.orbInset))
+        XCTAssertFalse(model.isOnMoveHandle(along: 1, across: model.orbInset))
+    }
+
     func testFloatingOutlineHasFourRoundedCornersAndNoFlares() {
         for edge in NotchEdge.allCases {
             let size = edge.isVertical ? CGSize(width: 50, height: 110) : CGSize(width: 110, height: 50)

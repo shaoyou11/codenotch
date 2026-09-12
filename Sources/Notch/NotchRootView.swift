@@ -17,6 +17,17 @@ struct NotchRootView: View {
 
                 notch(place)
 
+                if model.usesFloatingPill {
+                    compactControl(symbol: "gearshape", hovered: model.isHoveringSettings)
+                        .scaleEffect(model.sizeScale)
+                        .position(orbCentre(place))
+                    if model.showsMoveHandle {
+                        compactControl(symbol: "arrow.up.and.down.and.arrow.left.and.right",
+                                       hovered: model.isHoveringMove || model.isMoving)
+                            .scaleEffect(model.sizeScale)
+                            .position(moveCentre(place))
+                    }
+                } else {
                 // Outside the notch and outside its clip: the orb hangs past
                 // the end of the shape, tucked into the corner the far flare
                 // makes.
@@ -79,6 +90,8 @@ struct NotchRootView: View {
                             .animation(motion(orbMotion), value: model.isExpanded)
                 }
 
+                }
+
                 if let snapshot = model.hoveredSnapshot, let index = model.hoveredIndex,
                    model.isExpanded {
                     TooltipCard(
@@ -110,6 +123,18 @@ struct NotchRootView: View {
         .tint(model.accentColor.color)
         .environment(\.codenotchAccentColor, model.accentColor.color)
         .environment(\.notchSurfaceStyle, model.surfaceStyle)
+    }
+
+    private func compactControl(symbol: String, hovered: Bool) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(.white.opacity(hovered ? 1 : 0.85))
+            .frame(width: 24, height: 24)
+            .background(Circle().fill(Color.black.opacity(hovered ? 0.9 : 0.65)))
+            .scaleEffect(hovered ? 1.05 : 1)
+            .opacity(model.showsChrome ? 1 : 0)
+            .animation(motion(.easeInOut(duration: 0.16)), value: model.showsChrome)
+            .animation(motion(.easeInOut(duration: 0.12)), value: hovered)
     }
 
     /// Opening and closing are not mirror images. Appearing, the arc waits its
