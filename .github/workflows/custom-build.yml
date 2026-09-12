@@ -24,6 +24,7 @@ jobs:
           ref: custom/compact-draggable
           fetch-depth: 0
       - name: 合并上游（冲突时停止）
+        if: github.event_name != 'push'
         shell: bash
         run: |
           set -euo pipefail
