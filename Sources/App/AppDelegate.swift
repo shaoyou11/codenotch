@@ -5,6 +5,10 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var notchFleet: NotchFleet?
     private var store: UsageStore?
+    var phoneLinkServer: PhoneLinkServer?
+    var phoneLinkServerStatus: PhoneLinkServerStatus?
+    var phoneLinkPairing: PhoneLinkPairing?
+    var phoneLinkRegistry: PhoneLinkRegistry?
     private var monitors: [String: any AgentActivityMonitor] = [:]
     private var ollamaRelay: OllamaActivityRelay?
     private var lmstudioMetrics: LMStudioMetrics?
@@ -117,24 +121,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Log.usage.info("codex profiles: \(self.codexProfiles.map(\.displayPath).joined(separator: ", "), privacy: .public)")
             let claudeProviders = claudeProfiles.map { ClaudeOAuthProvider(profile: $0) }
             self.claudeProviders = claudeProviders
+            let allProviders: [UsageProvider] = claudeProviders
+                + [CursorLocalProvider()]
+                + codexProfiles.map { CodexLocalProvider(profile: $0) }
+                + [AntigravityProvider(),
+                   GLMProvider(), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
+                   CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(),
+                   OllamaLocalProvider(endpoint: URL(string: preferences.ollamaEndpoint)!),
+                   LMStudioLocalProvider(endpoint: URL(string: preferences.lmstudioEndpoint)!),
+                   OllamaProvider(),
+                   // A closure, not the value: the provider is an actor and
+                   // re-reads the budget on every fetch, so a ceiling typed
+                   // into Settings applies without a restart.
+                   GeminiAPIProvider(budget: {
+                       Preferences.storedGeminiAPIMonthlyTokenBudget()
+                   })]
+                + webProviders
+            preferences.reconcile(discoveredIDs: allProviders.map(\.id))
             let store = UsageStore(
-                providers: claudeProviders
-                    + [CursorLocalProvider()]
-                    + codexProfiles.map { CodexLocalProvider(profile: $0) }
-                    + [AntigravityProvider(),
-                       GLMProvider(), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
-                       CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(),
-                       OllamaLocalProvider(endpoint: URL(string: preferences.ollamaEndpoint)!),
-                       LMStudioLocalProvider(endpoint: URL(string: preferences.lmstudioEndpoint)!),
-                       OllamaProvider(),
-                       // A closure, not the value: the provider is an actor and
-                       // re-reads the budget on every fetch, so a ceiling typed
-                       // into Settings applies without a restart.
-                       GeminiAPIProvider(budget: {
-                           Preferences.storedGeminiAPIMonthlyTokenBudget()
-                       })]
-                    + webProviders,
-                disconnected: preferences.disconnectedProviders,
+                providers: allProviders,
+                disconnected: preferences.disconnectedIDs(among: allProviders.map(\.id)),
                 // Passed at construction, not left to the sink below, for the
                 // same reason `disconnected` is: the sink delivers a run loop
                 // turn later, so without this every launch draws the built-in
@@ -142,7 +148,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 order: preferences.providerOrder
             )
             deepSeek.onAuthenticated = { [weak store] in
-                store?.refresh(providerID: "deepseek")
+                store?.providerAuthenticationChanged(providerID: "deepseek")
             }
 
             let updater = Updater()
@@ -152,11 +158,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self.ollamaRelay = relay
             // A single publisher chain exceeds Swift's type-checking time limit.
             let relayPreferences = Publishers.CombineLatest3(
-                preferences.$disconnectedProviders,
+                preferences.$connectedProviders,
                 preferences.$ollamaEndpoint,
                 preferences.$ollamaMetricsEnabled)
             let relayConfiguration = relayPreferences.map { values in
-                (enabled: !values.0.contains("ollama-local") && values.2, endpoint: values.1)
+                (enabled: values.0.contains("ollama-local") && values.2, endpoint: values.1)
             }.eraseToAnyPublisher()
             relayConfiguration
                 .removeDuplicates { $0.enabled == $1.enabled && $0.endpoint == $1.endpoint }
@@ -190,9 +196,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self.lmstudioMetrics = lmstudio
             // Split like the relay's chain above, and for the same reason.
             let lmstudioPreferences = Publishers.CombineLatest(
-                preferences.$disconnectedProviders, preferences.$lmstudioEndpoint)
+                preferences.$connectedProviders, preferences.$lmstudioEndpoint)
             let lmstudioConfiguration = lmstudioPreferences.map { values in
-                (enabled: !values.0.contains(LMStudioMetrics.providerID), endpoint: values.1)
+                (enabled: values.0.contains(LMStudioMetrics.providerID), endpoint: values.1)
             }.eraseToAnyPublisher()
             lmstudioConfiguration
                 .removeDuplicates { $0.enabled == $1.enabled && $0.endpoint == $1.endpoint }
@@ -216,6 +222,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.setLedger($0) }
                 .store(in: &cancellables)
+
+            let dir: URL
+            if NSClassFromString("XCTestCase") != nil {
+                dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            } else {
+                let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                dir = appSupport.appendingPathComponent("Codenotch/phone-link", isDirectory: true)
+            }
+            let phoneSecretStore: PhoneLinkSecretStore = NSClassFromString("XCTestCase") != nil
+                ? InMemoryPhoneLinkSecretStore()
+                : PhoneLinkKeychainSecretStore()
+            let phoneRegistry = PhoneLinkRegistry(directory: dir, secretStore: phoneSecretStore)
+            let phonePairing = PhoneLinkPairing()
+            let serverStatus = PhoneLinkServerStatus()
+            self.phoneLinkRegistry = phoneRegistry
+            self.phoneLinkPairing = phonePairing
+
+            let server = PhoneLinkServer(
+                pairing: phonePairing,
+                registry: phoneRegistry,
+                status: serverStatus,
+                getSnapshot: { @Sendable [weak store, weak fleet, weak preferences] in
+                    guard let store, let fleet, let preferences else { return nil }
+                    let snap = await MainActor.run {
+                        PhoneLinkSnapshotBuilder.build(
+                            snapshots: store.snapshots,
+                            sessions: Array(fleet.sessions.values.flatMap { $0 }),
+                            disconnected: store.disconnected,
+                            order: preferences.providerOrder,
+                            serverName: PhoneLinkNetwork.getComputerName(),
+                            serverVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0",
+                            now: Date()
+                        )
+                    }
+                    return try? JSONEncoder().encode(snap)
+                },
+                refreshAndGetSnapshot: { @Sendable [weak store, weak fleet, weak preferences] in
+                    guard let store, let fleet, let preferences else { return nil }
+                    await MainActor.run { store.refreshNow() }
+                    for _ in 0..<20 {
+                        let isRef = await MainActor.run { !store.refreshing.isEmpty }
+                        if !isRef { break }
+                        try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    }
+                    let snap = await MainActor.run {
+                        PhoneLinkSnapshotBuilder.build(
+                            snapshots: store.snapshots,
+                            sessions: Array(fleet.sessions.values.flatMap { $0 }),
+                            disconnected: store.disconnected,
+                            order: preferences.providerOrder,
+                            serverName: PhoneLinkNetwork.getComputerName(),
+                            serverVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0",
+                            now: Date()
+                        )
+                    }
+                    return try? JSONEncoder().encode(snap)
+                }
+            )
+            self.phoneLinkServerStatus = serverStatus
+            self.phoneLinkServer = server
 
             let settings = SettingsWindowController(
                 preferences: preferences,
@@ -248,7 +314,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 previewWeeklyLimitAlert: { [weak self] in
                     self?.previewWeeklyLimitAlert()
                 },
-                usageStore: store, ollamaRelay: relay, lmstudioMetrics: lmstudio
+                usageStore: store, ollamaRelay: relay, lmstudioMetrics: lmstudio,
+                phoneLinkPairing: phonePairing, phoneLinkRegistry: phoneRegistry, phoneLinkServerStatus: serverStatus
             )
             // The gear toggles; everything else that opens settings opens it.
             fleet.onOpenSettings = { [weak settings] in settings?.toggle() }
@@ -300,6 +367,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferences.$notchVisibility
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply($0) }
+                .store(in: &cancellables)
+
+            preferences.$deepSeekPricingEnabled
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.apply(deepSeekPricingEnabled: $0) }
+                .store(in: &cancellables)
+
+            preferences.$deepSeekPricingSchedule
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.apply(deepSeekPricingSchedule: $0) }
                 .store(in: &cancellables)
 
             preferences.$notchEdge
@@ -410,9 +487,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .sink { [weak fleet] in fleet?.apply(surfaceStyle: $0) }
                 .store(in: &cancellables)
 
-            preferences.$disconnectedProviders
+            Publishers.CombineLatest(preferences.$connectedProviders, preferences.$disabledModels)
                 .receive(on: RunLoop.main)
-                .sink { [weak store] in store?.disconnected = $0 }
+                .sink { [weak store, weak preferences] _, _ in
+                    guard let store, let preferences else { return }
+                    store.disconnected = preferences.disconnectedIDs(among: store.knownIDs)
+                }
                 .store(in: &cancellables)
 
             preferences.$ollamaEndpoint
@@ -610,6 +690,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // doing exactly nothing. `fleet.show()`'s own reconcile only ever
         // repositions an existing controller — it does not re-copy them —
         // so this has to be the very last thing that can create one.
+
+        preferences.$phoneLinkEnabled
+            .receive(on: RunLoop.main)
+            .sink { [weak self] enabled in
+                guard let self = self, let srv = self.phoneLinkServer else { return }
+                Task { @MainActor in
+                    if enabled {
+                        self.phoneLinkServerStatus?.state = .starting
+                        do {
+                            let prefPort = self.preferences?.phoneLinkPort ?? 8788
+                            let port = try await srv.start(port: prefPort)
+                            self.preferences?.phoneLinkPort = port
+                            self.phoneLinkServerStatus?.state = .ready(port: port)
+                        } catch {
+                            self.phoneLinkServerStatus?.state = .failed(error.localizedDescription)
+                        }
+                    } else {
+                        await srv.stop()
+                        self.phoneLinkServerStatus?.state = .off
+                    }
+                }
+            }
+            .store(in: &cancellables)
         fleet.apply(displayPreference: preferences.displayPreference)
         fleet.apply(alongOffset: preferences.offset(for: preferences.notchEdge))
         fleet.apply(scale: preferences.notchScale)
@@ -618,6 +721,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         fleet.apply(weeklyRing: preferences.weeklyRing)
         fleet.apply(showsMoveHandle: preferences.showsMoveHandle)
         fleet.apply(surfaceStyle: preferences.notchSurfaceStyle)
+        fleet.apply(deepSeekPricingEnabled: preferences.deepSeekPricingEnabled)
+        fleet.apply(deepSeekPricingSchedule: preferences.deepSeekPricingSchedule)
         fleet.show()
     }
 
@@ -658,7 +763,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SessionChime.play(preferences.usageResetSoundName)
         }
         guard preferences.announceUsageReset else { return }
-        fleet.showResetAlert(event, duration: 5.0)
+        if !fleet.showResetAlert(event, duration: 5.0) {
+            UsageAlertNotifications.deliver(event)
+        }
     }
 
     @MainActor
@@ -701,7 +808,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if preferences.limitReachedSound {
             SessionChime.play(preferences.limitReachedSoundName)
         }
-        fleet.showResetAlert(event, duration: 6.0)
+        if !fleet.showResetAlert(event, duration: 6.0) {
+            UsageAlertNotifications.deliver(event)
+        }
     }
 
     @MainActor
@@ -764,6 +873,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor func openSettings() { settings?.show() }
+    @MainActor func openConnectPhone() {
+        guard let pairing = phoneLinkPairing, let registry = phoneLinkRegistry, let status = phoneLinkServerStatus else { return }
+        if preferences?.phoneLinkEnabled == false { preferences?.phoneLinkEnabled = true }
+        PhoneLinkWindowController.shared.show(pairing: pairing, registry: registry, port: preferences?.phoneLinkPort ?? 8788, serverStatus: status)
+    }
 
     func applicationWillTerminate(_ notification: Notification) {
         ollamaRelay?.configure(enabled: false, endpoint: OllamaEndpoint.defaultAddress)
@@ -772,5 +886,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         store?.stop()
         monitors.values.forEach { $0.stop() }
         notchFleet?.stop()
+        Task { await phoneLinkServer?.stop() }
     }
 }

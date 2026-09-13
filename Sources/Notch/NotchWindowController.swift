@@ -78,6 +78,11 @@ final class NotchWindowController {
     private var visibility: NotchVisibility = .onHover
     /// Whether we have pushed the pointing hand onto the cursor stack.
     private var isPointing = false
+    /// Option-drag moves the whole notch under the pointer. Hovering rings
+    /// while that happens is accidental — the pointer necessarily crosses
+    /// them as the panel follows it — so cursor tracking is suspended until
+    /// the drag ends.
+    private var isOptionDragging = false
 
     /// Determines whether a full-screen application window is active on this notch's display.
     /// Default implementation queries WindowServer and NSWorkspace; overridable for testing.
@@ -247,10 +252,12 @@ final class NotchWindowController {
             let hosting = NotchHostingView(rootView: NotchRootView(model: model))
             panel.contextMenuProvider = { [weak self] in self?.contextMenu() }
             panel.onClick = { [weak self] point in self?.handleClick(at: point) }
+            panel.onDragStart = { [weak self] in self?.beginOptionDrag() }
             panel.onDrag = { [weak self] dx, dy in self?.dragged(dx: dx, dy: dy) }
             panel.onDragEnd = { [weak self] in
                 guard let self else { return }
                 self.onReposition?(self.model.alongOffset)
+                self.endOptionDrag()
             }
 
             // The hosting view goes *inside* a plain container rather than
@@ -310,6 +317,26 @@ final class NotchWindowController {
     private func dragged(dx: CGFloat, dy: CGFloat) {
         model.alongOffset += model.edge.isVertical ? dy : dx
         relocate()
+    }
+
+    private func beginOptionDrag() {
+        guard !isOptionDragging else { return }
+        isOptionDragging = true
+        clearHoverWork?.cancel()
+        clearHoverWork = nil
+        foldWork?.cancel()
+        foldWork = nil
+        model.hoveredIndex = nil
+        model.isHoveringSettings = false
+        model.isHoveringMove = false
+        setPointing(false)
+        updateInteractiveRects()
+    }
+
+    private func endOptionDrag() {
+        guard isOptionDragging else { return }
+        isOptionDragging = false
+        cursorMoved()
     }
 
     // MARK: - Hit regions
@@ -406,7 +433,8 @@ final class NotchWindowController {
             localModelName: snapshot.localModel?.name,
             showsLocalPerformance: snapshot.showsLocalPerformance,
                 localLedgerRows: snapshot.localLedgerRowCount,
-            compactRowCount: snapshot.compactRowCount
+            compactRowCount: snapshot.compactRowCount,
+            showsDeepSeekPricing: model.deepSeekPricingEnabled
         )
         // Across the stack the region is the card, its tail, and the gap the
         // pointer has to cross. Along it, the card's own extent.
@@ -491,7 +519,7 @@ final class NotchWindowController {
 
     private func cursorMoved() {
         guard !suppressedByFullscreen else { return }
-        guard let panel else { return }
+        guard let panel, !isOptionDragging else { return }
         let local = localCursor(in: panel.frame)
         let overTooltip = model.hoveredIndex
             .flatMap(tooltipRect(index:))
@@ -983,10 +1011,14 @@ final class NotchWindowController {
     }
 
     /// Open the notch and show a usage reset notification modal card.
-    func showResetAlert(_ event: UsageResetEvent, duration: TimeInterval = 5.0) {
+    ///
+    /// Returns whether the card was actually shown: a hidden notch has nowhere
+    /// to put it, and the caller owes the user another way of hearing about it.
+    @discardableResult
+    func showResetAlert(_ event: UsageResetEvent, duration: TimeInterval = 5.0) -> Bool {
         guard visibility != .hidden, let panel else {
             Log.usage.debug("reset alert skipped: notch hidden")
-            return
+            return false
         }
         model.activeResetAlert = event
         peek(for: duration, focusing: nil)
@@ -1002,6 +1034,7 @@ final class NotchWindowController {
                 }
             }
         }
+        return true
     }
 
     /// How long after a peek folds a click still counts as answering it. Covers

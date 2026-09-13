@@ -7,6 +7,7 @@ import XCTest
 final class LocalizationTests: XCTestCase {
     private let zhHans = Locale(identifier: "zh-Hans")
     private let french = Locale(identifier: "fr")
+    private let german = Locale(identifier: "de")
     private let japanese = Locale(identifier: "ja")
     private let russian = Locale(identifier: "ru")
     private let brazilianPortuguese = Locale(identifier: "pt-BR")
@@ -24,6 +25,16 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(L10n.t("\(5)h \(7)m", locale: zhHans), "5 小时 7 分钟")
         XCTAssertEqual(L10n.t("\(13)d", locale: zhHans), "13 天")
         XCTAssertEqual(L10n.t("\(value)% deficit", locale: english), "20.2% deficit")
+    }
+
+    func testCustomNotificationAndPhoneTranslations() {
+        XCTAssertEqual(L10n.t("When a limit resets", locale: zhHans), "额度重置时")
+        XCTAssertEqual(L10n.t("Show notification for weekly limit", locale: zhHans), "提醒每周额度耗尽")
+        XCTAssertEqual(L10n.t("Connect a Phone…", locale: zhHans), "连接手机…")
+        XCTAssertEqual(L10n.t("\("Codex") Reset", locale: zhHans), "Codex 额度已重置")
+        XCTAssertEqual(L10n.t("Ready on \("host"):\("1234")", locale: zhHans), "已就绪：host:1234")
+        XCTAssertEqual(L10n.t("Today: \(2) requests · \("12") tokens in · \("8") out, across \(1) model(s) with history.", locale: zhHans), "今天：2 次请求 · 输入 12 个令牌 · 输出 8 个令牌，共 1 个模型有历史记录。")
+        XCTAssertEqual(L10n.t("Tells you when a limit resets or runs out, speaks Russian, and reads Kimi.", locale: zhHans), "新增额度重置和耗尽提醒、俄语及 Kimi 支持。")
     }
 
     // MARK: - ElapsedCopy
@@ -240,6 +251,84 @@ final class LocalizationTests: XCTestCase {
         )
     }
 
+    // MARK: - German
+
+    func testElapsedCopyInGerman() {
+        XCTAssertEqual(
+            ElapsedCopy.text(since: now.addingTimeInterval(-5), now: now, locale: german),
+            "gerade eben"
+        )
+        XCTAssertEqual(
+            ElapsedCopy.text(since: now.addingTimeInterval(-6 * 60), now: now, locale: german),
+            "6 Min"
+        )
+        XCTAssertEqual(
+            ElapsedCopy.text(since: now.addingTimeInterval(-60 * 60), now: now, locale: german),
+            "1 Std"
+        )
+        XCTAssertEqual(
+            ElapsedCopy.text(since: now.addingTimeInterval(-65 * 60), now: now, locale: german),
+            "1 Std 5 Min"
+        )
+        XCTAssertEqual(
+            ElapsedCopy.ago(since: now.addingTimeInterval(-6 * 60), now: now, locale: german),
+            "vor 6 Min"
+        )
+    }
+
+    func testResetCopyUnderAnHourInGerman() {
+        XCTAssertEqual(
+            ResetCopy.text(for: resetNow.addingTimeInterval(51 * 60), now: resetNow, locale: german),
+            "Zurücksetzung in 51 Min."
+        )
+        XCTAssertEqual(
+            ResetCopy.text(for: resetNow.addingTimeInterval(-5), now: resetNow, locale: german),
+            "Wird zurückgesetzt…"
+        )
+    }
+
+    func testWindowSummaryInGerman() {
+        XCTAssertEqual(
+            percentWindow(0.12).summary(locale: german),
+            "12% verwendet · 88% übrig"
+        )
+        XCTAssertEqual(
+            LimitWindow(id: "w", label: "Requests", used: 8).summary(locale: german),
+            "8 verwendet"
+        )
+        XCTAssertEqual(
+            LimitWindow(id: "w", label: "Requests", remaining: 3).summary(locale: german),
+            "3 übrig"
+        )
+        XCTAssertEqual(
+            LimitWindow(id: "w", label: "Requests").summary(locale: german),
+            "Kein Messwert"
+        )
+    }
+
+    func testMenuCopyInGerman() {
+        XCTAssertEqual(L10n.t("Always show", locale: german), "Immer anzeigen")
+        XCTAssertEqual(L10n.t("Settings…", locale: german), "Einstellungen…")
+    }
+
+    func testSignInCopyInGerman() {
+        XCTAssertEqual(
+            L10n.t("Sign in to \("Perplexity")", locale: german),
+            "Bei Perplexity anmelden"
+        )
+    }
+
+    /// The German keeps every format specifier in the order the English put
+    /// them, so an `Int` still lands on `%lld` and a `String` on `%@` — the
+    /// same trap the Simplified Chinese threshold alert fell into by
+    /// reordering without positional specifiers.
+    func testThresholdAlertKeepsArgumentOrderInGerman() {
+        XCTAssertEqual(
+            L10n.t("\(80)% of its \("weekly") limit used.", locale: german),
+            "80% des weekly-Limits verwendet."
+        )
+    }
+
     // MARK: - Brazilian Portuguese
 
     func testElapsedCopyInBrazilianPortuguese() {
@@ -435,7 +524,7 @@ final class LocalizationTests: XCTestCase {
     func testEveryOfferedLanguageResolves() {
         XCTAssertEqual(
             AppLanguage.allCases.map(\.rawValue),
-            ["system", "en", "fr", "ja", "pt-BR", "ru", "zh-Hans"]
+            ["system", "en", "fr", "de", "ja", "pt-BR", "ru", "zh-Hans"]
         )
         XCTAssertNil(AppLanguage.system.locale)
         for language in AppLanguage.allCases where language != .system {

@@ -58,6 +58,8 @@ final class NotchFleet {
     private var weeklyRing: WeeklyRing = .off
     private var showsMoveHandle = true
     private var surfaceStyle: NotchSurfaceStyle = .glass
+    private var deepSeekPricingEnabled = true
+    private var deepSeekPricingSchedule = DeepSeekPricing.Schedule.current
     /// The ⌥-drag nudge along the current edge. One value for the whole
     /// fleet, the same as `edge` itself — displays do not each get their own
     /// edge, so they do not each get their own nudge either.
@@ -198,6 +200,20 @@ final class NotchFleet {
         }
     }
 
+    func apply(deepSeekPricingEnabled: Bool) {
+        self.deepSeekPricingEnabled = deepSeekPricingEnabled
+        for controller in controllers.values {
+            controller.model.deepSeekPricingEnabled = deepSeekPricingEnabled
+        }
+    }
+
+    func apply(deepSeekPricingSchedule: DeepSeekPricing.Schedule) {
+        self.deepSeekPricingSchedule = deepSeekPricingSchedule
+        for controller in controllers.values {
+            controller.model.deepSeekPricingSchedule = deepSeekPricingSchedule
+        }
+    }
+
     func apply(alongOffset: CGFloat) {
         self.alongOffset = alongOffset
         for controller in controllers.values {
@@ -265,10 +281,15 @@ final class NotchFleet {
     }
 
     /// Shows a usage reset notification modal on every panel.
-    func showResetAlert(_ event: UsageResetEvent, duration: TimeInterval = 5.0) {
+    /// Returns whether at least one notch had somewhere to show the card. With
+    /// every notch hidden the alert would otherwise vanish without a trace.
+    @discardableResult
+    func showResetAlert(_ event: UsageResetEvent, duration: TimeInterval = 5.0) -> Bool {
+        var shown = false
         for controller in controllers.values {
-            controller.showResetAlert(event, duration: duration)
+            shown = controller.showResetAlert(event, duration: duration) || shown
         }
+        return shown
     }
 
     func setRefreshing(_ ids: Set<String>) {
@@ -386,6 +407,8 @@ final class NotchFleet {
         controller.model.weeklyRing = weeklyRing
         controller.model.showsMoveHandle = showsMoveHandle
         controller.model.surfaceStyle = surfaceStyle
+        controller.model.deepSeekPricingEnabled = deepSeekPricingEnabled
+        controller.model.deepSeekPricingSchedule = deepSeekPricingSchedule
         controller.onRefresh = onRefresh
         controller.onRefreshProvider = onRefreshProvider
         controller.onOpenSettings = onOpenSettings

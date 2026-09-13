@@ -21,7 +21,7 @@ struct OllamaSettingsRow: View {
                     get: { enabled },
                     set: { on in
                         preferences.setConnected(on, for: "ollama-local")
-                        store.disconnected = preferences.disconnectedProviders
+                        store.disconnected = preferences.disconnectedIDs(among: store.knownIDs)
                     }
                 ))
                 .labelsHidden()
@@ -37,7 +37,7 @@ struct OllamaSettingsRow: View {
                 TextField(L10n.t("Server address"), text: $address)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { applyAddress() }
-                    .accessibilityLabel("Ollama server address")
+                    .accessibilityLabel(L10n.t("Ollama server address"))
                 Button(address == preferences.ollamaEndpoint ? L10n.t("Check connection") : L10n.t("Apply")) {
                     applyAddress()
                 }
