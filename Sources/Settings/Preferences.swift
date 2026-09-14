@@ -83,6 +83,11 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(notchVisibility.rawValue, forKey: Keys.visibility) }
     }
 
+    /// Whether a frontmost full-screen app folds the notch away.
+    @Published var foldsForFullScreen: Bool {
+        didSet { defaults.set(foldsForFullScreen, forKey: Keys.foldsForFullScreen) }
+    }
+
     /// Which screen edge the notch is welded to.
     @Published var notchEdge: NotchEdge {
         didSet { defaults.set(notchEdge.rawValue, forKey: Keys.edge) }
@@ -185,6 +190,19 @@ final class Preferences: ObservableObject {
 
     @Published var showUsagePace: Bool {
         didSet { defaults.set(showUsagePace, forKey: Self.showUsagePaceKey) }
+    }
+
+    /// Whether Claude's big ring shows the day's share of the weekly limit
+    /// instead of the session. See `DailyPace`.
+    @Published var claudeDailyPaceRing: Bool {
+        didSet { defaults.set(claudeDailyPaceRing, forKey: Keys.claudeDailyPaceRing) }
+    }
+
+    /// Whether Spark and code-review Codex windows appear in the hover card.
+    /// On by default so a first launch shows them; the ring still follows
+    /// the main Codex window either way.
+    @Published var showCodexExtraLimits: Bool {
+        didSet { defaults.set(showCodexExtraLimits, forKey: Keys.showCodexExtraLimits) }
     }
 
     /// Whether DeepSeek's current peak/off-peak billing phase is shown in its
@@ -337,6 +355,15 @@ final class Preferences: ObservableObject {
         }
     }
 
+    /// Which MiniMax console the Coding Plan is read from.
+    ///
+    /// International and China mainland are different hosts, and a key issued
+    /// on one is refused by the other. Absent means never chosen, which is
+    /// international.
+    @Published var minimaxRegion: MiniMaxRegion {
+        didSet { defaults.set(minimaxRegion.rawValue, forKey: Keys.minimaxRegion) }
+    }
+
     /// The version whose changes have already been shown.
     ///
     /// Written when the What's New dialogue is dismissed rather than when it
@@ -375,6 +402,7 @@ final class Preferences: ObservableObject {
         static let mutedAlerts = "mutedAlertProviders"
         static let hasLaunched = "hasLaunchedBefore"
         static let visibility = "notchVisibility"
+        static let foldsForFullScreen = "foldsForFullScreen"
         static let presence = "appPresence"
         static let edge = "notchEdge"
         // A new key, so there is nothing under the old app name to migrate.
@@ -387,6 +415,7 @@ final class Preferences: ObservableObject {
         static let accentColor = "accentColor"
         // A new key, so there is nothing under the old app name to migrate.
         static let weeklyRing = "weeklyRing"
+        static let claudeDailyPaceRing = "claudeDailyPaceRing"
         static let showsMoveHandle = "showsMoveHandle"
         static let notchSurfaceStyle = "notchSurfaceStyle"
         static let lastSeenVersion = "lastSeenVersion"
@@ -405,10 +434,12 @@ final class Preferences: ObservableObject {
         static let limitReachedSoundName = "limitReachedSoundName"
         /// A new key, so there is nothing under the old app name to migrate.
         static let geminiAPIMonthlyTokenBudget = "geminiAPIMonthlyTokenBudget"
+        static let minimaxRegion = "minimaxRegion"
         static let antigravityHeadlineLimit = "antigravityHeadlineLimit"
         static let antigravityHeadlineModel = "antigravityHeadlineModel"
         static let deepSeekPricingEnabled = "deepSeekPricingEnabled"
         static let deepSeekPricingSchedule = "deepSeekPricingSchedule"
+        static let showCodexExtraLimits = "showCodexExtraLimits"
     }
 
     /// The budget read straight from disk, off the main actor.
@@ -441,6 +472,34 @@ final class Preferences: ObservableObject {
               let model = AntigravityHeadlineModel(rawValue: value)
         else { return .gemini }
         return model
+    }
+
+    /// Whether extra Codex windows (Spark, code review) are shown, read off
+    /// the main actor.
+    ///
+    /// The Codex provider is an actor and asks for this on every fetch, and
+    /// `@Published` state is main-actor-isolated where `UserDefaults` is
+    /// thread-safe — so the provider reads the store, not the object. Absent
+    /// means on: a first launch should show them. `bool(forKey:)` cannot stand
+    /// in for that default — it answers false for a key that was never written.
+    nonisolated static func storedShowCodexExtraLimits(
+        defaults: UserDefaults = .standard
+    ) -> Bool {
+        defaults.object(forKey: Keys.showCodexExtraLimits) as? Bool ?? true
+    }
+
+    /// The MiniMax region read straight from disk, off the main actor.
+    ///
+    /// The provider is an actor and asks for this on every fetch, and
+    /// `@Published` state is main-actor-isolated where `UserDefaults` is
+    /// thread-safe — so the provider reads the store, not the object.
+    nonisolated static func storedMinimaxRegion(
+        defaults: UserDefaults = .standard
+    ) -> MiniMaxRegion {
+        guard let value = defaults.string(forKey: Keys.minimaxRegion),
+              let region = MiniMaxRegion(rawValue: value)
+        else { return .international }
+        return region
     }
 
     /// True the very first time this copy runs, and never again.
@@ -563,6 +622,9 @@ final class Preferences: ObservableObject {
         // like it failed to start.
         self.notchVisibility = defaults.string(forKey: Keys.visibility)
             .flatMap(NotchVisibility.init(rawValue:)) ?? .onHover
+        // Absent means the fold that has shipped since full-screen detection
+        // exists — the setting silences it, it does not introduce it.
+        self.foldsForFullScreen = defaults.object(forKey: Keys.foldsForFullScreen) as? Bool ?? true
         // Absent means never chosen. The Dock is the default because it is the
         // findable one — a new user who cannot see the app anywhere has no way
         // to learn it is running.
@@ -592,6 +654,10 @@ final class Preferences: ObservableObject {
         self.resetTimeFormat = defaults.string(forKey: Keys.resetTimeFormat)
             .flatMap(ResetTimeFormat.init(rawValue:)) ?? .automatic
         self.showUsagePace = defaults.bool(forKey: Self.showUsagePaceKey)
+        // Off by default: it swaps what Claude's ring means, and that is a
+        // choice for whoever budgets their week that way.
+        self.claudeDailyPaceRing = defaults.bool(forKey: Keys.claudeDailyPaceRing)
+        self.showCodexExtraLimits = Self.storedShowCodexExtraLimits(defaults: defaults)
         self.deepSeekPricingEnabled = defaults.object(forKey: Keys.deepSeekPricingEnabled) as? Bool ?? true
         if let data = defaults.data(forKey: Keys.deepSeekPricingSchedule),
            let schedule = try? JSONDecoder().decode(DeepSeekPricing.Schedule.self, from: data) {
@@ -649,6 +715,7 @@ final class Preferences: ObservableObject {
         self.limitReachedSoundName = defaults.string(forKey: Keys.limitReachedSoundName)
             ?? SessionChime.defaultBlocked
         self.geminiAPIMonthlyTokenBudget = Self.storedGeminiAPIMonthlyTokenBudget(defaults: defaults)
+        self.minimaxRegion = Self.storedMinimaxRegion(defaults: defaults)
         // Read from the system rather than from our own store: the user can turn
         // this off in System Settings, and a remembered `true` would then be a lie.
         self.launchAtLogin = Self.isRegisteredForLogin
@@ -689,6 +756,10 @@ final class Preferences: ObservableObject {
             return connectedProviders.contains(providerID)
         }
         if let hidden = pendingHidden {
+            // Absence from the old off-list means on — for providers that
+            // off-list could have named. MiniMax did not exist then, so
+            // missing from it is not a choice to show it.
+            if providerID == "minimax" { return false }
             return !hidden.contains(providerID)
         }
         return Self.isDefaultOnFamily(providerID)
@@ -741,7 +812,11 @@ final class Preferences: ObservableObject {
             return
         }
         if let hidden = pendingHidden {
-            connectedProviders = discovered.subtracting(hidden.filter { !Self.isModelCell($0) })
+            // Invert the old off-list, then drop MiniMax: it did not exist
+            // when that list was written, so absence from it is not "on".
+            connectedProviders = discovered
+                .subtracting(hidden.filter { !Self.isModelCell($0) })
+                .subtracting(["minimax"])
             seenProviders = discovered
             pendingHidden = nil
             return

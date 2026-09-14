@@ -90,10 +90,55 @@ final class NotchWindowController {
         FullScreenDetector.isFullScreenAppFrontmost(on: self?.currentScreen())
     }
 
+    /// Whether a frontmost full-screen app may fold the notch at all. A
+    /// setting rather than a rule: on a screen kept full-screen all day the
+    /// fold reads as the notch refusing to stay put, not as it tidying up.
+    var foldsForFullScreen = true
+
     /// When a full-screen app is active on the current space, auto-folds the notch.
     /// When returning to a desktop space with `isAlwaysOn`, restores the unfolded state.
-    func handleActiveSpaceOrAppChange() { updateFullscreenVisibility() }
-    func foldForFullScreen() { updateFullscreenVisibility(force: true) }
+    func handleActiveSpaceOrAppChange() {
+        if hideInFullscreen {
+            updateFullscreenVisibility()
+            return
+        }
+        if foldsForFullScreen && isFullScreenActive() {
+            if let panel {
+                let local = localCursor(in: panel.frame)
+                let overTooltip = model.hoveredIndex
+                    .flatMap(tooltipRect(index:))
+                    .map { model.isExpanded && $0.contains(local) } ?? false
+                if liveRect.contains(local) || overTooltip {
+                    return
+                }
+            }
+            foldForFullScreen()
+        } else if model.isAlwaysOn && !model.isExpanded {
+            withAnimation(NotchMotion.unfold) {
+                model.isExpanded = true
+            }
+            updateInteractiveRects()
+        }
+    }
+
+    /// Immediately folds the notch and clears pending hover timers when a full-screen app takes focus.
+    func foldForFullScreen() {
+        if hideInFullscreen {
+            updateFullscreenVisibility(force: true)
+            return
+        }
+        if let peekUntil, peekUntil > Date() { return }
+        foldWork?.cancel()
+        foldWork = nil
+        model.isPinned = false
+        guard model.isExpanded else { return }
+        withAnimation(NotchMotion.unfold) {
+            model.isExpanded = false
+            model.hoveredIndex = nil
+        }
+        setPointing(false)
+        updateInteractiveRects()
+    }
 
     var hideInFullscreen = true { didSet { updateFullscreenVisibility() } }
     var fullscreenCheck: (NSScreen) -> Bool = { CustomFullscreenDetector.covers($0) }
@@ -117,6 +162,14 @@ final class NotchWindowController {
             if !Runtime.isUnderTest { panel?.orderFrontRegardless() }
         }
         return suppress
+    }
+
+    /// Re-evaluated on the spot rather than on the next cursor poll, so the
+    /// notch answers the setting in the same beat: switched off under a
+    /// frontmost full-screen app, an always-on notch comes straight back.
+    func apply(foldsForFullScreen: Bool) {
+        self.foldsForFullScreen = foldsForFullScreen
+        handleActiveSpaceOrAppChange()
     }
 
     func show() {

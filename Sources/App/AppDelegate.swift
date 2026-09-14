@@ -72,6 +72,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// refresher needs to ask one of them how long its token has left, and the
     /// protocol has no business carrying that.
     private var claudeProviders: [ClaudeOAuthProvider] = []
+    /// MiniMax Platform sign-in sheet. Not a UsageProvider — that is MiniMaxProvider.
+    private var miniMaxWeb: WebSessionProvider?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Set here, not in the Info.plist: this call is applied at launch and
@@ -106,6 +108,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // login is explicit, stays in Codenotch's own WKWebView store, and
             // the page-local requests are refreshed only after that login.
             let deepSeek = WebSessionProvider(site: Sites.deepSeek)
+            // MiniMax's ring is MiniMaxProvider. The sheet is the same kind of
+            // WebView DeepSeek uses, but it must not join `webProviders`:
+            // those are appended to `allProviders`, and two adapters with
+            // id `minimax` would both poll, both draw a row, and fight over
+            // the same archive key. Region is applied here and again when
+            // Settings changes it, because the fetch URLs live on the site.
+            let miniMaxWeb = WebSessionProvider(site: Sites.minimax(region: preferences.minimaxRegion))
+            self.miniMaxWeb = miniMaxWeb
             let webProviders: [WebSessionProvider] = [deepSeek]
             // Account login stays in Settings → Accounts, separate from refresh.
 
@@ -125,8 +135,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 + [CursorLocalProvider()]
                 + codexProfiles.map { CodexLocalProvider(profile: $0) }
                 + [AntigravityProvider(),
-                   GLMProvider(), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
-                   CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(),
+                   GLMProvider(), MiniMaxProvider(web: miniMaxWeb), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
+                   CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(), KiroProvider(),
                    OllamaLocalProvider(endpoint: URL(string: preferences.ollamaEndpoint)!),
                    LMStudioLocalProvider(endpoint: URL(string: preferences.lmstudioEndpoint)!),
                    OllamaProvider(),
@@ -149,6 +159,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             deepSeek.onAuthenticated = { [weak store] in
                 store?.providerAuthenticationChanged(providerID: "deepseek")
+            }
+            miniMaxWeb.onAuthenticated = { [weak store] in
+                store?.providerAuthenticationChanged(providerID: "minimax")
             }
 
             let updater = Updater()
@@ -247,7 +260,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     guard let store, let fleet, let preferences else { return nil }
                     let snap = await MainActor.run {
                         PhoneLinkSnapshotBuilder.build(
-                            snapshots: store.snapshots,
+                            snapshots: DailyPace.apply(to: store.snapshots,
+                                                       enabled: preferences.claudeDailyPaceRing),
                             sessions: Array(fleet.sessions.values.flatMap { $0 }),
                             disconnected: store.disconnected,
                             order: preferences.providerOrder,
@@ -268,7 +282,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                     let snap = await MainActor.run {
                         PhoneLinkSnapshotBuilder.build(
-                            snapshots: store.snapshots,
+                            snapshots: DailyPace.apply(to: store.snapshots,
+                                                       enabled: preferences.claudeDailyPaceRing),
                             sessions: Array(fleet.sessions.values.flatMap { $0 }),
                             disconnected: store.disconnected,
                             order: preferences.providerOrder,
@@ -369,6 +384,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .sink { [weak fleet] in fleet?.apply($0) }
                 .store(in: &cancellables)
 
+            preferences.$foldsForFullScreen
+                .receive(on: RunLoop.main)
+                .sink { [weak fleet] in fleet?.apply(foldsForFullScreen: $0) }
+                .store(in: &cancellables)
+
             preferences.$deepSeekPricingEnabled
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(deepSeekPricingEnabled: $0) }
@@ -377,6 +397,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferences.$deepSeekPricingSchedule
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(deepSeekPricingSchedule: $0) }
+                .store(in: &cancellables)
+
+            preferences.$minimaxRegion
+                .dropFirst()
+                .removeDuplicates()
+                .receive(on: RunLoop.main)
+                .sink { [weak miniMaxWeb, weak store] region in
+                    miniMaxWeb?.apply(site: Sites.minimax(region: region))
+                    store?.refresh(providerID: "minimax")
+                }
                 .store(in: &cancellables)
 
             preferences.$notchEdge
@@ -559,14 +589,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             self.limitWatcher = limitWatcher
 
+            // The daily-pace window is laid over the store's snapshots here,
+            // on the way out, rather than inside a provider: it is a reading
+            // of a preference as much as of the account, and the store keeps
+            // what the vendor said. Paired with the preference so flipping the
+            // toggle redraws at once, without a fetch.
             store.$notchSnapshots
+                .combineLatest(preferences.$claudeDailyPaceRing)
                 .receive(on: RunLoop.main)
-                .sink { [weak fleet] in fleet?.setSnapshots($0) }
+                .sink { [weak fleet] snapshots, paced in
+                    fleet?.setSnapshots(DailyPace.apply(to: snapshots, enabled: paced))
+                }
                 .store(in: &cancellables)
 
             store.$snapshots
+                .combineLatest(preferences.$claudeDailyPaceRing)
                 .receive(on: RunLoop.main)
-                .sink { [weak statusItem] snapshots in
+                .sink { [weak statusItem] snapshots, paced in
+                    let snapshots = DailyPace.apply(to: snapshots, enabled: paced)
                     statusItem?.snapshots = snapshots
                     notifier.observe(snapshots)
                     resetWatcher.observe(snapshots)
@@ -694,7 +734,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         preferences.$phoneLinkEnabled
             .receive(on: RunLoop.main)
             .sink { [weak self] enabled in
-                guard let self = self, let srv = self.phoneLinkServer else { return }
+                guard PhoneLink.isAvailable, let self = self, let srv = self.phoneLinkServer else { return }
                 Task { @MainActor in
                     if enabled {
                         self.phoneLinkServerStatus?.state = .starting
@@ -720,6 +760,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         fleet.apply(accentColor: preferences.accentColor)
         fleet.apply(weeklyRing: preferences.weeklyRing)
         fleet.apply(showsMoveHandle: preferences.showsMoveHandle)
+        fleet.apply(foldsForFullScreen: preferences.foldsForFullScreen)
         fleet.apply(surfaceStyle: preferences.notchSurfaceStyle)
         fleet.apply(deepSeekPricingEnabled: preferences.deepSeekPricingEnabled)
         fleet.apply(deepSeekPricingSchedule: preferences.deepSeekPricingSchedule)
@@ -874,7 +915,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor func openSettings() { settings?.show() }
     @MainActor func openConnectPhone() {
-        guard let pairing = phoneLinkPairing, let registry = phoneLinkRegistry, let status = phoneLinkServerStatus else { return }
+        guard PhoneLink.isAvailable, let pairing = phoneLinkPairing, let registry = phoneLinkRegistry, let status = phoneLinkServerStatus else { return }
         if preferences?.phoneLinkEnabled == false { preferences?.phoneLinkEnabled = true }
         PhoneLinkWindowController.shared.show(pairing: pairing, registry: registry, port: preferences?.phoneLinkPort ?? 8788, serverStatus: status)
     }

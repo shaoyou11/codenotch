@@ -19372,6 +19372,602 @@
           }
         }
       }
+    },
+    "Window %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时段 %lld"
+          }
+        }
+      }
+    },
+    "Add peak window": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加高峰时段"
+          }
+        }
+      }
+    },
+    "Remove peak window": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除高峰时段"
+          }
+        }
+      }
+    },
+    "Daily pace": {
+      "extractionState": "manual",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дневной темп"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rythme quotidien"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagestempo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日次ペース"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritmo diário"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日节奏"
+          }
+        }
+      }
+    },
+    "Claude daily pace ring": {
+      "extractionState": "manual",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кольцо дневного темпа Claude"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anneau du rythme quotidien Claude"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude-Tagestempo-Ring"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 日次ペースリング"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anel de ritmo diário do Claude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 每日节奏圆环"
+          }
+        }
+      }
+    },
+    "Claude's main ring shows today's share of the weekly limit — a seventh a day, counted from the weekly reset — instead of the session. The session moves to the thin ring and the card; alerts follow the daily ring.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Большое кольцо Claude показывает сегодняшнюю долю недельного лимита — по одной седьмой в день, отсчитывая от недельного сброса — вместо сессии. Сессия переходит в тонкое кольцо и в карточку; уведомления следуют за дневным кольцом."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'anneau principal de Claude affiche la part du jour dans la limite hebdomadaire — un septième par jour, compté depuis la réinitialisation hebdomadaire — au lieu de la session. La session passe dans l'anneau fin et la carte ; les alertes suivent l'anneau quotidien."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claudes Hauptring zeigt den heutigen Anteil am Wochenlimit — ein Siebtel pro Tag, gezählt ab dem wöchentlichen Reset — statt der Sitzung. Die Sitzung wandert in den dünnen Ring und die Karte; Hinweise folgen dem Tagesring."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude のメインリングに、セッションの代わりに週間上限の今日の割り当て（週次リセットから数えて 1 日あたり 7 分の 1）を表示します。セッションは細いリングとカードに移り、通知は日次リングに従います。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O anel principal do Claude mostra a parcela de hoje do limite semanal — um sétimo por dia, contado a partir da redefinição semanal — em vez da sessão. A sessão passa para o anel fino e o cartão; os alertas seguem o anel diário."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 的主圆环显示今日在每周限额中的份额（自每周重置起每天七分之一），而不是会话。会话移至细圆环和卡片；提醒跟随每日圆环。"
+          }
+        }
+      }
+    },
+    "Most readings are borrowed from a tool that already holds the account. DeepSeek and MiniMax are the exceptions: clicking Sign in opens a Codenotch window for that account, and signing out here clears only that session and its saved reading.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多数读数来自已登录的工具。DeepSeek 和 MiniMax 需要在 Codenotch 中登录；在此退出只会清除对应会话及保存的读数。"
+          }
+        }
+      }
+    },
+    "Show Spark and code review": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示 Spark 和代码审查额度"
+          }
+        }
+      }
+    },
+    "The ring still follows the main Codex window. Spark and code review stay in the hover card.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圆环仍显示 Codex 的主要额度，Spark 和代码审查额度仅显示在详情卡片中。"
+          }
+        }
+      }
+    },
+    "Fold for full-screen apps": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全屏时自动收起"
+          }
+        }
+      }
+    },
+    "The notch folds away while a full-screen app is frontmost, and returns when you leave it. Off keeps it in place over full-screen apps.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前台应用全屏时收起刘海，退出全屏后恢复。关闭后，刘海会继续显示在全屏应用上。"
+          }
+        }
+      }
+    },
+    "Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 从本机已登录的工具读取用量，不会索要密码。安装并登录 Claude Code（终端工具）、Cursor（编辑器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro，或通过 Gemini CLI、OpenCode、Hermes 配置 Gemini API 密钥后，即可显示对应圆环。"
+          }
+        }
+      }
+    },
+    "Region": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地区"
+          }
+        }
+      }
+    },
+    "International": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "国际版"
+          }
+        }
+      }
+    },
+    "China mainland": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国大陆"
+          }
+        }
+      }
+    },
+    "Sign in to MiniMax in Codenotch, or paste a Coding Plan key. A Cookie header is optional. Codenotch never reads a browser's cookies.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Codenotch 中登录 MiniMax，或粘贴 Coding Plan 密钥。Cookie 请求头为可选项，应用不会读取浏览器中的 Cookie。"
+          }
+        }
+      }
+    },
+    "MiniMax Coding Plan key": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MiniMax Coding Plan 密钥"
+          }
+        }
+      }
+    },
+    "Cookie header (optional)": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie 请求头（可选）"
+          }
+        }
+      }
+    },
+    "Cookie: …": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie: …"
+          }
+        }
+      }
+    },
+    "Kiro and MiniMax, German, a daily pace ring for Claude, and a switch for folding over full-screen apps.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增 Kiro、MiniMax、德语、Claude 每日额度进度，以及全屏自动收起开关。"
+          }
+        }
+      }
+    },
+    "Kiro and MiniMax": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiro 和 MiniMax"
+          }
+        }
+      }
+    },
+    "Kiro reads the kiro-cli sign-in already on this Mac. MiniMax signs in from Codenotch, with a choice of international or China region.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiro 读取本机 kiro-cli 已保存的登录信息。MiniMax 在 Codenotch 中登录，可选择国际版或中国区。"
+          }
+        }
+      }
+    },
+    "Deutsch": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "德语"
+          }
+        }
+      }
+    },
+    "German joins the app's languages, and the limit and reset notifications are now in Simplified Chinese too.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增德语，并补齐额度耗尽和重置通知的简体中文。"
+          }
+        }
+      }
+    },
+    "A daily pace ring for Claude": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 每日额度进度"
+          }
+        }
+      }
+    },
+    "Optionally, Claude's main ring shows today's share of the weekly limit, a seventh a day, with the session moving to the thin ring.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选让 Claude 主圆环显示每周额度的每日份额，即每天七分之一；会话额度移至细圆环。"
+          }
+        }
+      }
+    },
+    "Codex's extra limits": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 额外额度"
+          }
+        }
+      }
+    },
+    "The hover card lists Spark and code review when your account has them, and Appearance can hide them.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号提供 Spark 或代码审查额度时，会显示在详情卡片中；可在外观设置中隐藏。"
+          }
+        }
+      }
+    },
+    "The automatic fold over full-screen apps can now be switched off, for anyone whose maximised windows kept folding the notch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在可以关闭全屏自动收起，避免全屏窗口让刘海反复收起。"
+          }
+        }
+      }
+    },
+    "DeepSeek pricing windows": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DeepSeek 计费时段"
+          }
+        }
+      }
+    },
+    "Peak and off-peak hours are fully configurable, and signing in picks up DeepSeek's login more reliably.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可自由配置高峰和低峰时段，登录信息同步也更加可靠。"
+          }
+        }
+      }
+    },
+    "Alerts on time": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "及时提醒"
+          }
+        }
+      }
+    },
+    "Usage refreshes the moment a limit window rolls over, so reset and limit alerts arrive when they happen, even without a notch on screen.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "额度周期结束时立即刷新用量，及时发送重置和耗尽提醒；刘海隐藏时也能收到通知。"
+          }
+        }
+      }
+    },
+    "New providers stay off until you switch them on, the recenter button gives clearer feedback, hovering is ignored while Option-dragging, the Codex completion sound keeps its setting, and the Windows rings and hover card match the Mac's.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增服务默认关闭；重新居中反馈更清晰；按住 Option 拖动时不再误触详情；Codex 完成提示音保持原设置；Windows 圆环和详情卡片与 Mac 一致。"
+          }
+        }
+      }
+    },
+    "Run kiro-cli login — it writes and refreshes the session this reads.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行 kiro-cli login 登录；应用会读取它保存和更新的会话。"
+          }
+        }
+      }
+    },
+    "Kiro CLI is not installed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未安装 Kiro CLI"
+          }
+        }
+      }
+    },
+    "Credits": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点数"
+          }
+        }
+      }
+    },
+    "Overage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超额用量"
+          }
+        }
+      }
+    },
+    "Spark": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spark"
+          }
+        }
+      }
+    },
+    "Code review": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代码审查"
+          }
+        }
+      }
+    },
+    "China": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国区"
+          }
+        }
+      }
+    },
+    "Kiro CLI reported no usage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiro CLI 未返回用量"
+          }
+        }
+      }
+    },
+    "Bonus": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "额外点数"
+          }
+        }
+      }
+    },
+    "MiniMax reported no usage windows": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MiniMax 未返回额度信息"
+          }
+        }
+      }
+    },
+    "Paste a Coding Plan key in Settings, or Sign in to MiniMax.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在设置中粘贴 Coding Plan 密钥，或登录 MiniMax。"
+          }
+        }
+      }
+    },
+    "Sign in with kiro-cli to read your usage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 kiro-cli 登录以读取用量"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

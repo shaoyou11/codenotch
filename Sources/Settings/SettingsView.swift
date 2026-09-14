@@ -28,6 +28,11 @@ extension View {
 private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     case accounts, phone, deepseek, ollama, lmstudio, appearance, notifications, general
 
+    /// The sections the sidebar lists; Phone only once pairing is offered.
+    static var visible: [SettingsSection] {
+        allCases.filter { $0 != .phone || PhoneLink.isAvailable }
+    }
+
     var id: String { rawValue }
 
     var title: String {
@@ -298,7 +303,7 @@ struct SettingsView: View {
     /// traffic lights land inside it, which is why the rows start a clear
     /// `trafficLightClearance` below the top rather than at it.
     private var sidebar: some View {
-        List(SettingsSection.allCases, selection: $selection) { section in
+        List(SettingsSection.visible, selection: $selection) { section in
             Label {
                 Text(section.title)
             } icon: {
@@ -517,7 +522,7 @@ struct SettingsView: View {
                 }
                 // Beside the switches it explains, not stranded at the end of
                 // the page.
-                Text(L10n.t("Most readings are borrowed from a tool that already holds the account. DeepSeek is the exception: clicking Sign in opens its own Codenotch WebView, and signing out here clears only that session and its saved reading."))
+                Text(L10n.t("Most readings are borrowed from a tool that already holds the account. DeepSeek and MiniMax are the exceptions: clicking Sign in opens a Codenotch window for that account, and signing out here clears only that session and its saved reading."))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -578,6 +583,17 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
+                Toggle(L10n.t("Show Spark and code review"), isOn: $preferences.showCodexExtraLimits)
+                    .onChange(of: preferences.showCodexExtraLimits) { _ in
+                        for account in providers() where CodexProfile.isCodex(providerID: account.id) {
+                            usageStore?.refresh(providerID: account.id)
+                        }
+                    }
+                Text(L10n.t("The ring still follows the main Codex window. Spark and code review stay in the hover card."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 Picker(L10n.t("Weekly ring"), selection: $preferences.weeklyRing) {
                     ForEach(WeeklyRing.allCases) { Text($0.title).tag($0) }
                 }
@@ -588,12 +604,24 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
+                Toggle(L10n.t("Claude daily pace ring"), isOn: $preferences.claudeDailyPaceRing)
+                Text(L10n.t("Claude's main ring shows today's share of the weekly limit — a seventh a day, counted from the weekly reset — instead of the session. The session moves to the thin ring and the card; alerts follow the daily ring."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 Picker(L10n.t("Show"), selection: $preferences.notchVisibility) {
                     ForEach(NotchVisibility.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
 
                 Text(preferences.notchVisibility.explanation)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Toggle(L10n.t("Fold for full-screen apps"), isOn: $preferences.foldsForFullScreen)
+                Text(L10n.t("The notch folds away while a full-screen app is frontmost, and returns when you leave it. Off keeps it in place over full-screen apps."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1061,7 +1089,7 @@ struct SettingsView: View {
     /// this, sees four blank rings and concludes it is broken — and the
     /// distinction that catches them out is Claude *Code*, not the Claude app.
     static var setupCopy: String {
-        L10n.t("Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
+        L10n.t("Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
     }
 
     /// Said before it happens rather than after. A system dialogue asking to
@@ -1569,6 +1597,13 @@ private struct AccountRow: View {
             if provider.id == "ollama" {
                 ollamaKeyEntry
             }
+
+            // MiniMax is signed into in Codenotch, or by a Coding Plan key
+            // pasted here. The region is which console that key belongs to.
+            // Stored in the keychain on Save, the same way Ollama's is.
+            if provider.id == "minimax" {
+                minimaxEntry
+            }
         }
     }
 
@@ -1608,6 +1643,95 @@ private struct AccountRow: View {
             }
         }
         .padding(.top, 2)
+    }
+
+    /// Region and Coding Plan key for MiniMax.
+    ///
+    /// Laid out like the Ollama key above it, and for the same reason: a
+    /// field's own title becomes a leading label in a `Form` row. Captions
+    /// sit on their own line. Changing the region only stores the choice —
+    /// opening Sign in here would throw a sheet over a preference picker.
+    @State private var minimaxKey = ""
+    @State private var minimaxKeySaved = false
+    @State private var minimaxCookie = ""
+    @State private var minimaxCookieSaved = false
+
+    private var minimaxEntry: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(L10n.t("Region"))
+                    .foregroundStyle(.secondary)
+                Picker(selection: $preferences.minimaxRegion) {
+                    Text(L10n.t("International")).tag(MiniMaxRegion.international)
+                    Text(L10n.t("China mainland")).tag(MiniMaxRegion.china)
+                } label: {
+                    EmptyView()
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(width: 160)
+            }
+
+            minimaxKeyEntry
+            minimaxCookieEntry
+
+            Text(L10n.t("Sign in to MiniMax in Codenotch, or paste a Coding Plan key. A Cookie header is optional. Codenotch never reads a browser's cookies."))
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.top, 2)
+    }
+
+    private var minimaxKeyEntry: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(L10n.t("MiniMax Coding Plan key"))
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                SecureField(L10n.t("Paste your key"), text: $minimaxKey)
+                    .textContentType(.password)
+                    .textFieldStyle(.roundedBorder)
+                    .labelsHidden()
+                    .frame(maxWidth: 260)
+                Button(L10n.t("Save")) {
+                    guard !minimaxKey.isEmpty else { return }
+                    MiniMaxCredentials.storeAPIKey(minimaxKey)
+                    minimaxKey = ""
+                    minimaxKeySaved = true
+                    _ = signIn(provider.id)
+                }
+                .disabled(minimaxKey.isEmpty)
+                if minimaxKeySaved {
+                    Text(L10n.t("Saved"))
+                        .foregroundStyle(.green)
+                }
+            }
+        }
+    }
+
+    private var minimaxCookieEntry: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(L10n.t("Cookie header (optional)"))
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                SecureField(L10n.t("Cookie: …"), text: $minimaxCookie)
+                    .textContentType(.password)
+                    .textFieldStyle(.roundedBorder)
+                    .labelsHidden()
+                    .frame(maxWidth: 260)
+                Button(L10n.t("Save")) {
+                    guard !minimaxCookie.isEmpty else { return }
+                    MiniMaxCredentials.storeCookieHeader(minimaxCookie)
+                    minimaxCookie = ""
+                    minimaxCookieSaved = true
+                    _ = signIn(provider.id)
+                }
+                .disabled(minimaxCookie.isEmpty)
+                if minimaxCookieSaved {
+                    Text(L10n.t("Saved"))
+                        .foregroundStyle(.green)
+                }
+            }
+        }
     }
 
     @ViewBuilder

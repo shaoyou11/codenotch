@@ -66,6 +66,7 @@ final class PreferencesMigrationTests: XCTestCase {
         let preferences = Preferences(defaults: fresh)
         XCTAssertTrue(preferences.isFirstLaunch)
         XCTAssertEqual(preferences.notchVisibility, .onHover)
+        XCTAssertTrue(preferences.foldsForFullScreen)
         XCTAssertEqual(preferences.appPresence, .dock)
         XCTAssertEqual(preferences.notchEdge, .right)
         XCTAssertEqual(preferences.notchSize, .seventy)
@@ -75,20 +76,61 @@ final class PreferencesMigrationTests: XCTestCase {
         XCTAssertTrue(preferences.isConnected("claude-work"))
         XCTAssertFalse(preferences.isConnected("cursor"))
         XCTAssertFalse(preferences.isConnected("glm"))
+        XCTAssertFalse(preferences.isConnected("kiro"))
+        XCTAssertFalse(preferences.isConnected("minimax"))
         XCTAssertTrue(preferences.deepSeekPricingEnabled)
         XCTAssertEqual(preferences.deepSeekPricingSchedule, .current)
+    }
+
+    /// MiniMax is discovered like everyone else, and stays off until switched
+    /// on. Claude and Codex are the only families that default on.
+    func testMiniMaxStaysOffAfterReconcile() {
+        let (fresh, name) = makeDefaults()
+        let preferences = Preferences(defaults: fresh)
+        preferences.reconcile(discoveredIDs: ["claude", "codex", "minimax"])
+        XCTAssertEqual(preferences.connectedProviders, ["claude", "codex"])
+        XCTAssertFalse(preferences.isConnected("minimax"))
+        XCTAssertTrue(preferences.isConnected("claude"))
+
+        let again = Preferences(defaults: UserDefaults(suiteName: name)!)
+        again.reconcile(discoveredIDs: ["claude", "codex", "cursor", "glm", "deepseek", "minimax"])
+        XCTAssertFalse(again.isConnected("minimax"))
+        XCTAssertFalse(again.isConnected("cursor"))
+        XCTAssertFalse(again.isConnected("deepseek"))
+        XCTAssertTrue(again.isConnected("claude"))
+    }
+
+    /// Kiro is discovered like everyone else, and stays off until switched on.
+    /// Claude and Codex are the only families that default on.
+    func testKiroStaysOffAfterReconcile() {
+        let (fresh, name) = makeDefaults()
+        let preferences = Preferences(defaults: fresh)
+        preferences.reconcile(discoveredIDs: ["claude", "codex", "kiro"])
+        XCTAssertFalse(preferences.isConnected("kiro"))
+        XCTAssertTrue(preferences.isConnected("claude"))
+
+        let again = Preferences(defaults: UserDefaults(suiteName: name)!)
+        again.reconcile(discoveredIDs: ["claude", "codex", "cursor", "glm", "kiro", "deepseek"])
+        XCTAssertFalse(again.isConnected("kiro"))
+        XCTAssertFalse(again.isConnected("cursor"))
+        XCTAssertFalse(again.isConnected("deepseek"))
+        XCTAssertTrue(again.isConnected("claude"))
     }
 
     func testAFirstLaunchSeedsClaudeAndCodexOnceDiscovered() {
         let (fresh, name) = makeDefaults()
         let preferences = Preferences(defaults: fresh)
-        preferences.reconcile(discoveredIDs: ["claude", "codex", "cursor", "glm", "claude-work"])
+        preferences.reconcile(discoveredIDs: ["claude", "codex", "cursor", "glm", "kiro", "minimax", "claude-work"])
         XCTAssertEqual(preferences.connectedProviders, ["claude", "codex", "claude-work"])
         XCTAssertFalse(preferences.isConnected("cursor"))
+        XCTAssertFalse(preferences.isConnected("kiro"))
+        XCTAssertFalse(preferences.isConnected("minimax"))
 
         let again = Preferences(defaults: UserDefaults(suiteName: name)!)
-        again.reconcile(discoveredIDs: ["claude", "codex", "cursor", "glm", "claude-work", "deepseek"])
+        again.reconcile(discoveredIDs: ["claude", "codex", "cursor", "glm", "kiro", "minimax", "claude-work", "deepseek"])
         XCTAssertFalse(again.isConnected("cursor"))
+        XCTAssertFalse(again.isConnected("kiro"))
+        XCTAssertFalse(again.isConnected("minimax"))
         XCTAssertFalse(again.isConnected("deepseek"))
         XCTAssertTrue(again.isConnected("claude"))
     }
@@ -210,13 +252,18 @@ final class PreferencesMigrationTests: XCTestCase {
         preferences.deepSeekPricingEnabled = false
         preferences.deepSeekPricingSchedule = DeepSeekPricing.Schedule(
             peakWeekdays: [2],
-            windows: [.init(startMinute: 120, endMinute: 180)]
+            windows: [
+                .init(startMinute: 120, endMinute: 180),
+                .init(startMinute: 360, endMinute: 420),
+                .init(startMinute: 900, endMinute: 960)
+            ]
         )
 
         let reloaded = Preferences(defaults: UserDefaults(suiteName: name)!)
         XCTAssertFalse(reloaded.deepSeekPricingEnabled)
         XCTAssertEqual(reloaded.deepSeekPricingSchedule.peakWeekdays, [2])
-        XCTAssertEqual(reloaded.deepSeekPricingSchedule.windows.first?.startMinute, 120)
+        XCTAssertEqual(reloaded.deepSeekPricingSchedule.windows.count, 3)
+        XCTAssertEqual(reloaded.deepSeekPricingSchedule.windows[2].startMinute, 900)
 
         reloaded.resetDeepSeekPricingSchedule()
         XCTAssertEqual(reloaded.deepSeekPricingSchedule, .current)
