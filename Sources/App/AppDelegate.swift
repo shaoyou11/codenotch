@@ -236,67 +236,70 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .sink { [weak fleet] in fleet?.setLedger($0) }
                 .store(in: &cancellables)
 
-            let dir: URL
-            if NSClassFromString("XCTestCase") != nil {
-                dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            } else {
-                let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-                dir = appSupport.appendingPathComponent("Codenotch/phone-link", isDirectory: true)
-            }
-            let phoneSecretStore: PhoneLinkSecretStore = NSClassFromString("XCTestCase") != nil
-                ? InMemoryPhoneLinkSecretStore()
-                : PhoneLinkKeychainSecretStore()
-            let phoneRegistry = PhoneLinkRegistry(directory: dir, secretStore: phoneSecretStore)
-            let phonePairing = PhoneLinkPairing()
-            let serverStatus = PhoneLinkServerStatus()
-            self.phoneLinkRegistry = phoneRegistry
-            self.phoneLinkPairing = phonePairing
-
-            let server = PhoneLinkServer(
-                pairing: phonePairing,
-                registry: phoneRegistry,
-                status: serverStatus,
-                getSnapshot: { @Sendable [weak store, weak fleet, weak preferences] in
-                    guard let store, let fleet, let preferences else { return nil }
-                    let snap = await MainActor.run {
-                        PhoneLinkSnapshotBuilder.build(
-                            snapshots: DailyPace.apply(to: store.snapshots,
-                                                       enabled: preferences.claudeDailyPaceRing),
-                            sessions: Array(fleet.sessions.values.flatMap { $0 }),
-                            disconnected: store.disconnected,
-                            order: preferences.providerOrder,
-                            serverName: PhoneLinkNetwork.getComputerName(),
-                            serverVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0",
-                            now: Date()
-                        )
-                    }
-                    return try? JSONEncoder().encode(snap)
-                },
-                refreshAndGetSnapshot: { @Sendable [weak store, weak fleet, weak preferences] in
-                    guard let store, let fleet, let preferences else { return nil }
-                    await MainActor.run { store.refreshNow() }
-                    for _ in 0..<20 {
-                        let isRef = await MainActor.run { !store.refreshing.isEmpty }
-                        if !isRef { break }
-                        try? await Task.sleep(nanoseconds: 1_000_000_000)
-                    }
-                    let snap = await MainActor.run {
-                        PhoneLinkSnapshotBuilder.build(
-                            snapshots: DailyPace.apply(to: store.snapshots,
-                                                       enabled: preferences.claudeDailyPaceRing),
-                            sessions: Array(fleet.sessions.values.flatMap { $0 }),
-                            disconnected: store.disconnected,
-                            order: preferences.providerOrder,
-                            serverName: PhoneLinkNetwork.getComputerName(),
-                            serverVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0",
-                            now: Date()
-                        )
-                    }
-                    return try? JSONEncoder().encode(snap)
+            // A hidden feature must not load paired-device secrets at launch.
+            if PhoneLink.isAvailable {
+                let dir: URL
+                if NSClassFromString("XCTestCase") != nil {
+                    dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+                } else {
+                    let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                    dir = appSupport.appendingPathComponent("Codenotch/phone-link", isDirectory: true)
                 }
-            )
-            self.phoneLinkServerStatus = serverStatus
-            self.phoneLinkServer = server
+                let phoneSecretStore: PhoneLinkSecretStore = NSClassFromString("XCTestCase") != nil
+                    ? InMemoryPhoneLinkSecretStore()
+                    : PhoneLinkKeychainSecretStore()
+                let phoneRegistry = PhoneLinkRegistry(directory: dir, secretStore: phoneSecretStore)
+                let phonePairing = PhoneLinkPairing()
+                let serverStatus = PhoneLinkServerStatus()
+                self.phoneLinkRegistry = phoneRegistry
+                self.phoneLinkPairing = phonePairing
+    
+                let server = PhoneLinkServer(
+                    pairing: phonePairing,
+                    registry: phoneRegistry,
+                    status: serverStatus,
+                    getSnapshot: { @Sendable [weak store, weak fleet, weak preferences] in
+                        guard let store, let fleet, let preferences else { return nil }
+                        let snap = await MainActor.run {
+                            PhoneLinkSnapshotBuilder.build(
+                                snapshots: DailyPace.apply(to: store.snapshots,
+                                                           enabled: preferences.claudeDailyPaceRing),
+                                sessions: Array(fleet.sessions.values.flatMap { $0 }),
+                                disconnected: store.disconnected,
+                                order: preferences.providerOrder,
+                                serverName: PhoneLinkNetwork.getComputerName(),
+                                serverVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0",
+                                now: Date()
+                            )
+                        }
+                        return try? JSONEncoder().encode(snap)
+                    },
+                    refreshAndGetSnapshot: { @Sendable [weak store, weak fleet, weak preferences] in
+                        guard let store, let fleet, let preferences else { return nil }
+                        await MainActor.run { store.refreshNow() }
+                        for _ in 0..<20 {
+                            let isRef = await MainActor.run { !store.refreshing.isEmpty }
+                            if !isRef { break }
+                            try? await Task.sleep(nanoseconds: 1_000_000_000)
+                        }
+                        let snap = await MainActor.run {
+                            PhoneLinkSnapshotBuilder.build(
+                                snapshots: DailyPace.apply(to: store.snapshots,
+                                                           enabled: preferences.claudeDailyPaceRing),
+                                sessions: Array(fleet.sessions.values.flatMap { $0 }),
+                                disconnected: store.disconnected,
+                                order: preferences.providerOrder,
+                                serverName: PhoneLinkNetwork.getComputerName(),
+                                serverVersion: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0",
+                                now: Date()
+                            )
+                        }
+                        return try? JSONEncoder().encode(snap)
+                    }
+                )
+                self.phoneLinkServerStatus = serverStatus
+                self.phoneLinkServer = server
+            }
 
             let settings = SettingsWindowController(
                 preferences: preferences,
@@ -330,7 +333,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.previewWeeklyLimitAlert()
                 },
                 usageStore: store, ollamaRelay: relay, lmstudioMetrics: lmstudio,
-                phoneLinkPairing: phonePairing, phoneLinkRegistry: phoneRegistry, phoneLinkServerStatus: serverStatus
+                phoneLinkPairing: self.phoneLinkPairing, phoneLinkRegistry: self.phoneLinkRegistry, phoneLinkServerStatus: self.phoneLinkServerStatus
             )
             // The gear toggles; everything else that opens settings opens it.
             fleet.onOpenSettings = { [weak settings] in settings?.toggle() }
