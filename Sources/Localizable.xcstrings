@@ -23880,6 +23880,146 @@
           }
         }
       }
+    },
+    "An installer for Windows, Ukrainian, Dark glass, and limits you set yourself.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增 Windows 安装程序、乌克兰语、深色玻璃和自定义额度警戒线。"
+          }
+        }
+      }
+    },
+    "Codenotch for Windows, installable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 版安装程序"
+          }
+        }
+      }
+    },
+    "Every release now carries Codenotch-Setup.exe, which installs for the current user without administrator rights. It is not signed yet, so Windows asks once. The port also gains the Mac's settings window, Small, Medium and Large sizes, a ring for the weekly limit, and Chinese, Japanese, Korean and Ukrainian.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次发布均提供 Codenotch-Setup.exe，无需管理员权限即可为当前用户安装。目前尚未签名，Windows 会显示安全提示。Windows 版还新增与 Mac 一致的设置窗口、大中小尺寸、每周额度圆环，以及中文、日语、韩语和乌克兰语。"
+          }
+        }
+      }
+    },
+    "Українська": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "乌克兰语"
+          }
+        }
+      }
+    },
+    "A seventh language, on the Mac and on Windows.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac 和 Windows 版新增乌克兰语。"
+          }
+        }
+      }
+    },
+    "A third surface for the notch, dark whatever the Mac's appearance is set to.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增深色玻璃外观，不随 Mac 的深浅色模式改变。"
+          }
+        }
+      }
+    },
+    "Your own watch and critical limits": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义额度警戒线"
+          }
+        }
+      }
+    },
+    "The points where a ring turns amber and red are yours to move, and the weekly ring can be dashed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可调整圆环变为黄色和红色的阈值，每周额度圆环也可显示为虚线。"
+          }
+        }
+      }
+    },
+    "Quieter in the background": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少后台占用"
+          }
+        }
+      }
+    },
+    "A provider you have switched off is no longer watched at all, sessions are read from the end of the file rather than the whole of it, and the notch no longer folds on hover when folding for full-screen apps is off.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已关闭的服务不再后台监测；会话文件从末尾读取，避免读取整个文件；关闭全屏自动收起后，鼠标悬停不再触发全屏收起。"
+          }
+        }
+      }
+    },
+    "Windows keeps its Claude reading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 版 Claude 用量读取修复"
+          }
+        }
+      }
+    },
+    "An expired token is renewed rather than read as a rate limit, the notch no longer takes focus, and it holds still when Windows animation effects are off.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录凭证过期时会续期，不再误判为额度限制；刘海不再抢占焦点，关闭 Windows 动画效果时停止动画。"
+          }
+        }
+      }
+    },
+    "Japanese, complete": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补齐日语翻译"
+          }
+        }
+      }
+    },
+    "Every string in the app now has a Japanese translation, and fifty-five strings that newer features never got are translated too.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补齐应用内全部日语翻译，以及此前新增功能遗漏的 55 条文案。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
