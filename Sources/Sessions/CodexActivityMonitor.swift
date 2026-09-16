@@ -12,34 +12,41 @@ struct CodexRolloutActivity {
         case success
     }
 
-    static func state(from url: URL) -> State? {
-        guard let data = try? Data(contentsOf: url),
-              let text = String(data: data, encoding: .utf8) else { return nil }
-
-        var state: State?
-        for line in text.split(whereSeparator: \.isNewline) {
-            guard let lineData = line.data(using: .utf8),
-                  let object = try? JSONSerialization.jsonObject(with: lineData),
-                  let record = object as? [String: Any],
-                  record["type"] as? String == "event_msg",
-                  let payload = record["payload"] as? [String: Any],
-                  let type = payload["type"] as? String else { continue }
-
-            switch type {
-            case "task_started":
-                state = .busy
-            case "task_complete":
-                state = .success
-            case "turn_aborted":
-                // An aborted turn is not a successful completion. Returning
-                // nil lets the activity monitor drop it without announcing.
-                state = nil
-            default:
-                continue
+    // Read backwards until the latest lifecycle event. Large tool outputs and
+    // old turns do not need JSON decoding just to decide whether Codex is busy.
+    static func state(from url: URL, chunkSize: Int = 65_536) -> State? {
+        guard chunkSize > 0, let file = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? file.close() }
+        guard var offset = try? file.seekToEnd() else { return nil }
+        var partial = Data()
+        while offset > 0 {
+            let count = Int(min(offset, UInt64(chunkSize)))
+            offset -= UInt64(count)
+            guard (try? file.seek(toOffset: offset)) != nil,
+                  var block = try? file.read(upToCount: count) else { return nil }
+            block.append(partial)
+            let lines = block.split(separator: 10, omittingEmptySubsequences: false)
+            partial = offset > 0 ? Data(lines[0]) : Data()
+            let complete = offset > 0 ? lines.dropFirst() : lines[...]
+            for line in complete.reversed() {
+                guard let text = String(data: line, encoding: .utf8),
+                      text.contains("event_msg"),
+                      let object = try? JSONSerialization.jsonObject(with: Data(line)),
+                      let record = object as? [String: Any],
+                      record["type"] as? String == "event_msg",
+                      let payload = record["payload"] as? [String: Any],
+                      let type = payload["type"] as? String else { continue }
+                switch type {
+                case "task_started": return .busy
+                case "task_complete": return .success
+                case "turn_aborted": return nil
+                default: continue
+                }
             }
         }
-        return state
+        return nil
     }
+
 }
 
 /// Reports whether Codex is mid-turn.
@@ -67,22 +74,35 @@ final class CodexActivityMonitor: ObservableObject, AgentActivityMonitor {
     /// How long after the last write a turn is still considered in flight.
     private let staleAfter: TimeInterval
     private var timer: Timer?
+    private var scanInFlight = false
+    private var generation = 0
+    private let scan: () -> [AgentSession]
+    private let scanQueue = DispatchQueue(label: "CodenotchT.codex-activity", qos: .utility)
 
     init(
         profile: CodexProfile = .default(),
         stateStore: URL? = nil,
         desktopStore: URL? = nil,
         interval: TimeInterval = 2,
-        staleAfter: TimeInterval = 8
+        staleAfter: TimeInterval = 8,
+        scan: (() -> [AgentSession])? = nil
     ) {
         self.profile = profile
         self.stateStore = stateStore ?? profile.stateURL
         self.desktopStore = desktopStore ?? profile.desktopStoreURL
         self.interval = interval
         self.staleAfter = staleAfter
+        let state = stateStore ?? profile.stateURL
+        let desktop = desktopStore ?? profile.desktopStoreURL
+        self.scan = scan ?? {
+            Self.read(stateStore: state, desktopStore: desktop,
+                      staleAfter: staleAfter, profile: profile)
+        }
     }
 
     func start() {
+        guard timer == nil else { return }
+        generation += 1
         rescan()
         let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.rescan() }
@@ -94,16 +114,26 @@ final class CodexActivityMonitor: ObservableObject, AgentActivityMonitor {
     func stop() {
         timer?.invalidate()
         timer = nil
+        generation += 1
     }
 
     private func rescan() {
-        let found = Self.read(stateStore: stateStore, desktopStore: desktopStore,
-                              staleAfter: staleAfter, profile: profile)
-        guard found != sessions else { return }
-        sessions = found
+        guard !scanInFlight else { return }
+        scanInFlight = true
+        let currentGeneration = generation
+        let scan = scan
+        scanQueue.async { [weak self] in
+            let found = scan()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.scanInFlight = false
+                guard self.generation == currentGeneration, self.timer != nil else { return }
+                if found != self.sessions { self.sessions = found }
+            }
+        }
     }
 
-    static func read(stateStore: URL, desktopStore: URL,
+    nonisolated static func read(stateStore: URL, desktopStore: URL,
                      staleAfter: TimeInterval, now: Date = Date(),
                      profile: CodexProfile = .default()) -> [AgentSession] {
         // Both surfaces, because "Codex" is two programs that record their work
@@ -139,7 +169,7 @@ final class CodexActivityMonitor: ObservableObject, AgentActivityMonitor {
     /// Only work recorded within the window counts. Anything older is a
     /// finished turn, and reporting it as work in progress would be a guess
     /// dressed as a fact.
-    static func session(
+    nonisolated static func session(
         id: String, name: String, modified: Date,
         state: AgentSession.State = .busy,
         staleAfter: TimeInterval, now: Date
