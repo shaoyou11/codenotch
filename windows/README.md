@@ -13,7 +13,7 @@ documented behaviour and the wire formats.
 
 | Cell | Source | How it reads it |
 |---|---|---|
-| **Claude** | `GET https://api.anthropic.com/api/oauth/usage` with the token Claude Code keeps in `~/.claude/.credentials.json` | Session / weekly windows, 429 back-off with a persisted deadline, stale readings dimmed with their age. A thin arc spins inside the ring while a Claude session is working, and pulses amber when one is waiting on you (Claude Code hooks + transcript watcher, desktop app included). |
+| **Claude** | `GET https://api.anthropic.com/api/oauth/usage` with the token Claude Code keeps in `~/.claude/.credentials.json` | Session / weekly windows, 429 back-off with a persisted deadline, stale readings dimmed with their age. Renews that token by running the standalone `claude -p` shortly before it expires (Claude Code inside the desktop app never writes this file), and never sends an expired one. A thin arc spins inside the ring while a Claude session is working, and pulses amber when one is waiting on you (Claude Code hooks + transcript watcher, desktop app included). |
 | **Codex** | The local Codex sign-in in `~/.codex/auth.json` (read only, never refreshed), falling back to the newest session snapshot | Live primary/secondary windows (5h + weekly on paid plans, a monthly window on free) while Codex is signed in; Spark and Code review appear on the hover card when Codex reports them; otherwise the last snapshot, marked stale by its own timestamp. |
 | **Cursor** | The editor's own session from `state.vscdb` → `cursor.com/api/usage-summary` | Included usage / API usage / on-demand, reset at billing-cycle end. Nothing to sign into: it borrows the editor's session, so there is only ever one account. |
 | **Antigravity** | Official `agy` CLI `/usage` print when installed; otherwise the existing local `language_server` bridge, Google Cloud Code API, or transcript model count | Official four quota rows (Gemini & Claude/GPT 5h/weekly) without running the full IDE. When CLI is absent, falls back to legacy local bridge/API. |
@@ -34,13 +34,29 @@ shows an error or the last reading marked stale. Codenotch does not automate sig
 
 ## Install / build
 
-Prerequisites: Rust (MSVC toolchain), WebView2 runtime (ships with Windows 11).
+Download [`Codenotch-Setup.exe`](https://github.com/vinzdg/codenotch/releases/latest/download/Codenotch-Setup.exe)
+from the latest release. It installs for the current user without administrator rights, puts
+`codenotch-hook.exe` beside the app where **Install hooks** looks for it, and fetches WebView2 if
+Windows does not already have it. The installer is not code-signed, so SmartScreen stops it the
+first time with *Windows protected your PC*: choose **More info**, then **Run anyway**.
+
+To build from source instead — prerequisites: Rust (MSVC toolchain), WebView2 runtime (ships with Windows 11).
 
 ```powershell
 # from this directory (the repo root here; `windows/` inside the upstream repo)
 cargo build --release
 .\target\release\codenotch.exe          # pill appears on the right edge of the primary monitor
 .\target\release\codenotch.exe doctor   # self-diagnosis: credentials, data sources, icons, hooks
+```
+
+To build the installer the way the Windows Package workflow does:
+
+```powershell
+# the hook gets its own target dir, so the bundler never copies it onto itself
+cargo build --release --locked -p codenotch-hook --target-dir target/hook
+cd codenotch
+npx @tauri-apps/cli@2 build --config tauri.bundle.conf.json
+# → ..\target\release\bundle\nsis\Codenotch_<version>_x64-setup.exe
 ```
 
 Tray menu: **Settings…**, **Refresh usage now**, **Quit**. Everything else is in the settings
