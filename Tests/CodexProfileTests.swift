@@ -1,3 +1,4 @@
+import Combine
 import SQLite3
 import XCTest
 @testable import Codenotch
@@ -188,7 +189,7 @@ final class CodexProfileTests: XCTestCase {
     }
 
     @MainActor
-    func testActivityUsesEachProfilesStoreAndDistinctSessionIDs() throws {
+    func testActivityUsesEachProfilesStoreAndDistinctSessionIDs() async throws {
         let root = try home([".codex": [], ".codex-work": []])
         let personal = CodexProfile.default(home: root)
         let work = CodexProfile(slug: "work", configDirectory: root.appendingPathComponent(".codex-work"))
@@ -196,8 +197,14 @@ final class CodexProfileTests: XCTestCase {
         try catalogue(profile: work, title: "Work task")
         let p = CodexActivityMonitor(profile: personal)
         let w = CodexActivityMonitor(profile: work)
+        let loaded = expectation(description: "both profile scans completed")
+        loaded.expectedFulfillmentCount = 2
+        let subscriptions = [p, w].map { monitor in
+            monitor.$sessions.dropFirst().prefix(1).sink { _ in loaded.fulfill() }
+        }
         p.start(); w.start()
-        defer { p.stop(); w.stop() }
+        defer { p.stop(); w.stop(); withExtendedLifetime(subscriptions) {} }
+        await fulfillment(of: [loaded], timeout: 3)
         XCTAssertEqual(p.sessions.map(\.id), ["codex.desktop"])
         XCTAssertEqual(w.sessions.map(\.id), ["codex-work.desktop"])
         XCTAssertEqual(p.sessions.map(\.name), ["Personal task"])
@@ -215,7 +222,7 @@ final class CodexProfileTests: XCTestCase {
     }
 
     @MainActor
-    func testCLIActivityWithTheSameRolloutFilenameDoesNotCollide() throws {
+    func testCLIActivityWithTheSameRolloutFilenameDoesNotCollide() async throws {
         let root = try home([".codex": [], ".codex-work": []])
         let personal = CodexProfile.default(home: root)
         let work = CodexProfile(slug: "work", configDirectory: root.appendingPathComponent(".codex-work"))
@@ -230,8 +237,14 @@ final class CodexProfileTests: XCTestCase {
         }
         let p = CodexActivityMonitor(profile: personal)
         let w = CodexActivityMonitor(profile: work)
+        let loaded = expectation(description: "both profile scans completed")
+        loaded.expectedFulfillmentCount = 2
+        let subscriptions = [p, w].map { monitor in
+            monitor.$sessions.dropFirst().prefix(1).sink { _ in loaded.fulfill() }
+        }
         p.start(); w.start()
-        defer { p.stop(); w.stop() }
+        defer { p.stop(); w.stop(); withExtendedLifetime(subscriptions) {} }
+        await fulfillment(of: [loaded], timeout: 3)
         XCTAssertEqual(p.sessions.map(\.id), ["codex.rollout.jsonl"])
         XCTAssertEqual(w.sessions.map(\.id), ["codex-work.rollout.jsonl"])
         XCTAssertEqual(w.sessions.map(\.name), ["Codex (work)"])
