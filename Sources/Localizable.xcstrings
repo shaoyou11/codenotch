@@ -20383,7 +20383,6 @@
     "To measure responses, point your chat client to http://127.0.0.1:11435 and keep Codenotch open.": {
       "extractionState": "manual",
       "localizations": {
-        "de": null,
         "ja": {
           "stringUnit": {
             "state": "translated",
