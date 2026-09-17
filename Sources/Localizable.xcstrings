@@ -5041,49 +5041,49 @@
         }
       }
     },
-    "macOS is not letting Codenotch read %@'s saved login. Choose Allow access… above, then Always Allow.": {
+    "Codenotch is not reading %@'s saved login. Choose Allow access… above and answer Allow.": {
       "extractionState": "manual",
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS n'autorise pas Codenotch à lire les identifiants enregistrés de %@. Choisissez Autoriser l'accès… ci-dessus, puis Toujours autoriser."
+            "value": "Codenotch ne lit pas la connexion enregistrée de %@. Choisissez Autoriser l'accès… ci-dessus et répondez Autoriser."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS が %@ の保存済みログインの読み取りを許可していません。上の「アクセスを許可…」を選び、「常に許可」を選んでください。"
+            "value": "Codenotch は %@ の保存済みログインを読んでいません。上の「アクセスを許可…」を選び、「許可」と答えてください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O macOS não está deixando o Codenotch ler o login salvo do %@. Escolha Permitir acesso… acima e depois Sempre Permitir."
+            "value": "O Codenotch não está lendo o login salvo de %@. Escolha Permitir acesso… acima e responda Permitir."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS 不让 Codenotch 读取 %@ 已保存的登录信息。点上面的「允许访问…」，然后选「始终允许」。"
+            "value": "Codenotch 没有读取 %@ 保存的登录信息。请在上方选择“允许访问…”，然后选择“允许”。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS не разрешает Codenotch читать сохранённый вход %@. Выберите выше «Разрешить доступ…», затем «Разрешать всегда»."
+            "value": "Codenotch не читает сохранённый вход %@. Выберите «Разрешить доступ…» выше и ответьте «Разрешить»."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS erlaubt Codenotch nicht, die gespeicherte Anmeldung von %@ zu lesen. Wähle oben „Zugriff erlauben…“ und dann „Immer erlauben“."
+            "value": "Codenotch liest die gespeicherte Anmeldung von %@ nicht. Wähle oben „Zugriff erlauben…“ und antworte mit „Erlauben“."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS не дає Codenotch прочитати збережений вхід %@. Виберіть вище «Дозволити доступ…», потім «Завжди дозволяти»."
+            "value": "Codenotch не читає збережений вхід %@. Виберіть «Дозволити доступ…» вище й дайте відповідь «Дозволити»."
           }
         }
       }
@@ -13290,7 +13290,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已用其 %@ 额度的 %lld%%。"
+            "value": "已用其 %2$@ 额度的 %1$lld%%。"
           }
         },
         "de": {
@@ -13589,49 +13589,13 @@
         }
       }
     },
-    "Alert when %@ crosses 80% and 100% of a limit.": {
+    "Alert when %@ crosses 80%% and 100%% of a limit.": {
       "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alerter quand %@ franchit 80 % et 100 % d'une limite."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ が上限の 80% と 100% を超えたときに通知します。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alertar quando %@ ultrapassar 80% e 100% de um limite."
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当 %@ 的额度越过 80% 和 100% 时提醒。"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Оповещать, когда %@ достигает 80% и 100% лимита."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Benachrichtigen, wenn %@ 80 % und 100 % eines Limits überschreitet."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сповіщати, коли %@ перетинає 80% і 100% ліміту."
+            "value": "当 %@ 的额度越过 80%% 和 100%% 时提醒。"
           }
         }
       }
@@ -13730,49 +13694,49 @@
         }
       }
     },
-    "macOS will ask once for permission to read Claude Code's, Antigravity's and cursor-agent's saved logins. Choose Always Allow — plain Allow makes it ask again every time.": {
+    "macOS may ask before Codenotch reads Claude Code's, Antigravity's or cursor-agent's saved login. Background refreshes never show that question; it appears only when you click Allow access…, and Deny stops Codenotch reading that login until you ask again.": {
       "extractionState": "manual",
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS demandera une fois l'autorisation de lire les identifiants enregistrés de Claude Code, d'Antigravity et de cursor-agent. Choisissez Toujours autoriser — un simple Autoriser fait redemander à chaque fois."
+            "value": "macOS peut demander l'autorisation avant que Codenotch lise la connexion enregistrée de Claude Code, d'Antigravity ou de cursor-agent. Les actualisations en arrière-plan n'affichent jamais cette question ; elle n'apparaît que lorsque vous cliquez sur Autoriser l'accès…, et Refuser empêche Codenotch de lire cette connexion jusqu'à ce que vous redemandiez."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS は Claude Code、Antigravity、cursor-agent の保存済みログインを読み取る許可を一度だけ尋ねます。「常に許可」を選んでください。「許可」だけでは毎回尋ねられます。"
+            "value": "Codenotch が Claude Code・Antigravity・cursor-agent の保存済みログインを読む前に、macOS が確認することがあります。バックグラウンドの更新でこの確認が表示されることはなく、「アクセスを許可…」をクリックしたときだけ表示されます。「拒否」を選ぶと、もう一度求めるまで Codenotch はそのログインを読みません。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O macOS pedirá uma vez permissão para ler os logins salvos do Claude Code, do Antigravity e do cursor-agent. Escolha Sempre Permitir — o Permitir comum faz com que ele pergunte de novo toda vez."
+            "value": "O macOS pode perguntar antes de o Codenotch ler o login salvo do Claude Code, do Antigravity ou do cursor-agent. As atualizações em segundo plano nunca mostram essa pergunta; ela só aparece quando você clica em Permitir acesso…, e Negar impede o Codenotch de ler esse login até você pedir de novo."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS 会询问一次，是否允许读取 Claude Code、Antigravity 和 cursor-agent 已保存的登录信息。请选「始终允许」— 只选「允许」的话，每次都会再问。"
+            "value": "Codenotch 读取 Claude Code、Antigravity 或 cursor-agent 保存的登录信息前，macOS 可能会先询问。后台刷新从不弹出这个询问；只有点击“允许访问…”时才会出现，选择“拒绝”后，在你再次请求之前 Codenotch 不会读取该登录信息。"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS один раз запросит доступ к сохранённым входам Claude Code, Antigravity и cursor-agent. Выберите «Разрешать всегда» — обычное «Разрешить» приводит к повторному запросу."
+            "value": "macOS может спросить разрешение, прежде чем Codenotch прочитает сохранённый вход Claude Code, Antigravity или cursor-agent. Фоновые обновления никогда не показывают этот вопрос: он появляется только после нажатия «Разрешить доступ…», а «Запретить» не даёт Codenotch читать этот вход, пока вы не спросите снова."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS fragt einmal um Erlaubnis, die gespeicherten Anmeldungen von Claude Code, Antigravity und cursor-agent zu lesen. Wähle „Immer erlauben“ — bei einfachem „Erlauben“ fragt es jedes Mal erneut."
+            "value": "macOS kann fragen, bevor Codenotch die gespeicherte Anmeldung von Claude Code, Antigravity oder cursor-agent liest. Hintergrundaktualisierungen zeigen diese Frage nie; sie erscheint nur, wenn du auf „Zugriff erlauben…“ klickst, und „Ablehnen“ verhindert, dass Codenotch diese Anmeldung liest, bis du erneut fragst."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS один раз запитає дозвіл на читання збережених входів Claude Code, Antigravity та cursor-agent. Виберіть «Завжди дозволяти» — зі звичайним «Дозволити» запит повторюватиметься щоразу."
+            "value": "macOS може запитати дозвіл, перш ніж Codenotch прочитає збережений вхід Claude Code, Antigravity або cursor-agent. Фонові оновлення ніколи не показують цього запитання: воно з'являється лише після натискання «Дозволити доступ…», а «Заборонити» не дає Codenotch читати цей вхід, доки ви не запитаєте знову."
           }
         }
       }
@@ -15657,96 +15621,24 @@
         }
       }
     },
-    "%@% deficit": {
+    "%@%% deficit": {
       "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ % de déficit"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@% 超過"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@% de déficit"
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@% 透支"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "дефицит %@%"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ % Defizit"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@% дефіциту"
+            "value": "%@%% 透支"
           }
         }
       }
     },
-    "%@% reserved": {
+    "%@%% reserved": {
       "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ % en réserve"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@% 余裕"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@% em reserva"
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@% 预留"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "резерв %@%"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ % Reserve"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@% запасу"
+            "value": "%@%% 预留"
           }
         }
       }
@@ -22653,6 +22545,147 @@
         }
       }
     },
+    "Asks macOS for %@'s saved login again. Deny stops Codenotch reading it until you ask again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragt macOS erneut nach der gespeicherten Anmeldung von %@. „Ablehnen“ verhindert, dass Codenotch sie liest, bis du erneut fragst."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redemande à macOS la connexion enregistrée de %@. Refuser empêche Codenotch de la lire jusqu'à ce que vous redemandiez."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ の保存済みログインをもう一度 macOS に求めます。「拒否」を選ぶと、もう一度求めるまで Codenotch はそれを読みません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pede de novo ao macOS o login salvo de %@. Negar impede o Codenotch de lê-lo até você pedir de novo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снова запрашивает у macOS сохранённый вход %@. «Запретить» не даёт Codenotch читать его, пока вы не спросите снова."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Знову запитує в macOS збережений вхід %@. «Заборонити» не дає Codenotch читати його, доки ви не запитаєте знову."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次向 macOS 请求 %@ 保存的登录信息。选择“拒绝”后，在你再次请求之前 Codenotch 不会读取它。"
+          }
+        }
+      }
+    },
+    "Z.ai does not publish usage for the GLM Start Plan yet, so there is nothing to read. The Coding Plan is supported.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z.ai veröffentlicht für den GLM Start Plan noch keine Nutzung, daher gibt es nichts zu lesen. Der Coding Plan wird unterstützt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z.ai ne publie pas encore la consommation du GLM Start Plan, il n'y a donc rien à lire. Le Coding Plan est pris en charge."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z.ai は GLM Start Plan の使用量をまだ公開していないため、読み取れる情報がありません。Coding Plan には対応しています。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Z.ai ainda não publica o uso do GLM Start Plan, então não há nada para ler. O Coding Plan é compatível."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z.ai пока не публикует использование для GLM Start Plan, поэтому читать нечего. Coding Plan поддерживается."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z.ai поки не публікує використання для GLM Start Plan, тож читати нічого. Coding Plan підтримується."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Z.ai 尚未公开 GLM Start Plan 的用量，因此没有可读取的数据。Coding Plan 已支持。"
+          }
+        }
+      }
+    },
+    "Claude answered, but listed no usage limits for this account. Some Enterprise and team plans don't report them.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude hat geantwortet, aber für dieses Konto keine Nutzungslimits genannt. Manche Enterprise- und Team-Tarife melden sie nicht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude a répondu, mais n'a indiqué aucune limite d'utilisation pour ce compte. Certaines offres Enterprise et Team ne les communiquent pas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude から応答はありましたが、このアカウントの使用量上限は示されませんでした。Enterprise や Team の一部のプランでは報告されません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Claude respondeu, mas não informou limites de uso para esta conta. Alguns planos Enterprise e Team não os informam."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude ответил, но не указал лимиты использования для этой учётной записи. Некоторые тарифы Enterprise и Team их не сообщают."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude відповів, але не вказав лімітів використання для цього облікового запису. Деякі тарифи Enterprise і Team їх не повідомляють."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 已响应，但没有列出此账户的用量限额。部分 Enterprise 和团队套餐不会提供这些数据。"
+          }
+        }
+      }
+    },
     "%lldh": {
       "extractionState": "manual",
       "localizations": {
@@ -22693,28 +22726,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 天"
-          }
-        }
-      }
-    },
-    "%@%% deficit": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@%% 透支"
-          }
-        }
-      }
-    },
-    "%@%% reserved": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@%% 预留"
           }
         }
       }
@@ -23023,17 +23034,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "每次构建都会生成可直接运行的应用包，无需先安装开发环境。"
-          }
-        }
-      }
-    },
-    "Alert when %@ crosses 80%% and 100%% of a limit.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当 %@ 的额度达到 80%% 和 100%% 时提醒。"
           }
         }
       }
@@ -24016,6 +24016,186 @@
           "stringUnit": {
             "state": "translated",
             "value": "补齐应用内全部日语翻译，以及此前新增功能遗漏的 55 条文案。"
+          }
+        }
+      }
+    },
+    "Fixes a crash on Chinese Macs, and a Deny on the keychain question now means no.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复简体中文环境下的闪退，并尊重钥匙串授权中的拒绝选择。"
+          }
+        }
+      }
+    },
+    "No more crash in Simplified Chinese": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复简体中文闪退"
+          }
+        }
+      }
+    },
+    "With the app in 简体中文, a provider past 80% crashed Codenotch a few seconds after launch. Every translation is now checked for this.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复简体中文环境下服务额度超过 80% 时，应用在启动后闪退的问题。现已对所有翻译增加格式检查。"
+          }
+        }
+      }
+    },
+    "Deny means no": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝授权后停止读取"
+          }
+        }
+      }
+    },
+    "Answering Deny when macOS asks about a saved login now stops Codenotch reading that account from any source, until you choose Allow access… again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 macOS 登录信息授权弹窗中选择拒绝后，应用将停止从所有来源读取该账号，直到再次选择“允许访问…”。"
+          }
+        }
+      }
+    },
+    "Fewer file access prompts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少文件访问提示"
+          }
+        }
+      }
+    },
+    "Renewing Claude's login no longer starts your MCP servers and hooks, and Kimi sessions are matched without looking inside your folders, so macOS no longer asks about Documents, Desktop or network volumes on Codenotch's behalf.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 登录续期不再启动 MCP 服务器和钩子；匹配 Kimi 会话时不再访问工作文件夹，减少文稿、桌面及网络卷的访问授权提示。"
+          }
+        }
+      }
+    },
+    "Kiro reads usage from newer kiro-cli versions, GLM Start Plan says why it has no usage, a Claude account with no published limits says so instead of waiting, and the Windows notch clears a stuck waiting card after a day.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复新版 kiro-cli 用量读取；说明 GLM Start Plan 不提供用量的原因；Claude 未返回额度时显示明确提示；Windows 版等待状态卡片超过一天后自动清理。"
+          }
+        }
+      }
+    },
+    "Much lighter on your battery, Grok and screen edges on Windows, and a Windows Settings window that opens again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "降低耗电，Windows 版新增 Grok 和屏幕边缘设置，并修复设置窗口无法显示的问题。"
+          }
+        }
+      }
+    },
+    "Lighter on the battery": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "降低后台占用"
+          }
+        }
+      }
+    },
+    "Codenotch idles at a fraction of the CPU it used, and moving the pointer costs less than half as much. The working spinner is drawn by the system instead of redrawing the notch every frame, and full-screen apps are checked every two seconds rather than on every movement.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少闲置和鼠标移动时的 CPU 占用。工作指示动画由系统绘制，避免逐帧重绘整个面板；上游全屏收起检测改为每两秒检查一次。"
+          }
+        }
+      }
+    },
+    "Windows Settings opens again": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复 Windows 设置窗口"
+          }
+        }
+      }
+    },
+    "In 1.12.0 the Settings window on Windows opened empty. It is fixed, and a check now stops that kind of mistake from shipping.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复 1.12.0 中 Windows 设置窗口空白的问题，并增加检查以防止同类问题再次发布。"
+          }
+        }
+      }
+    },
+    "Grok, any screen edge, and readings in the tray on Windows": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 新增 Grok、屏幕边缘和托盘读数"
+          }
+        }
+      }
+    },
+    "Grok joins the Windows notch, the notch can sit on any edge of any monitor, and the tray menu shows each provider's readings.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 版新增 Grok，可将面板放在任意显示器的任意边缘，托盘菜单显示各服务用量。"
+          }
+        }
+      }
+    },
+    "Ghostty tabs": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghostty 标签页"
+          }
+        }
+      }
+    },
+    "Clicking a session running in Ghostty selects its tab rather than only bringing Ghostty forward.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击 Ghostty 中运行的会话时，切换到对应标签页，而不只是将终端带到前台。"
+          }
+        }
+      }
+    },
+    "Codex sessions are read from the end of the file instead of all of it, the Codex card hides an empty reset-credits section, and a Claude token on Windows that fails to renew is retried instead of freezing the card.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 会话从文件末尾读取；不显示空的额度重置次数区域；Windows 版 Claude 登录续期失败后会重试，避免读数一直不更新。"
           }
         }
       }

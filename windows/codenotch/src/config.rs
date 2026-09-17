@@ -16,8 +16,7 @@ pub fn snap_scale(scale: f64) -> f64 {
     }
 }
 
-/// One half of the tray icon, or one ring on the notch: which provider. It shows that provider's
-/// ring, so the tray and the notch can never disagree. (A `window` key from older builds is ignored.)
+/// One ring on the notch: which provider. (A `window` key from older builds is ignored.)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TraySlot {
     pub provider: String,
@@ -40,9 +39,19 @@ pub struct Config {
     /// Allow dragging + wheel resizing (tray toggle, off by default to prevent accidental drags)
     #[serde(default)]
     pub drag_enabled: bool,
-    /// Vertical position of the notch: the window centre as a fraction of the primary monitor's height (0 = top, 1 = bottom), default 0.5; saved after a drag
+    /// Position of the notch along its edge: the window centre as a fraction of the monitor's height
+    /// (left/right edges) or width (top/bottom edges), 0 = top/left, 1 = bottom/right, default 0.5;
+    /// saved after a drag. Named `notch_y` from when the right edge was the only one, so an existing
+    /// config keeps its place.
     #[serde(default = "default_notch_y")]
     pub notch_y: f64,
+    /// Which screen edge the notch is pinned to: "right" (the default), "left", "top" or "bottom".
+    #[serde(default = "default_notch_edge")]
+    pub notch_edge: String,
+    /// Which monitor the notch lives on, by the system's device name (`\\.\DISPLAY2`). None, or a
+    /// name no longer attached, means the primary monitor — so unplugging a screen cannot strand it.
+    #[serde(default)]
+    pub notch_monitor: Option<String>,
     /// Notch size as a multiple of the designed size, one of `SIZES`. The whole notch scales: the
     /// window grows and its WebView zooms, so the rings, text and hover card keep their proportions.
     #[serde(default = "default_scale")]
@@ -50,19 +59,6 @@ pub struct Config {
     /// Where the weekly limit gets a ring of its own: "off", "inside" or "outside".
     #[serde(default = "default_weekly_ring")]
     pub weekly_ring: String,
-    /// What the tray icon draws: "off" (the plain mark, the previous behaviour and the default),
-    /// "numbers" (up to two readings as digits) or "bars" (a column per reading).
-    #[serde(default = "default_tray_mode")]
-    pub tray_mode: String,
-    /// Which providers the tray icon covers, in the order they are drawn. Ids match the page:
-    /// "claude", "codex", "cursor", "gemini". Superseded by `tray_slots`; kept so an existing
-    /// config still upgrades cleanly, and migrated in `load()`.
-    #[serde(default = "default_tray_providers")]
-    pub tray_providers: Vec<String>,
-    /// What each part of the tray icon shows, in drawing order: the first entry is the top half of
-    /// the digit layout, the second the bottom half, and the bar layout uses them all in order.
-    #[serde(default)]
-    pub tray_slots: Vec<TraySlot>,
     /// Which providers the notch itself shows, in order. Empty means every provider that has
     /// something to report — the original behaviour, and the default. Superseded by `notch_slots`,
     /// kept so an existing config migrates cleanly.
@@ -89,6 +85,27 @@ pub struct Config {
 fn default_notch_y() -> f64 {
     0.5
 }
+fn default_notch_edge() -> String {
+    "right".into()
+}
+
+/// The four edges, in the order Settings lists them.
+pub const EDGES: [&str; 4] = ["left", "right", "top", "bottom"];
+
+/// An unreadable edge means the right-hand one, the layout every earlier build used.
+pub fn edge_or_right(value: &str) -> String {
+    if EDGES.contains(&value) {
+        value.to_string()
+    } else {
+        "right".into()
+    }
+}
+
+/// True for the edges the notch stands upright on (the pill is a column); false for top and bottom,
+/// where it lies flat (the pill is a row) and the window's width and height swap.
+pub fn edge_is_vertical(edge: &str) -> bool {
+    matches!(edge, "left" | "right")
+}
 fn default_scale() -> f64 {
     1.0
 }
@@ -106,15 +123,6 @@ pub fn weekly_ring_or_off(value: &str) -> String {
 }
 fn yes() -> bool {
     true
-}
-/// A fresh install shows the two readings straight away — a tray icon nobody knows to look for is
-/// a feature nobody finds. An install that predates this setting is handled in `load()` instead:
-/// it keeps the plain mark it already has, so upgrading never changes anyone's icon unasked.
-fn default_tray_mode() -> String {
-    "numbers".into()
-}
-fn default_tray_providers() -> Vec<String> {
-    vec!["claude".into(), "codex".into()]
 }
 fn default_antigravity_limit() -> String {
     "automatic".into()
@@ -140,11 +148,10 @@ impl Default for Config {
             bar_w: None,
             drag_enabled: false,
             notch_y: default_notch_y(),
+            notch_edge: default_notch_edge(),
+            notch_monitor: None,
             scale: default_scale(),
             weekly_ring: default_weekly_ring(),
-            tray_mode: default_tray_mode(),
-            tray_providers: default_tray_providers(),
-            tray_slots: Vec::new(), // filled in by load(), from tray_providers
             notch_providers: Vec::new(), // empty = show them all
             notch_slots: Vec::new(),     // filled in by load(), from notch_providers
             antigravity_limit: default_antigravity_limit(),
@@ -170,31 +177,8 @@ pub fn load() -> Config {
         .and_then(|t| serde_json::from_str(t).ok())
         .unwrap_or_default();
 
-    // Discoverability without surprising anyone. `default_tray_mode` gives a NEW install the
-    // numbers icon, but serde applies that same default to an EXISTING config that simply predates
-    // the setting — which would silently change the tray icon of everyone who upgrades. So an
-    // existing file with no `tray_mode` key is pinned to the plain mark it already has; only a
-    // machine with no config at all gets the new default.
-    let upgrading = raw
-        .as_deref()
-        .and_then(|t| serde_json::from_str::<serde_json::Value>(t).ok())
-        .map(|v| v.get("tray_mode").is_none())
-        .unwrap_or(false);
-    if upgrading {
-        cfg.tray_mode = "off".into();
-    }
-
-    // Migration: before slots existed the icon was a plain provider list, one reading each. That
-    // is exactly a list of slots, so nobody's choice is lost and nobody has to reconfigure anything.
-    if cfg.tray_slots.is_empty() {
-        cfg.tray_slots = cfg
-            .tray_providers
-            .iter()
-            .map(|p| TraySlot { provider: p.clone() })
-            .collect();
-    }
-
-    // Same migration for the notch.
+    // Migration: before slots existed the notch was a plain provider list, one ring each. That is
+    // exactly a list of slots, so nobody's choice is lost and nobody has to reconfigure anything.
     if cfg.notch_slots.is_empty() {
         cfg.notch_slots = cfg
             .notch_providers
