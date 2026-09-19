@@ -108,6 +108,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // login is explicit, stays in Codenotch's own WKWebView store, and
             // the page-local requests are refreshed only after that login.
             let deepSeek = WebSessionProvider(site: Sites.deepSeek)
+            // QianwenAI's Token Plan is the same kind of provider: no usage API
+            // to call, only a console, readable after the user signs in inside
+            // this app's own WKWebView. Unlike MiniMax's sheet below, its ring
+            // *is* this adapter, so it belongs in `webProviders` — exactly once.
+            let qianwen = WebSessionProvider(site: Sites.qianwen)
             // MiniMax's ring is MiniMaxProvider. The sheet is the same kind of
             // WebView DeepSeek uses, but it must not join `webProviders`:
             // those are appended to `allProviders`, and two adapters with
@@ -116,7 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Settings changes it, because the fetch URLs live on the site.
             let miniMaxWeb = WebSessionProvider(site: Sites.minimax(region: preferences.minimaxRegion))
             self.miniMaxWeb = miniMaxWeb
-            let webProviders: [WebSessionProvider] = [deepSeek]
+            let webProviders: [WebSessionProvider] = [deepSeek, qianwen]
             // Account login stays in Settings → Accounts, separate from refresh.
 
             // Cursor reads the editor's session, or cursor-agent's if the
@@ -159,6 +164,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             deepSeek.onAuthenticated = { [weak store] in
                 store?.providerAuthenticationChanged(providerID: "deepseek")
+            }
+            qianwen.onAuthenticated = { [weak store] in
+                store?.providerAuthenticationChanged(providerID: "qianwenai")
             }
             miniMaxWeb.onAuthenticated = { [weak store] in
                 store?.providerAuthenticationChanged(providerID: "minimax")
