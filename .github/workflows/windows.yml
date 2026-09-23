@@ -31,6 +31,12 @@ jobs:
       - name: Check the UI pages parse
         run: node scripts/check-ui-scripts.mjs
 
+      - name: Test Claude sign-in controls
+        run: node scripts/test-claude-auth-ui.cjs
+
+      - name: Test Korean card localization
+        run: node --test scripts/test-ko-i18n.cjs
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
@@ -45,6 +51,9 @@ jobs:
 
       - name: Test
         run: cargo test --locked
+
+      - name: Test Codex headline selection
+        run: node --test test-codex-headline.cjs
 
       # Reported rather than enforced: the crate already carries warnings, and
       # failing on them would hold every change hostage to that cleanup.

@@ -30,6 +30,7 @@ enum ProviderGlyph: String, Codable, Equatable {
     case copilot
     case kimi
     case kiro
+    case amp
     case minimax
     case ollama
     case ollamaLocal = "ollama-local"
@@ -68,6 +69,7 @@ enum ProviderGlyph: String, Codable, Equatable {
         case .copilot: return 0.96
         case .kimi:   return 0.95
         case .kiro:   return 0.95
+        case .amp:    return 1.0
         case .minimax: return 0.95
         case .ollama: return 0.95
         case .third:  return 1.0
@@ -94,7 +96,7 @@ enum ProviderGlyph: String, Codable, Equatable {
         // glyph-kimi in the asset catalogue are drawn instead.
         case .glm:    return GlyphOutline.glm
         case .devin, .qwen, .gemma, .meta, .deepseek, .mistral, .lmstudio,
-             .qianwenAI: return []
+             .qianwenAI, .amp: return []
         case .grok:   return GlyphOutline.grok
         case .opencode: return GlyphOutline.opencode
         case .commandcode: return GlyphOutline.commandcode
@@ -131,11 +133,17 @@ struct GlyphShape: Shape {
 
 struct ProviderGlyphView: View {
     let glyph: ProviderGlyph
+    var customIconFilename: String? = nil
     var size: CGFloat = Design.px(46)
 
     var body: some View {
         Group {
-            if let image = NSImage(named: glyph.assetName) {
+            if let customIconFilename,
+               let image = CustomIconStore.loadIcon(filename: customIconFilename) {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFit()
+            } else if let image = NSImage(named: glyph.assetName) {
                 Image(nsImage: image)
                     .renderingMode(.template)
                     .resizable()

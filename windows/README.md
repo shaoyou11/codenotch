@@ -21,6 +21,62 @@ documented behaviour and the wire formats.
 
 Providers that are not installed simply do not get a cell.
 
+### Codex quota recovery
+
+The direct usage endpoint remains the first choice. If it fails, Codenotch can
+ask an installed **native** `codex.exe` via the documented
+[`account/rateLimits/read`](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt)
+app-server method before falling back to a rollout snapshot. The desktop's
+`%LOCALAPPDATA%\OpenAI\Codex\bin` installation is checked as well as native CLI
+candidates. No `.cmd`/Node wrapper is launched. The owned process is hidden,
+limited to 20 seconds, and terminated/reaped after the read; no inference or
+login command is sent. Existing HTTP 429 backoff and five-minute polling remain.
+
+The main ring/tray selects only core `primary`, never a weekly, Spark or
+code-review replacement. If `primary` is absent the headline stays blank;
+`secondary` remains available to the separate weekly ring. App-server
+multi-bucket replies prefer `codex`. Rollout fallback ignores explicitly different
+bucket ids and, like macOS, reads the latest eight non-archived paths from
+`state_5.sqlite` using a read-only, WAL-aware connection (50 ms busy timeout).
+This finds resumed threads without scanning every session file. If the index
+is unavailable, the original three-date-directory scan remains the fallback;
+old resumed threads cannot be discovered through that scan alone. Missing data is
+not a zero. Percentages retain the existing **used** semantics; this is quota
+utilization, not an exact token count or a model-specific allowance.
+
+Why launch a process at all? A borrowed stored-token HTTP read can fail while
+the installed Codex client can still authenticate. The native client owns its
+managed OAuth lifecycle and can recover live quotas without Codenotch copying
+its refresh logic. This is not guaranteed for externally managed credentials
+that require a host app: if it cannot read the quota, the usual stale/missing
+rollout status remains. Unlike the old unconditional wrapper-based path, this
+recovery runs only after HTTP failure, directly owns a native executable, and
+does not use `taskkill` or launch a Node/cmd tree. Codenotch sends no login or
+explicit token-refresh request; Codex may perform its own normal managed refresh.
+
+Regression checks: `cargo test --locked` and `node --test test-codex-headline.cjs`
+from `windows/`. Tests use synthetic quota fixtures, not account credentials.
+The optional `cargo test --release --locked codex::tests::live_native_quota -- --ignored`
+checks the actual native transport against an already signed-in local client;
+it prints no account credentials or quota values and is not run by CI.
+
+### Claude sign-in
+
+When Claude is signed out, its card offers **Sign in**, which opens the standalone
+Claude Code CLI's browser login (`claude auth login --claudeai`). It is offered on
+the default `~/.claude` account only, since that is the one the CLI signs in.
+Finish in the browser; if it
+displays a code, paste it in the opened terminal, not in Codenotch. The card
+refreshes after the CLI exits without restarting the widget. The native CLI must
+already be installed; missing CLI, cancellation and launch errors are shown.
+
+This explicit action shares a busy guard with automatic token renewal. Only the
+CLI handles OAuth and writes credentials; Codenotch does not receive login codes
+or expose tokens through UI IPC. The interactive child has a 15-minute timeout.
+To read Claude again, click its ring or choose **Refresh now** from the notch's
+right-click menu. HTTP 403 is reported as an access/network refusal rather than claiming
+that a still-valid login has expired. Existing automatic renewal is unchanged.
+
 ### Antigravity
 
 - **Official CLI (Preferred)**: When the official Antigravity CLI (`agy.exe`) is installed (`%LOCALAPPDATA%\agy\bin\agy.exe` or on `PATH`) and signed in, Codenotch reads official quotas directly without keeping the full IDE running.
@@ -40,6 +96,37 @@ from the latest release. It installs for the current user without administrator 
 `codenotch-hook.exe` beside the app where **Install hooks** looks for it, and fetches WebView2 if
 Windows does not already have it. The installer is not code-signed, so SmartScreen stops it the
 first time with *Windows protected your PC*: choose **More info**, then **Run anyway**.
+
+### Updates
+
+Codenotch looks for a newer release about twenty seconds after it starts, and again whenever
+**Check for updates** is pressed in Settings → General. The feed is `latest.json` on the newest
+release, written by the Windows Package workflow beside the installer it describes, so publishing
+a release is the whole of shipping an update.
+
+Nothing about this nags. A check that fails — no network, an unreachable feed — leaves the app
+as it was and says so only next to the version. There is no dialogue and no badge.
+
+The download is a minisign-signed archive, and the signature is checked against the public key in
+`tauri.conf.json` before anything is run. This is what stands in for code signing here: the
+installer itself is unsigned, so SmartScreen still warns on a first manual install, but an update
+delivered to an already-installed copy is verified.
+
+Before the first signed release, the key has to exist:
+
+```powershell
+npx --yes @tauri-apps/cli@2.11.4 signer generate -w $env:USERPROFILE\.tauri\codenotch.key
+```
+
+Put the **private** key in the repository secret `TAURI_SIGNING_PRIVATE_KEY` and its password in
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, and paste the **public** key into `plugins.updater.pubkey`
+in `codenotch/tauri.conf.json`, replacing `REPLACE_WITH_TAURI_PUBLIC_KEY`. Until that is done the
+app skips the check entirely rather than reporting a failure nobody can act on; the packaging job
+builds an ordinary installer and warns that it made no feed, and a `v*` release fails loudly rather
+than going out with an update path nobody can use.
+
+Keep the private key. Losing it means no installed copy can be updated again, because every one of
+them checks against the public key it shipped with — they would all have to reinstall by hand.
 
 To build from source instead — prerequisites: Rust (MSVC toolchain), WebView2 runtime (ships with Windows 11).
 

@@ -21,7 +21,7 @@ final class NotchWindowController {
     /// One "Sign in to …" item per provider that needs a browser session.
     var signInItems: [(title: String, action: () -> Void)] = []
     /// Driven by the notch's own chrome.
-    var onToggleKeepOpen: (() -> Void)?
+
     /// Refetch a single provider, asked for by clicking its ring.
     var onRefreshProvider: ((String) async -> Void)?
     /// Open the settings window, asked for by clicking the handle.
@@ -131,7 +131,7 @@ final class NotchWindowController {
             updateFullscreenVisibility()
             return
         }
-        if foldsForFullScreen && isFullScreenActive() {
+        if foldsForFullScreen && isFullScreenActive() && !model.isPinned {
             if let panel {
                 let local = localCursor(in: panel.frame)
                 let overTooltip = model.hoveredIndex
@@ -142,7 +142,7 @@ final class NotchWindowController {
                 }
             }
             foldForFullScreen()
-        } else if model.isAlwaysOn && !model.isExpanded {
+        } else if (model.isAlwaysOn || model.isPinned) && !model.isExpanded {
             withAnimation(NotchMotion.unfold) {
                 model.isExpanded = true
             }
@@ -159,7 +159,6 @@ final class NotchWindowController {
         if let peekUntil, peekUntil > Date() { return }
         foldWork?.cancel()
         foldWork = nil
-        model.isPinned = false
         guard model.isExpanded else { return }
         withAnimation(NotchMotion.unfold) {
             model.isExpanded = false
@@ -333,7 +332,8 @@ final class NotchWindowController {
         let frame = NotchGeometry.panelFrame(
             for: screen, panelSize: size, edge: model.edge,
             alongOffset: model.alongOffset, slack: model.slack,
-            trailingExtent: model.trailingExtent
+            trailingExtent: model.trailingExtent,
+            leadingExtent: model.leadingExtent
         )
 
         if let panel {
@@ -731,13 +731,13 @@ final class NotchWindowController {
         guard model.isExpanded, foldWork == nil, !model.isPinned else { return }
         // Pinned is settled above; what is left to decide is whether "Always
         // show" holds it, and only a frontmost full-screen app overrules that.
-        let ignoresAlwaysOn = model.staysOpen && ignoreAlwaysOn()
-        guard ignoresAlwaysOn || !model.staysOpen else { return }
+        let ignoresAlwaysOn = model.isAlwaysOn && ignoreAlwaysOn()
+        guard ignoresAlwaysOn || !model.isAlwaysOn else { return }
         let work = DispatchWorkItem { [weak self] in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.foldWork = nil
-                let stillHoldsOpen = ignoresAlwaysOn ? self.model.isPinned : self.model.staysOpen
+                let stillHoldsOpen = self.model.isPinned || (self.model.isAlwaysOn && !ignoresAlwaysOn)
                 guard !stillHoldsOpen else { return }
                 withAnimation(NotchMotion.unfold) {
                     self.model.isExpanded = false
@@ -1064,17 +1064,19 @@ final class NotchWindowController {
         switch visibility {
         case .alwaysShow:
             if !Runtime.isUnderTest { panel?.orderFrontRegardless() }
-            model.isAlwaysOn = true
-            // Any pin made by hand is subsumed by the setting; leaving it set
-            // would outlive a later switch back to hover.
+            // Any pin made by hand is subsumed by the setting, exactly as it is
+            // for the other two. Leaving it set would hold `handleActiveSpaceOrAppChange`
+            // off for the rest of the session, so a pin made in hover mode would
+            // silently disable the full-screen fold once Always show was chosen.
             model.isPinned = false
+            model.isAlwaysOn = true
             foldWork?.cancel()
             foldWork = nil
             withAnimation(NotchMotion.unfold) { model.isExpanded = true }
         case .onHover:
             if !Runtime.isUnderTest { panel?.orderFrontRegardless() }
-            model.isAlwaysOn = false
             model.isPinned = false
+            model.isAlwaysOn = false
             // Fold now rather than waiting for the pointer to leave: it may
             // already be somewhere else, in which case nothing would arrive to
             // close it and "on hover" would look exactly like "always show".
@@ -1083,8 +1085,8 @@ final class NotchWindowController {
                 model.hoveredIndex = nil
             }
         case .hidden:
-            model.isAlwaysOn = false
             model.isPinned = false
+            model.isAlwaysOn = false
             model.isExpanded = false
             model.hoveredIndex = nil
             // Ordered out rather than made transparent. An invisible panel that
@@ -1135,7 +1137,8 @@ final class NotchWindowController {
                 guard let self, let panel = self.panel else { return }
                 self.peekWork = nil
                 self.peekUntil = nil
-                guard !self.model.staysOpen else { return }
+                let stillHoldsOpen = self.model.isPinned || (self.model.isAlwaysOn && !(self.foldsForFullScreen && self.isFullScreenActive()))
+                guard !stillHoldsOpen else { return }
                 // Left open if the peek did its job and the pointer is already
                 // there; the ordinary hover fold takes it from here.
                 guard !self.liveRect.contains(self.localCursor(in: panel.frame)) else { return }
@@ -1213,7 +1216,6 @@ final class NotchWindowController {
             withAnimation(NotchMotion.unfold) { model.isExpanded = true }
         }
         updateInteractiveRects()
-        onToggleKeepOpen?()
     }
 
     func cellIndex(along: CGFloat) -> Int? {
@@ -1245,7 +1247,7 @@ final class NotchWindowController {
         let keepOpen = NSMenuItem(
             title: L10n.t("Keep open"),
             action: #selector(MenuActions.togglePinned(_:)),
-            keyEquivalent: model.isAlwaysOn ? "✓" : ""
+            keyEquivalent: model.isPinned ? "✓" : ""
         )
         keepOpen.keyEquivalentModifierMask = []
         keepOpen.target = menuActions

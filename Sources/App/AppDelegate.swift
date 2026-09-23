@@ -68,6 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// work login's sessions spin the work ring and nobody else's.
     private let claudeProfiles = ClaudeProfile.discover()
     private let codexProfiles = CodexProfile.discover()
+    private let antigravityProfiles = AntigravityProfile.discover()
     /// Held as concrete providers, not just handed to the store: the token
     /// refresher needs to ask one of them how long its token has left, and the
     /// protocol has no business carrying that.
@@ -134,14 +135,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // switched-off ones once the binding below delivered.
             Log.usage.info("claude profiles: \(self.claudeProfiles.map(\.displayPath).joined(separator: ", "), privacy: .public)")
             Log.usage.info("codex profiles: \(self.codexProfiles.map(\.displayPath).joined(separator: ", "), privacy: .public)")
-            let claudeProviders = claudeProfiles.map { ClaudeOAuthProvider(profile: $0) }
+            Log.usage.info("antigravity profiles: \(self.antigravityProfiles.map(\.displayPath).joined(separator: ", "), privacy: .public)")
+            // Named together rather than one by one: a name derived from the
+            // signed-in address can collide with another profile's, and only a
+            // caller holding every profile can see that.
+            let claudeNames = ClaudeProfile.displayNames(for: claudeProfiles)
+            let claudeProviders = claudeProfiles.map {
+                ClaudeOAuthProvider(profile: $0, displayName: claudeNames[$0.id])
+            }
             self.claudeProviders = claudeProviders
+            let customProviders: [UsageProvider] = preferences.customEndpoints.filter(\.isEnabled).map { endpoint in
+                CustomEndpointProvider(endpoint: endpoint)
+            }
             let allProviders: [UsageProvider] = claudeProviders
                 + [CursorLocalProvider()]
                 + codexProfiles.map { CodexLocalProvider(profile: $0) }
-                + [AntigravityProvider(),
-                   GLMProvider(), MiniMaxProvider(web: miniMaxWeb), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
-                   CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(), KiroProvider(),
+                + antigravityProfiles.map { AntigravityProvider(profile: $0) }
+                + [GLMProvider(), MiniMaxProvider(web: miniMaxWeb), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
+                   CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(), KiroProvider(), AmpProvider(),
                    OllamaLocalProvider(endpoint: URL(string: preferences.ollamaEndpoint)!),
                    LMStudioLocalProvider(endpoint: URL(string: preferences.lmstudioEndpoint)!),
                    OllamaProvider(),
@@ -152,6 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                        Preferences.storedGeminiAPIMonthlyTokenBudget()
                    })]
                 + webProviders
+                + customProviders
             preferences.reconcile(discoveredIDs: allProviders.map(\.id))
             let store = UsageStore(
                 providers: allProviders,
@@ -162,6 +174,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 // order for a frame and then visibly shuffles.
                 order: preferences.providerOrder
             )
+            preferences.$customEndpoints
+                .map { endpoints in
+                    endpoints.filter(\.isEnabled).map {
+                        "\($0.id):\($0.name):\($0.baseURL):\($0.trackingUnit.rawValue):\($0.monthlyBudgetUSD ?? -1):\($0.currentSpendUSD ?? -1):\($0.monthlyBudgetTokensM ?? -1):\($0.currentTokensUsedM ?? -1):\($0.displayRemaining):\($0.showCurrency):\($0.iconPreset ?? ""):\($0.customIconFilename ?? ""):\($0.accentColorHex):\($0.selectedModel)"
+                    }
+                }
+                .removeDuplicates()
+                .receive(on: RunLoop.main)
+                .sink { [weak store] _ in
+                    let stored = Preferences.storedCustomEndpoints()
+                    let active = stored.filter(\.isEnabled)
+                    let providers: [UsageProvider] = active.map { CustomEndpointProvider(endpoint: $0) }
+                    store?.registerCustomProviders(providers)
+                }
+                .store(in: &cancellables)
             deepSeek.onAuthenticated = { [weak store] in
                 store?.providerAuthenticationChanged(providerID: "deepseek")
             }
@@ -378,9 +405,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self.statusItem = statusItem
             statusItem.onRefreshProvider = { [weak store] id in store?.refresh(providerID: id) }
             statusItem.onRefreshAll = { [weak store] in store?.refreshNow() }
+            // The menu's tick writes to the same preference Settings writes to,
+            // and reads nothing back of its own: the sink below carries the new
+            // value to the item, and Settings — a published property away —
+            // redraws its own switch from it in the same breath.
+            statusItem.onToggleLimits = { [weak preferences] in preferences?.showsLimitsInMenuBar = $0 }
             // Read when the menu opens, so a model's line is as current as its cell.
             statusItem.cells = { [weak fleet] in fleet?.menuModel.snapshots ?? [] }
             statusItem.activity = { [weak fleet] in fleet?.menuModel.activity(for: $0) }
+            // Handed over up front, like the notch's edge: the sink below
+            // delivers a run loop turn later, and the item would otherwise go
+            // up as one thing and then change its mind.
+            statusItem.limits = preferences.menuBarLimits
+            statusItem.resetTimeFormat = preferences.resetTimeFormat
+            statusItem.showsWeeklyLimit = preferences.showsWeeklyLimitInMenuBar
 
             preferences.$appPresence
                 .receive(on: RunLoop.main)
@@ -388,6 +426,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     NSApp.setActivationPolicy(presence.activationPolicy)
                     if presence.wantsStatusItem { statusItem.show() } else { statusItem.hide() }
                 }
+                .store(in: &cancellables)
+
+            // What the item shows is presentation alone. It reaches the item and
+            // nothing else — no provider is read, refreshed, or switched on or
+            // off to answer it — and the item redraws from the readings it
+            // already holds, so a change in Settings lands on the bar at once.
+            Publishers.CombineLatest(preferences.$showsLimitsInMenuBar, preferences.$menuBarProviders)
+                .map { MenuBarLimits(isOn: $0, chosen: $1) }
+                .removeDuplicates()
+                // Dispatch, not the run loop: switched from the menu's own
+                // tick, this has to land while AppKit is still tracking that
+                // menu, which the run loop's default mode would hold back.
+                .receive(on: DispatchQueue.main)
+                .sink { [weak statusItem] in statusItem?.limits = $0 }
+                .store(in: &cancellables)
+
+            // Presentation only, like the parent limit switch: redraw from the
+            // current snapshots immediately and never start another fetch.
+            preferences.$showsWeeklyLimitInMenuBar
+                .removeDuplicates()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak statusItem] in statusItem?.showsWeeklyLimit = $0 }
                 .store(in: &cancellables)
 
             preferences.$notchVisibility
@@ -481,11 +541,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             fleet.onReposition = { [weak preferences] offset in
                 preferences?.setOffset(offset, for: preferences?.notchEdge ?? .right)
             }
-            
-            fleet.onToggleKeepOpen = { [weak preferences] in
-                guard let prefs = preferences else { return }
-                prefs.notchVisibility = (prefs.notchVisibility == .alwaysShow) ? .onHover : .alwaysShow
-            }
 
             // Writing the preference is the whole of it: `notchEdge` is
             // `@Published` and the fleet already follows it, so the notch
@@ -505,7 +560,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
             preferences.$resetTimeFormat
                 .receive(on: RunLoop.main)
-                .sink { [weak fleet] in fleet?.apply(resetTimeFormat: $0) }
+                .sink { [weak fleet, weak statusItem] in
+                    fleet?.apply(resetTimeFormat: $0)
+                    statusItem?.resetTimeFormat = $0
+                }
                 .store(in: &cancellables)
 
             preferences.$accentColor
@@ -547,6 +605,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     guard let store, let preferences else { return }
                     store.disconnected = preferences.disconnectedIDs(among: store.knownIDs)
                 }
+                .store(in: &cancellables)
+
+            preferences.$accountNicknames
+                .receive(on: RunLoop.main)
+                .sink { [weak store] in store?.nicknames = $0 }
                 .store(in: &cancellables)
 
             preferences.$ollamaEndpoint
@@ -666,22 +729,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // still working without you switching to it.
         var monitors: [String: any AgentActivityMonitor] = [
             "cursor": CursorActivityMonitor(),
-            "gemini": AntigravityActivityMonitor(),
             "grok": GrokActivityMonitor(),
             "gemini-api": GeminiAPIActivityMonitor(),
             "kimi": KimiActivityMonitor(),
         ]
+        for profile in antigravityProfiles {
+            monitors[profile.id] = AntigravityActivityMonitor(profile: profile)
+        }
         var claudeMonitors: [ClaudeSessionMonitor] = []
+        var claudeMonitorsByProfile: [(ClaudeProfile, ClaudeSessionMonitor)] = []
         for profile in claudeProfiles {
             let monitor = ClaudeSessionMonitor(
                 directory: profile.sessionsDirectory,
                 projects: profile.projectsDirectory
             )
             claudeMonitors.append(monitor)
+            claudeMonitorsByProfile.append((profile, monitor))
             monitors[profile.id] = monitor
+        }
+
+        // With one profile there is nothing to attribute: every session in the
+        // directory is that account's, by definition. With two or more there
+        // is, because the Claude desktop app files the sessions it hosts under
+        // the *default* profile's directory whichever account it is signed in
+        // to — so the second account's work spun the first account's ring, and
+        // switching account in the app did not move it. See
+        // `ClaudeSessionOwnership`.
+        if claudeProfiles.count > 1 {
+            let index = ClaudeDesktopSessionIndex()
+            let directories = claudeProfiles.map(\.sessionsDirectory)
+            var accounts: [String: String] = [:]
+            var transcripts: [String: ClaudeTranscriptReader] = [:]
+            for profile in claudeProfiles {
+                let path = profile.sessionsDirectory.path
+                if let account = profile.accountID() { accounts[path] = account }
+                transcripts[path] = ClaudeTranscriptReader(projects: profile.projectsDirectory)
+            }
+            for (profile, monitor) in claudeMonitorsByProfile {
+                monitor.ownership = ClaudeSessionOwnership(
+                    own: profile.sessionsDirectory,
+                    directories: directories,
+                    accounts: accounts,
+                    transcripts: transcripts,
+                    index: index
+                )
+            }
+            let named = accounts.count, total = claudeProfiles.count
+            Log.sessions.info("claude session ownership: \(named, privacy: .public) of \(total, privacy: .public) profiles name an account")
         }
         for profile in codexProfiles {
             monitors[profile.id] = CodexActivityMonitor(profile: profile)
+        }
+
+        // The `/usage` probe is a Claude Code process too, and files a session
+        // for the seconds it runs. Every Claude monitor steps over it by pid
+        // and by its scratch directory, whether or not a token refresher runs
+        // below. Without this the probe showed as a `busy` session, vanished,
+        // and was announced as a turn that finished.
+        for monitor in claudeMonitors {
+            monitor.ignoredPIDs = { ClaudeUsageCLI.runningPIDs }
+            monitor.ignoredWorkingDirectories = [ClaudeUsageCLI.scratchLocation().path]
         }
 
         // Renewing the token runs the Claude command, which registers a session
@@ -701,8 +808,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             for monitor in claudeMonitors {
                 monitor.ignoredPIDs = { [weak refresher] in
-                    guard let pid = refresher?.launchedPID else { return [] }
-                    return [pid]
+                    var pids = ClaudeUsageCLI.runningPIDs
+                    if let pid = refresher?.launchedPID { pids.insert(pid) }
+                    return pids
                 }
             }
             // The one place the failure becomes visible. The store carries the

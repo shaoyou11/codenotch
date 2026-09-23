@@ -30,7 +30,38 @@ final class UsageStore: ObservableObject {
     /// summaries without re-reading every credential on every polling pass.
     @Published private(set) var providerAccountRevision = 0
 
-    private let providers: [UsageProvider]
+    private var providers: [UsageProvider]
+
+    /// Names chosen in Settings, by provider id. Applied to every snapshot the
+    /// store publishes, so the notch, the menu bar, the cards and the
+    /// notifications all call an account what its owner does.
+    var nicknames: [String: String] = [:] {
+        didSet {
+            guard nicknames != oldValue else { return }
+            snapshots = snapshots.map(named)
+        }
+    }
+
+    /// The snapshot with the chosen name, or the provider's own one back when
+    /// the name was cleared.
+    private func named(_ snapshot: ProviderSnapshot) -> ProviderSnapshot {
+        var snapshot = snapshot
+        if let nickname = nicknames[snapshot.id] {
+            snapshot.displayName = nickname
+        } else if let provider = providers.first(where: { $0.id == snapshot.id }) {
+            snapshot.displayName = provider.displayName
+        }
+        return snapshot
+    }
+
+    func registerCustomProviders(_ custom: [UsageProvider]) {
+        providers.removeAll { $0.id.hasPrefix("custom-endpoint-") }
+        providers.append(contentsOf: custom)
+        for provider in custom {
+            publish(Self.placeholder(provider))
+        }
+        refreshNow()
+    }
 
     /// Provider ids plus any model cells currently on screen.
     var knownIDs: [String] {
@@ -227,6 +258,7 @@ final class UsageStore: ObservableObject {
         let summaries = orderedProviders.flatMap { provider in
             let summary = ProviderSummary(kind: provider.kind, id: provider.id, name: provider.displayName,
                             glyph: provider.glyph,
+                            customIconFilename: provider.customIconFilename,
                             account: disconnected.contains(provider.id) ? nil : provider.account(),
                             signIn: provider.signInRoute,
                             wasRefusedAccess: refusedAccess.contains(provider.id),
@@ -492,7 +524,7 @@ final class UsageStore: ObservableObject {
     private func publish(_ snapshot: ProviderSnapshot) {
         guard !disconnected.contains(snapshot.id) else { return }
         var current = Dictionary(uniqueKeysWithValues: snapshots.map { ($0.id, $0) })
-        current[snapshot.id] = snapshot
+        current[snapshot.id] = named(snapshot)
         snapshots = orderedProviders.compactMap { disconnected.contains($0.id) ? nil : current[$0.id] }
     }
 
@@ -769,7 +801,7 @@ final class UsageStore: ObservableObject {
     }
 
     private static func placeholder(_ provider: UsageProvider) -> ProviderSnapshot {
-        ProviderSnapshot(
+        var snapshot = ProviderSnapshot(
             id: provider.id,
             displayName: provider.displayName,
             glyph: provider.glyph,
@@ -778,5 +810,7 @@ final class UsageStore: ObservableObject {
             windows: [],
             kind: provider.kind
         )
+        snapshot.customIconFilename = provider.customIconFilename
+        return snapshot
     }
 }

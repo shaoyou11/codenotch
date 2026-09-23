@@ -275,4 +275,17 @@ final class FullScreenAutoFoldTests: XCTestCase {
         controller.handleActiveSpaceOrAppChange()
         XCTAssertTrue(controller.model.isExpanded, "Always-on notch should unfold again when leaving full screen")
     }
+    func testPinnedPanelSurvivesFullScreenWhenCompleteHideIsDisabled() {
+        let controller = NotchWindowController()
+        controller.hideInFullscreen = false
+        controller.show()
+        defer { controller.stop() }
+        controller.model.isExpanded = true
+        controller.model.isPinned = true
+        controller.isFullScreenActive = { true }
+        controller.handleActiveSpaceOrAppChange()
+        XCTAssertTrue(controller.model.isExpanded)
+        XCTAssertTrue(controller.model.isPinned)
+    }
+
 }

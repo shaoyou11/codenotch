@@ -26,7 +26,7 @@ extension View {
 /// crossing-and-notification machinery it switches is Notifications' to
 /// explain.
 private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
-    case accounts, phone, deepseek, ollama, lmstudio, appearance, notifications, general
+    case accounts, phone, deepseek, ollama, lmstudio, customEndpoints, appearance, notifications, general
 
     /// The sections the sidebar lists; Phone only once pairing is offered.
     static var visible: [SettingsSection] {
@@ -36,7 +36,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     /// Providers with a pane of their own. They are accounts too, so the
     /// sidebar nests them under Accounts rather than listing them beside
     /// Appearance and General, where they read as app-wide settings.
-    static let providerPanes: [SettingsSection] = [.deepseek, .ollama, .lmstudio]
+    static let providerPanes: [SettingsSection] = [.deepseek, .ollama, .lmstudio, .customEndpoints]
 
     /// The sidebar's own rows: everything visible that is not nested.
     static var topLevel: [SettingsSection] {
@@ -52,6 +52,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .deepseek:      return "DeepSeek"
         case .ollama:        return "Ollama"   // a product name, the same in every language
         case .lmstudio:      return "LM Studio"
+        case .customEndpoints: return L10n.t("Custom Endpoints")
         case .appearance:    return L10n.t("Appearance")
         case .notifications: return L10n.t("Notifications")
         case .general:       return L10n.t("General")
@@ -77,6 +78,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .deepseek:      return L10n.t("Peak and off-peak pricing for your DeepSeek spend.")
         case .ollama:        return L10n.t("Models running in Ollama on this Mac.")
         case .lmstudio:      return L10n.t("Models loaded in LM Studio on this Mac.")
+        case .customEndpoints: return L10n.t("OpenAI-compatible APIs, local runtimes and custom proxies.")
         case .appearance:    return L10n.t("How the notch looks and where it sits.")
         case .notifications: return L10n.t("What Codenotch tells you, and when.")
         case .general:       return L10n.t("Startup, updates and everything else.")
@@ -90,6 +92,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .deepseek:      return "chart.line.uptrend.xyaxis"
         case .ollama:        return "desktopcomputer"
         case .lmstudio:      return "cpu"
+        case .customEndpoints: return "network"
         case .appearance:    return "paintbrush.fill"
         case .notifications: return "bell.badge.fill"
         case .general:       return "gearshape.fill"
@@ -106,6 +109,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .deepseek:      return .orange
         case .ollama:        return .teal
         case .lmstudio:      return .purple
+        case .customEndpoints: return .indigo
         case .appearance:    return .indigo
         case .notifications: return .red
         case .general:       return .gray
@@ -374,6 +378,8 @@ struct SettingsView: View {
     /// another app, so the user is always coming *back* here to see it — which
     /// makes returning focus the exact moment the old value is wrong.
     @State private var accounts: [ProviderSummary] = []
+    /// The providers the menu bar can show, from the same snapshots it draws.
+    @State private var menuBarChoices: [MenuBarChoice] = []
     @State private var displays: [DisplayOption] = []
     @State private var selection: SettingsSection = .accounts
     /// Whether Accounts shows its provider panes. Remembered, so someone who
@@ -520,6 +526,17 @@ struct SettingsView: View {
                 // for that explicit event, not on every usage poll.
                 accounts = providers()
             }
+        .onReceive((usageStore?.$snapshots.eraseToAnyPublisher()
+                    ?? Empty<[ProviderSnapshot], Never>().eraseToAnyPublisher())
+            .receive(on: RunLoop.main)) { snapshots in
+                // Every reading lands here. The rows only change when who can
+                // be listed does, not whenever a figure moves.
+                let choices = MenuBarChoice.listed(in: snapshots)
+                if choices != menuBarChoices { menuBarChoices = choices }
+            }
+        .onReceive(preferences.$customEndpoints.receive(on: RunLoop.main)) { _ in
+            accounts = providers()
+        }
     }
 
     /// The subject list: a full-height column on a shade lighter than the
@@ -596,6 +613,7 @@ struct SettingsView: View {
         // Opening a provider's pane from elsewhere must not land on a row
         // that is folded out of sight.
         .onChange(of: selection) { section in
+            if section == .accounts { accounts = providers() }
             if SettingsSection.providerPanes.contains(section) { accountsExpanded = true }
         }
         .frame(width: SettingsView.sidebarWidth)
@@ -671,6 +689,8 @@ struct SettingsView: View {
                 }
                 .formStyle(.grouped)
             }
+        case .customEndpoints:
+            CustomEndpointsSettingsView(preferences: preferences)
         case .appearance:    appearancePane
         case .notifications: notificationsPane
         case .general:       generalPane
@@ -1024,6 +1044,14 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
+                // Only while there is a menu bar item for it to change. With
+                // the app in the Dock or nowhere, a switch here would do
+                // nothing anyone could see; the choice is kept for when the
+                // item comes back.
+                if preferences.appPresence == .menuBar {
+                    menuBarLimitRows
+                }
+
                 Picker(L10n.t("Language"), selection: $preferences.language) {
                     ForEach(AppLanguage.allCases) { Text($0.title).tag($0) }
                 }
@@ -1036,6 +1064,64 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// Limits in the menu bar: the switch, and under it one row for each
+    /// provider the bar can show.
+    ///
+    /// Each of those rows is about the menu bar alone. Whether a provider is
+    /// read at all is its own switch in Accounts, and nothing here touches it.
+    @ViewBuilder
+    private var menuBarLimitRows: some View {
+        Toggle(L10n.t("Show limit information in menu bar"), isOn: $preferences.showsLimitsInMenuBar)
+        Text(L10n.t("Swaps the icon for each chosen provider's five-hour limit — how much is used and how long until it resets."))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+
+        if preferences.showsLimitsInMenuBar {
+            Toggle(L10n.t("Show weekly limit in menu bar"),
+                   isOn: $preferences.showsWeeklyLimitInMenuBar)
+            Text(L10n.t("Adds a compact weekly-usage ring around each chosen provider that publishes it."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            ForEach(menuBarChoices) { choice in
+                Toggle(isOn: Binding(
+                    get: { preferences.isInMenuBar(choice.id) },
+                    set: { preferences.setInMenuBar($0, for: choice.id, among: menuBarChoices.map(\.id)) }
+                )) {
+                    // The mark and name as the Accounts rows draw them, so a
+                    // provider is recognisably the same one in both places.
+                    HStack(spacing: 10) {
+                        ProviderGlyphView(glyph: choice.glyph, size: 16)
+                            .accessibilityHidden(true)
+                        Text(choice.name)
+                    }
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .help(L10n.t("Shows \(choice.name)'s five-hour limit in the menu bar. Codenotch reads it either way."))
+            }
+
+            Text(menuBarChoices.isEmpty
+                 ? L10n.t("Nothing Codenotch reads has a five-hour limit to show yet. Claude and Codex do — switch one on in Accounts.")
+                 : L10n.t("Leaving a provider out keeps it off the menu bar only — Codenotch still reads it. With none chosen, the icon comes back."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // Said only once it applies: past two the item keeps each share
+            // and drops the countdowns, and past four it stops, because macOS
+            // hides a status item that does not fit rather than squeezing it.
+            if menuBarChoices.filter({ preferences.isInMenuBar($0.id) }).count > StatusItemSummary.fullEntryLimit {
+                Text(L10n.t("Past two, each shows its share alone and the countdowns move to the tooltip. Past four, the rest are in the menu."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 
     private var notificationsPane: some View {
@@ -1306,7 +1392,7 @@ struct SettingsView: View {
     /// this, sees four blank rings and concludes it is broken — and the
     /// distinction that catches them out is Claude *Code*, not the Claude app.
     static var setupCopy: String {
-        L10n.t("Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
+        L10n.t("Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.")
     }
 
     /// Said before it happens rather than after. A system dialogue asking to
@@ -1482,6 +1568,22 @@ private struct AccentColorSwatch: View {
     }
 }
 
+/// A provider as the menu bar rows in Settings list it.
+private struct MenuBarChoice: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let glyph: ProviderGlyph
+
+    /// What the menu bar could show, in the order it would show it: the
+    /// store's own snapshots, which only ever hold the providers being read,
+    /// narrowed to the ones the bar can summarise.
+    static func listed(in snapshots: [ProviderSnapshot]) -> [MenuBarChoice] {
+        snapshots.filter(StatusItemSummary.canSummarise).map { snapshot in
+            MenuBarChoice(id: snapshot.id, name: snapshot.displayName, glyph: snapshot.glyph)
+        }
+    }
+}
+
 /// One provider: whether Codenotch reads it, whose account that is, and where
 /// to go if there is nothing to read.
 /// One sound choice, with a preview button.
@@ -1553,6 +1655,12 @@ private struct AccountRow: View {
     private var isConnected: Bool { preferences.isConnected(provider.id) }
     private var isMuted: Bool { preferences.isMutedAlerts(for: provider.id) }
 
+    /// The name the owner gave the account, where there is one; the row, the
+    /// notch and the notifications all use the same word.
+    private var displayName: String { preferences.nickname(for: provider.id) ?? provider.name }
+    @State private var isRenaming = false
+    @State private var draftName = ""
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             // Centred, not baseline-aligned. A glyph is a `Shape` and has no
@@ -1567,10 +1675,10 @@ private struct AccountRow: View {
                 HStack(spacing: 10) {
                     if isOrderable { handle }
 
-                    ProviderGlyphView(glyph: provider.glyph, size: 16)
+                    ProviderGlyphView(glyph: provider.glyph, customIconFilename: provider.customIconFilename, size: 16)
                         .foregroundStyle(isConnected ? .primary : .tertiary)
 
-                    Text(provider.name)
+                    Text(displayName)
                         .foregroundStyle(isConnected ? .primary : .secondary)
                 }
                 // Without this only the drawn pixels are grabbable, and the
@@ -1593,8 +1701,8 @@ private struct AccountRow: View {
                     // a lot of translucent furniture to move a ring one place
                     // up.
                     HStack(spacing: 6) {
-                        ProviderGlyphView(glyph: provider.glyph, size: 12)
-                        Text(provider.name)
+                        ProviderGlyphView(glyph: provider.glyph, customIconFilename: provider.customIconFilename, size: 12)
+                        Text(displayName)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -1621,6 +1729,41 @@ private struct AccountRow: View {
 
                 Spacer(minLength: 8)
 
+                // A name of the owner's choosing. Two logins on one provider
+                // are told apart by their directory names ("Claude (work)"),
+                // which is the machine's word for them, not the person's; and
+                // the same name has to hold in the notch, the menu bar and
+                // every notification, so it is kept in Preferences and applied
+                // by the store rather than typed over here.
+                if isConnected, provider.kind == .usage {
+                    Button {
+                        draftName = preferences.nickname(for: provider.id) ?? ""
+                        isRenaming.toggle()
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(SettingsIconButtonStyle())
+                    .help(L10n.t("Name this account"))
+                    .popover(isPresented: $isRenaming, arrowEdge: .bottom) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            TextField(L10n.t("Name"), text: $draftName, prompt: Text(provider.name))
+                                .textFieldStyle(.roundedBorder)
+                                .onSubmit { isRenaming = false }
+                                .onChange(of: draftName) { _, name in
+                                    preferences.setNickname(name, for: provider.id)
+                                }
+                            Text(L10n.t("What the notch, the menu bar and notifications call this account. Empty goes back to \(provider.name)."))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(12)
+                        .frame(width: 280)
+                    }
+                }
+
                 // Per-provider threshold alerts, muted here rather than in a
                 // separate notifications pane — the thing being muted is this
                 // row's reading, so the control belongs on the row.
@@ -1634,8 +1777,8 @@ private struct AccountRow: View {
                     }
                     .buttonStyle(SettingsIconButtonStyle())
                     .help(isMuted
-                          ? L10n.t("Alerts for \(provider.name) are muted. Click to unmute.")
-                          : L10n.t("Alert when \(provider.name) crosses 80% and 100% of a limit."))
+                          ? L10n.t("Alerts for \(displayName) are muted. Click to unmute.")
+                          : L10n.t("Alert when \(displayName) crosses 80% and 100% of a limit."))
                 }
 
                 // Prefers the app that owns the account, and falls back to the
@@ -1754,7 +1897,7 @@ private struct AccountRow: View {
             accountDetail
             
             // Antigravity limit dropdown
-            if isConnected, provider.id == "gemini" {
+            if isConnected, provider.id == AntigravityProfile.defaultID {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
                         Text(L10n.t("Notch reads"))

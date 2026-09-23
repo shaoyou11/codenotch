@@ -102,6 +102,7 @@ wire-level details.
 | **GitHub Copilot** | official | GitHub's Copilot quota endpoint, authenticated with the GitHub CLI session already on the Mac (`gh auth login`). |
 | **Kimi** | official | The Kimi Code CLI session in `~/.kimi-code/credentials/kimi-code.json`, against the same `/usages` endpoint the CLI's `/usage` asks. Shows the 5-hour rate window and the weekly quota. |
 | **Kiro** | official | The kiro-cli session already on this Mac, against the same `/usage` that command prints. Shows monthly credits. |
+| **Amp** | official subscription percentages; derived free-allowance percentage | The Amp CLI login in `~/.local/share/amp/secrets.json`, against Amp's `userDisplayBalanceInfo` endpoint. Shows Agent and Orb usage, or the Free allowance and replenishment rate. See [Amp details](docs/providers/amp.md). |
 
 Most providers borrow a credential or session from a tool already on your Mac.
 DeepSeek is the explicit browser-login exception: it never reads a browser's
@@ -270,7 +271,13 @@ Appearance also carries the ring's accent colour. The device accent is the
 default; fixed presets are available for pink, red, orange, yellow, green,
 teal, blue, indigo, purple and off-white.
 
-The app itself can show a Dock icon, a menu bar icon, or neither.
+The app itself can show a Dock icon, a menu bar item, or neither. The menu bar
+item is the Codenotch icon until you switch on **Show limit information in
+menu bar** under Settings → Appearance → App; then it shows the five-hour
+limits of the providers you choose there — the provider's mark, the share used
+and the time until it resets, like `72% · 2h 18m | 41% · 4h 05m`. Choosing
+what the bar shows never changes what Codenotch reads, and with nothing chosen
+the icon comes back. Its menu has the full readings either way.
 
 ## Updates
 
