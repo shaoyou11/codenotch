@@ -1266,7 +1266,7 @@ final class NotchReadingsAreOptionalTests: XCTestCase {
 }
 
 /// Folded, a notch that is not beside the hardware is the small pill it has
-/// always been — and the flare on it is a quarter circle, not an ellipse.
+/// always been in the personal edition: 40 × 10 screen points at every scale.
 @MainActor
 final class FoldedPillKeepsItsShapeTests: XCTestCase {
     private func folded(_ edge: NotchEdge) -> NotchViewModel {
@@ -1292,25 +1292,28 @@ final class FoldedPillKeepsItsShapeTests: XCTestCase {
 
             // The pill's own extent along its edge, measured off the path at
             // the row furthest from the bezel.
-            let hits = stride(from: CGFloat(0), to: NotchLayout.pillHeight, by: 0.5)
-                .filter { path.contains(place.point(along: $0, across: NotchLayout.pillWidth - 1)) }
+            let hits = stride(from: CGFloat(0), to: m.restingLength, by: 0.5)
+                .filter { path.contains(place.point(along: $0, across: m.restingDepth - 1)) }
             guard let first = hits.first, let last = hits.last else {
                 return XCTFail("\(edge): nothing drawn at the pill's foot")
             }
-            let lost = NotchLayout.pillHeight - (last - first)
-            XCTAssertLessThan(lost, NotchLayout.pillWidth * 2 + 2,
+            let lost = m.restingLength - (last - first)
+            XCTAssertLessThan(lost, m.restingDepth * 2 + 2,
                               "\(edge): the flare takes \(lost)pt off a "
-                              + "\(NotchLayout.pillHeight)pt pill — it cannot cut deeper "
+                              + "\(m.restingLength)pt pill — it cannot cut deeper "
                               + "than the pill is thick")
         }
     }
 
     /// And it is still the pill: full length at the bezel.
     func testItIsStillThePill() {
-        for edge in [NotchEdge.right, .left, .bottom] {
-            let m = folded(edge)
-            XCTAssertEqual(m.notchLength, NotchLayout.pillHeight, accuracy: 0.001, "\(edge)")
-            XCTAssertEqual(m.notchDepth, NotchLayout.pillWidth, accuracy: 0.001, "\(edge)")
+        for edge in [NotchEdge.right, .left, .top, .bottom] {
+            for scale: CGFloat in [0.3, 0.4, 0.55, 0.65, 0.75, 1] {
+                let m = folded(edge)
+                m.sizeScale = scale
+                XCTAssertEqual(m.notchLength * scale, 40, accuracy: 0.001, "\(edge)")
+                XCTAssertEqual(m.notchDepth * scale, 10, accuracy: 0.001, "\(edge)")
+            }
         }
     }
 }
