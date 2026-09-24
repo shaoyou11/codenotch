@@ -3954,6 +3954,26 @@
         }
       }
     },
+    "A click that misses the rings no longer locks the notch open": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击圆环外不再意外固定展开"
+          }
+        }
+      }
+    },
+    "A colour ramp across the whole range": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全范围渐变配色"
+          }
+        }
+      }
+    },
     "A countdown instead of a reset date": {
       "extractionState": "manual",
       "localizations": {
@@ -4220,6 +4240,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sesi yang selesai akan menampilkan status selesai"
+          }
+        }
+      }
+    },
+    "A fold that flows": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更流畅的展开与收起"
           }
         }
       }
@@ -8860,6 +8890,16 @@
         }
       }
     },
+    "Appearance has a switch for it. Beside the Mac's own notch the bar is exactly as deep as the cutout and a ring fills it, so showing the figure there makes room by drawing the rings smaller — worth offering rather than deciding for you.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观设置可切换百分比显示。顶部面板与硬件刘海等高，显示数字时会相应缩小圆环，由你选择是否显示。"
+          }
+        }
+      }
+    },
     "Appearance's Reset time picker can show \"Resets in 3h 20m\" instead of a date and time.": {
       "extractionState": "manual",
       "localizations": {
@@ -9651,6 +9691,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "基础地址"
+          }
+        }
+      }
+    },
+    "Beside your Mac's own notch the bar is exactly as deep as the cutout, and a ring fills it — so showing the percentage makes room by drawing the rings smaller. Raising the size gives it more room.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顶部面板与硬件刘海等高，圆环占满其高度；显示百分比时会相应缩小圆环。调大尺寸可以增加可用空间。"
           }
         }
       }
@@ -11201,6 +11251,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Claude'un ana halkası oturum yerine bugünün haftalık limitteki payını gösterir — haftalık sıfırlanmadan itibaren sayılan, günde yedide bir. Oturum ince halkaya ve karta geçer; uyarılar günlük halkayı izler."
+          }
+        }
+      }
+    },
+    "Claude's unused resets, and a steadier Desktop reading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 重置次数与桌面端读取改进"
           }
         }
       }
@@ -18469,6 +18529,16 @@
         }
       }
     },
+    "For anyone who budgets by the week rather than by the session. The session moves to the thin ring and the card.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适合按周规划用量的用户。会话额度移到细圆环和详情卡片。"
+          }
+        }
+      }
+    },
     "For every provider with a weekly limit beside a shorter one, the main ring shows the week. The shorter window moves to the thin ring and the card. Alerts, the menu bar and providers with no weekly limit are unchanged, and Claude's daily pace ring still leads when it is on.": {
       "extractionState": "manual",
       "localizations": {
@@ -21011,6 +21081,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "点击时齿轮旋转并轻轻下压，再次点击即可关闭设置。"
+          }
+        }
+      }
+    },
+    "It used to pin it, with nothing on screen to say so or to undo it. Keep open is on the right-click menu, where it is named and carries a checkmark.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此前点击空白处会固定面板，且缺少明确提示。「保持展开」现位于右键菜单，并显示勾选状态。"
           }
         }
       }
@@ -27179,6 +27259,26 @@
         }
       }
     },
+    "On a Mac with a camera housing the rings used to hang below it, so the app read as a second notch under the real one. They now sit either side of the cutout, in a bar drawn to the hardware's own measurements: its depth, and a corner fitted to the real thing rather than guessed at. Folded away it is the cutout exactly, and reaching for it widens the notch the Mac already has.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MacBook 顶部圆环改为排列在摄像头刘海两侧，面板深度和圆角按硬件尺寸绘制，避免看起来像第二个刘海。收起时与硬件刘海重合，展开时向两侧延伸。"
+          }
+        }
+      }
+    },
+    "On a MacBook the notch is now your Mac's own — the readings sit either side of the camera housing rather than under it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MacBook 顶部读数移到摄像头刘海两侧，与硬件刘海融为一体。"
+          }
+        }
+      }
+    },
     "On demand": {
       "extractionState": "manual",
       "localizations": {
@@ -28217,6 +28317,16 @@
         }
       }
     },
+    "Opening and closing morphs the shape itself rather than swapping one for another, on a spring with enough weight to settle instead of snapping. The curve into the screen's border grows with the ears as they extend.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开和收起时形状连续变化，弹簧动画更加平稳；面板延伸时，与屏幕边缘相接的弧线同步变化。"
+          }
+        }
+      }
+    },
     "Opens %@ in your browser. That site has its own sign-in, separate from the credential read here.": {
       "extractionState": "manual",
       "localizations": {
@@ -28367,6 +28477,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bu hesabın giriş yaptığı yeri açar: %@."
+          }
+        }
+      }
+    },
+    "Opt in to a ring that shifts colour continuously from empty to full, instead of stepping at the thresholds.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选用渐变配色，让圆环颜色随用量连续变化，而非仅在阈值处切换。"
           }
         }
       }
@@ -29372,6 +29492,16 @@
         }
       }
     },
+    "Percentage under each ring": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示圆环下方百分比"
+          }
+        }
+      }
+    },
     "Permission": {
       "extractionState": "manual",
       "localizations": {
@@ -30371,6 +30501,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tempatkan notch di mana saja"
+          }
+        }
+      }
+    },
+    "Qianwen's monthly Token Plan, and two numbers that are not numbers": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "千问月度计划与 MiniMax 异常数据修复"
           }
         }
       }
@@ -33138,6 +33278,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld sa %lld dk içinde sıfırlanır"
+          }
+        }
+      }
+    },
+    "Resets you did not spend are shown rather than dropped, dated grants survive a refresh, and the search through Desktop's cache is bounded so an unusable reading backs off instead of retrying.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示未使用的重置次数，带日期的额度在刷新后仍保留；限制桌面缓存搜索范围，读数无效时退避等待，避免反复重试。"
           }
         }
       }
@@ -40887,6 +41037,16 @@
         }
       }
     },
+    "The figure under each ring. Turn it off for rings alone; the number is still a hover away in the card.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭后仅显示圆环；将鼠标移到圆环上，仍可在详情卡片中查看数值。"
+          }
+        }
+      }
+    },
     "The first release.": {
       "extractionState": "manual",
       "localizations": {
@@ -41153,6 +41313,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "菜单栏显示更多信息"
+          }
+        }
+      }
+    },
+    "The monthly plan the weekly fields miss is read properly, and a MiniMax count that overflows or comes back non-finite is treated as no reading rather than as a zero.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确读取千问月度 Token Plan。MiniMax 返回溢出或非有限数值时，按无有效读数处理，不再误显示为零。"
           }
         }
       }
@@ -41793,6 +41963,16 @@
         }
       }
     },
+    "The percentage under each ring is now yours to choose": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圆环下方百分比可自行开关"
+          }
+        }
+      }
+    },
     "The points where a ring turns amber and red are yours to move, and the weekly ring can be dashed.": {
       "extractionState": "manual",
       "localizations": {
@@ -41818,6 +41998,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "可调整圆环变为黄色和红色的阈值，每周额度圆环也可显示为虚线。"
+          }
+        }
+      }
+    },
+    "The readings moved beside the notch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读数移到硬件刘海两侧"
           }
         }
       }
@@ -42259,6 +42449,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Batas mingguan kini memiliki ring tersendiri"
+          }
+        }
+      }
+    },
+    "The weekly limit can be the main ring": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每周额度可作为主圆环"
           }
         }
       }
@@ -43645,6 +43845,16 @@
         }
       }
     },
+    "Two more languages, both complete.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增两种语言，均已完整翻译。"
+          }
+        }
+      }
+    },
     "Two more providers, and a live account plan that was silently dropped.": {
       "extractionState": "manual",
       "localizations": {
@@ -43706,6 +43916,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dua penyedia baru, dan paket akun langsung yang sebelumnya terlewat."
+          }
+        }
+      }
+    },
+    "Türkçe and Bahasa Indonesia": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "土耳其语和印度尼西亚语"
           }
         }
       }
@@ -47284,6 +47504,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hesaba sahip olan araçtaki girişiniz sürer."
+          }
+        }
+      }
+    },
+    "Your notch is drawn as your Mac's own cutout, so it never grows past it. Sizes below 100% make it smaller; above has nowhere to go.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "面板按 Mac 硬件刘海尺寸绘制，不会超出硬件高度。低于 100% 可缩小，超过 100% 不会继续增大。"
           }
         }
       }
