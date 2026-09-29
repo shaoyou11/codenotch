@@ -101,8 +101,8 @@ struct NotchRootView: View {
                         // zero, so the fade only makes sure nothing is left on
                         // screen once the notch has folded — it is never what
                         // the eye sees the arc leave by.
-                        .opacity(model.isExpanded ? 1 : 0)
-                        .animation(motion(orbMotion), value: model.isExpanded)
+                        .opacity(model.showsChrome ? 1 : 0)
+                        .animation(motion(orbMotion), value: model.showsChrome)
                         // Carried, it gives way to `CarriedHandle`, at once:
                         // that draws the button as it was, and takes it on.
                         .opacity(model.carry == nil ? 1 : 0)
@@ -233,13 +233,13 @@ struct NotchRootView: View {
     /// to divide from; hiding, any delay at all lets the notch start folding
     /// first, and the arc reads as going with the frame rather than into it.
     private var orbMotion: Animation {
-        model.isExpanded
+        model.showsChrome
             // Shown only as it starts to push out: until then it is buried
             // in a notch still opening round it, and anything of it could
             // show outside a flare not yet where it will be.
             ? .linear(duration: 0.01).delay(Self.arcDivides)
             // Once it is back in: only then gone.
-            : .linear(duration: 0.04).delay(Self.arcQuickReturn * 0.9)
+            : .linear(duration: 0.04).delay((model.isExpanded ? Self.arcReturn : Self.arcQuickReturn) * 0.9)
     }
 
     /// **How far the handles' arcs have come away from the notch**, 0 to 1.
@@ -258,7 +258,7 @@ struct NotchRootView: View {
     /// `GooArc.quick`.
     @State private var arcQuick = false
     /// Whether the arcs are out: the notch open, and not about to fold.
-    private var arcsOut: Bool { model.isExpanded && !model.handlesTuckedAway }
+    private var arcsOut: Bool { model.showsChrome && !model.handlesTuckedAway }
 
     /// The arc's timing, whichever way it is going.
     private var arcMotion: Animation {

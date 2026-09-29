@@ -85,6 +85,27 @@ final class NotchRenderTests: XCTestCase {
         }
     }
 
+    /// Test the actual view wiring: the model condition alone kept passing
+    /// when an upstream merge made the settings arc unconditionally visible.
+    func testFixedSettingsArcHidesWhenThePointerLeaves() throws {
+        for edge in NotchEdge.allCases {
+            for pinned in [false, true] {
+                let m = model(edge: edge, cells: 1)
+                m.isPinned = pinned
+                m.isAlwaysOn = !pinned
+                let quiet = try XCTUnwrap(render(m))
+                m.isPointerOverSurface = true
+                let reached = try XCTUnwrap(render(m))
+                XCTAssertGreaterThan(inkedFraction(reached), inkedFraction(quiet) + 0.0001,
+                                     "\(edge): the settings arc must appear only when reached for")
+                m.isPointerOverSurface = false
+                let left = try XCTUnwrap(render(m))
+                XCTAssertEqual(inkedFraction(left), inkedFraction(quiet), accuracy: 0.00001,
+                               "\(edge): the settings arc stayed visible after leaving")
+            }
+        }
+    }
+
     /// The weekly ring has to actually appear, and only when asked for.
     ///
     /// Counted by colour rather than by ink: the arcs are drawn on top of the
