@@ -12,7 +12,7 @@ final class CustomChromeTests: XCTestCase {
         XCTAssertTrue(model.showsChrome)
         model.isPointerOverSurface = false
         XCTAssertFalse(model.showsChrome)
-        model.isMoving = true
+        model.carry = Carry(at: Date(), fromHover: false)
         XCTAssertTrue(model.showsChrome)
         model.isExpanded = false
         XCTAssertFalse(model.showsChrome)
