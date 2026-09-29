@@ -784,7 +784,7 @@ final class NotchViewModel: ObservableObject {
     /// wallpaper anywhere else. Near but not joined, the notch is a notch.
     func notchShape(for wing: Wing) -> SideNotchShape {
         var shape = SideNotchShape(edge: edge)
-        shape.capsuleDepth = hardwareNotch == nil ? 10 / sizeScale : nil
+        shape.capsuleDepth = cutout == nil ? 10 / sizeScale : nil
         shape.cornerRadius = drawnCornerRadius
         // Every edge, not only the hardware one. `bezelBleed` pushes the shape
         // past the screen's edge on all four — see `NotchRootView` — so on all
