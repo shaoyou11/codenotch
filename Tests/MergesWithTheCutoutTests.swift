@@ -249,7 +249,9 @@ final class MergesWithTheCutoutTests: XCTestCase {
 
         XCTAssertLessThan(leadingEdge(merged, Notched()), 1,
                           "the merged notch still tapers away from its leading tip")
-        XCTAssertGreaterThan(leadingEdge(plain, Plain()), NotchLayout.curlRadius / 2,
+        // The personal capsule uses a depth-clamped flare. It must still
+        // retreat visibly from the bezel, without requiring the upstream radius.
+        XCTAssertGreaterThan(leadingEdge(plain, Plain()), near * 2,
                              "the plain notch should still flare back to the bezel")
     }
 

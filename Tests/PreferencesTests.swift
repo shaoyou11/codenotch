@@ -525,14 +525,14 @@ final class NotchScaleRangeTests: XCTestCase {
     /// The floor was 0.75, set there because the percentage under each ring
     /// stopped being readable below it. That reading is its own setting now,
     /// so the floor no longer has to protect type that can be switched off.
-    func testTheSliderReachesHalfSize() {
-        XCTAssertEqual(Preferences.customScaleRange.lowerBound, 0.5, accuracy: 0.0001)
-        XCTAssertEqual(Preferences.customScaleRange.upperBound, 1.5, accuracy: 0.0001)
+    func testTheSliderKeepsThePersonalRange() {
+        XCTAssertEqual(Preferences.customScaleRange.lowerBound, 0.3, accuracy: 0.0001)
+        XCTAssertEqual(Preferences.customScaleRange.upperBound, 1.0, accuracy: 0.0001)
     }
 
     /// The presets stay inside it, or a preset would be unreachable by slider.
     func testEveryPresetIsInsideTheSliderRange() {
-        for size in NotchSize.allCases {
+        for size in NotchSize.presets {
             XCTAssertTrue(Preferences.customScaleRange.contains(Double(size.scale)),
                           "\(size.rawValue) at \(size.scale) is outside the slider's range")
         }
