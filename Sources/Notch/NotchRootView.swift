@@ -339,7 +339,7 @@ struct NotchRootView: View {
                 // No `else`: the solid fill below is mounted in every style anyway,
                 // and below macOS 26 `glassy` is always false, so it is simply left
                 // at full opacity.
-                shape.fill(model.isExpanded || model.hardwareNotch != nil
+                shape.fill(model.isExpanded || model.cutout != nil
                            ? Palette.notch : Color.black.opacity(0.72)).opacity(glassy ? 0 : 1)
 
             }

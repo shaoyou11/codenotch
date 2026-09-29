@@ -105,7 +105,7 @@ final class NotchViewModel: ObservableObject {
     @Published var isPointerOverSurface = false
     /// Fixed panels stay quiet until the user reaches for their controls.
     var showsChrome: Bool {
-        isExpanded && (!staysOpen || isPointerOverSurface || isHoveringSettings || isHoveringMove || isMoving)
+        isExpanded && (!staysOpen || isPointerOverSurface || isHoveringSettings || isHoveringMove || carry != nil)
     }
     /// Providers with a fetch in flight, driven by the store.
     @Published var refreshing: Set<String> = []
