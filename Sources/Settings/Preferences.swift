@@ -267,14 +267,16 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(weeklyRingDashed, forKey: Keys.weeklyRingDashed) }
     }
 
+    /// Whether the reading under each ring adds the weekly ring's percentage,
+    /// as "30%/70%". Only while the weekly ring is on.
+    @Published var weeklyReading: Bool {
+        didSet { defaults.set(weeklyReading, forKey: Keys.weeklyReading) }
+    }
+
     @Published var weeklyRing: WeeklyRing {
         didSet { defaults.set(weeklyRing.rawValue, forKey: Keys.weeklyRing) }
     }
 
-    /// Whether the move handle's arc is drawn above the notch.
-    @Published var showsMoveHandle: Bool {
-        didSet { defaults.set(showsMoveHandle, forKey: Keys.showsMoveHandle) }
-    }
 
     /// The colour used for positive usage and active-work indicators.
     @Published var accentColor: AccentColorChoice {
@@ -318,6 +320,12 @@ final class Preferences: ObservableObject {
     /// Where the app itself shows up: Dock, menu bar, or nowhere.
     @Published var appPresence: AppPresence {
         didSet { defaults.set(appPresence.rawValue, forKey: Keys.presence) }
+    }
+
+    /// Where every notification goes: the notch, or a banner. One choice for
+    /// all of them; which events notify stays a switch per event.
+    @Published var notificationChannel: NotificationChannel {
+        didSet { defaults.set(notificationChannel.rawValue, forKey: Keys.notificationChannel) }
     }
 
     /// Whether the menu bar item shows five-hour limits instead of its icon.
@@ -501,6 +509,7 @@ final class Preferences: ObservableObject {
         static let visibility = "notchVisibility"
         static let foldsForFullScreen = "foldsForFullScreen"
         static let presence = "appPresence"
+        static let notificationChannel = "notificationChannel"
         static let showsLimitsInMenuBar = "showsLimitsInMenuBar"
         static let showsWeeklyLimitInMenuBar = "showsWeeklyLimitInMenuBar"
         static let menuBarProviders = "menuBarProviders"
@@ -517,9 +526,9 @@ final class Preferences: ObservableObject {
         static let weeklyRing = "weeklyRing"
         static let weeklyRingDashed = "weeklyRingDashed"
         static let showsNotchReadings = "showsNotchReadings"
+        static let weeklyReading = "weeklyReading"
         static let claudeDailyPaceRing = "claudeDailyPaceRing"
         static let weeklyHeadline = "weeklyHeadline"
-        static let showsMoveHandle = "showsMoveHandle"
         static let notchSurfaceStyle = "notchSurfaceStyle"
         static let watchLimit = "watchLimit"
         static let criticalLimit = "criticalLimit"
@@ -637,6 +646,18 @@ final class Preferences: ObservableObject {
               let endpoints = try? JSONDecoder().decode([CustomEndpoint].self, from: data)
         else { return [] }
         return endpoints
+    }
+
+    nonisolated static func updateStoredCustomEndpoint(
+        _ endpoint: CustomEndpoint,
+        defaults: UserDefaults = .standard
+    ) {
+        var endpoints = storedCustomEndpoints(defaults: defaults)
+        guard let index = endpoints.firstIndex(where: { $0.id == endpoint.id }) else { return }
+        endpoints[index] = endpoint
+        if let data = try? JSONEncoder().encode(endpoints) {
+            defaults.set(data, forKey: Keys.customEndpoints)
+        }
     }
 
     /// The MiniMax region read straight from disk, off the main actor.
@@ -782,6 +803,10 @@ final class Preferences: ObservableObject {
         // to learn it is running.
         self.appPresence = defaults.string(forKey: Keys.presence)
             .flatMap(AppPresence.init(rawValue:)) ?? .dock
+        // The notch, because that is what every earlier version did; a banner
+        // is the choice of someone who found the notch too quiet.
+        self.notificationChannel = defaults.string(forKey: Keys.notificationChannel)
+            .flatMap(NotificationChannel.init(rawValue:)) ?? .notch
         // Absent means never chosen, which is the icon every earlier version
         // drew — see `showsLimitsInMenuBar`.
         self.showsLimitsInMenuBar = defaults.bool(forKey: Keys.showsLimitsInMenuBar)
@@ -841,12 +866,12 @@ final class Preferences: ObservableObject {
         // every reading looks, and nobody asked for it on their behalf.
         self.weeklyRingDashed = defaults.object(forKey: Keys.weeklyRingDashed) as? Bool ?? false
         self.showsNotchReadings = defaults.object(forKey: Keys.showsNotchReadings) as? Bool ?? true
+        self.weeklyReading = defaults.object(forKey: Keys.weeklyReading) as? Bool ?? false
 
         self.weeklyRing = defaults.string(forKey: Keys.weeklyRing)
             .flatMap(WeeklyRing.init(rawValue:)) ?? .off
         // On unless turned off: it is how the notch is carried to another edge,
         // and a control that is missing by default is one nobody finds.
-        self.showsMoveHandle = defaults.object(forKey: Keys.showsMoveHandle) as? Bool ?? true
         self.accentColor = defaults.string(forKey: Keys.accentColor)
             .flatMap(AccentColorChoice.init(rawValue:)) ?? .system
         self.notchSurfaceStyle = defaults.string(forKey: Keys.notchSurfaceStyle)
@@ -912,8 +937,36 @@ final class Preferences: ObservableObject {
 
     func updateCustomEndpoint(_ endpoint: CustomEndpoint) {
         if let idx = customEndpoints.firstIndex(where: { $0.id == endpoint.id }) {
-            customEndpoints[idx] = endpoint
-            setConnected(endpoint.isEnabled, for: endpoint.providerID)
+            var merged = endpoint
+            // Check latest stored endpoint in UserDefaults to merge latest readings if mapping hasn't changed
+            let storedList = Self.storedCustomEndpoints(defaults: defaults)
+            if let stored = storedList.first(where: { $0.id == endpoint.id }) {
+                let mappingUnchanged = (stored.usageSource == endpoint.usageSource)
+                    && (stored.usagePreset == endpoint.usagePreset)
+                    && (stored.usageURL == endpoint.usageURL)
+                    && (stored.usageRecordsPath == endpoint.usageRecordsPath)
+                    && (stored.usageModelField == endpoint.usageModelField)
+                    && (stored.usageTokenField == endpoint.usageTokenField)
+                    && (stored.usageModelFilter == endpoint.usageModelFilter)
+                    && (stored.trackingUnit == endpoint.trackingUnit)
+
+                // If mapping is unchanged and user did not explicitly reset or edit readings:
+                // When the editor loaded, it had stored (or earlier) readings. If the user didn't change them
+                // in the editor, we preserve the latest stored readings that might have been sampled in the background.
+                if mappingUnchanged {
+                    if merged.currentTokensUsedM == customEndpoints[idx].currentTokensUsedM {
+                        merged.currentTokensUsedM = stored.currentTokensUsedM
+                    }
+                    if merged.usageHistory == customEndpoints[idx].usageHistory {
+                        merged.usageHistory = stored.usageHistory
+                    }
+                    if merged.currentSpendUSD == customEndpoints[idx].currentSpendUSD {
+                        merged.currentSpendUSD = stored.currentSpendUSD
+                    }
+                }
+            }
+            customEndpoints[idx] = merged
+            setConnected(merged.isEnabled, for: merged.providerID)
         }
     }
 

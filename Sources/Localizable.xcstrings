@@ -576,6 +576,23 @@
         }
       }
     },
+    "%@ finished": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ terminou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已完成"
+          }
+        }
+      }
+    },
     "%@ has reset": {
       "extractionState": "manual",
       "localizations": {
@@ -713,6 +730,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ bağlandı"
+          }
+        }
+      }
+    },
+    "%@ is waiting on you": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ está esperando você"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 正在等待你回应"
           }
         }
       }
@@ -893,6 +927,77 @@
         }
       }
     },
+    "%@ of %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ sur %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ из %2$@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ із %2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ dari %2$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        }
+      }
+    },
     "%@ of %@ left": {
       "extractionState": "manual",
       "localizations": {
@@ -912,6 +1017,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ / %@ kaldı"
+          }
+        }
+      }
+    },
+    "%@ this cycle": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ neste ciclo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ce cycle-ci"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ in diesem Zyklus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今サイクル %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周期 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本週期 %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ за этот цикл"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ за цей цикл"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 주기 %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ siklus ini"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bu dönem %@"
           }
         }
       }
@@ -1436,6 +1612,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@/saat"
+          }
+        }
+      }
+    },
+    "%@h limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 小时额度"
           }
         }
       }
@@ -2105,6 +2292,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$@ limitinin %%%1$lld kadarı kullanıldı."
+          }
+        }
+      }
+    },
+    "%lld%% used": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%% usado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用 %lld%%"
           }
         }
       }
@@ -3789,6 +3993,23 @@
         }
       }
     },
+    "A banner in Notification Center, which reaches you on another display or with the notch hidden. The notch stays quiet; sounds still play.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um aviso na Central de Notificações, que chega em outra tela ou com o notch oculto. O notch fica quieto; os sons continuam."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在通知中心显示横幅，使用其他显示器或隐藏刘海时也能收到。刘海不再提示，提示音仍会播放。"
+          }
+        }
+      }
+    },
     "A brief window right after sleep, where macOS won't allow a keychain prompt yet, was mistaken for being signed out — which erased the reading and left \"waiting for the first reading\" on screen. It now ages the number instead of throwing it away, and picks back up on its own.": {
       "extractionState": "manual",
       "localizations": {
@@ -4046,6 +4267,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hitung mundur yang meleset beberapa detik tidak lagi mengumumkan reset, sementara reset yang sebenarnya tetap diumumkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カウントダウンが数秒ずれただけではリセットを通知せず、実際のリセットはこれまでどおり通知します。"
           }
         },
         "ko": {
@@ -4422,6 +4649,12 @@
             "value": "Pengaturan baru"
           }
         },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい設定"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -4445,6 +4678,12 @@
             "value": "Pengaturan baru, QianwenAI, bahasa Tionghoa Tradisional, dan notch Windows yang dapat dipindahkan ke tepi mana pun."
           }
         },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい設定、QianwenAI、繁体字中国語、そしてどの端にも移動できるWindowsノッチ。"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -4455,6 +4694,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "全新设置界面、千问、繁体中文，以及可拖到任意边缘的 Windows 面板。"
+          }
+        }
+      }
+    },
+    "A new version is offered in the notch with Update and Later, and installs there with its progress. Put off, a red dot on the settings button and on General keeps it in reach.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方版在刘海中提示新版本，可选择「更新」或「稍后」，并显示安装进度。稍后更新时，设置按钮和通用页面会显示红点提醒。"
+          }
+        }
+      }
+    },
+    "A new version of Codenotch is ready to install.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 新版本已可安装。"
           }
         }
       }
@@ -4585,6 +4844,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notch yang menyatu dengan notch kamera tidak lagi terbuka hanya karena kursor berada di sembarang tempat di sepanjang tepi atas."
+          }
+        }
+      }
+    },
+    "A notch that pours": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流畅的形变动画"
           }
         }
       }
@@ -4884,6 +5153,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Indikator lingkaran untuk Token Plan QianwenAI, dengan login dari Codenotch."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CodenotchからサインインできるQianwenAI Token Planのリング。"
           }
         },
         "ko": {
@@ -6312,6 +6587,17 @@
             "value": "API kaliti"
           }
         },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API 密钥"
+          }
+        }
+      }
+    },
+    "API key": {
+      "extractionState": "manual",
+      "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -8547,6 +8833,88 @@
         }
       }
     },
+    "Apify API token": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token de API da Apify"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeton d'API Apify"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify-API-Token"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify API トークン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify API 令牌"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify API 權杖"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-токен Apify"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-токен Apify"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify API 토큰"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token API Apify"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify API belirteci"
+          }
+        }
+      }
+    },
+    "Apify CLI": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify CLI"
+          }
+        }
+      }
+    },
     "App": {
       "extractionState": "manual",
       "localizations": {
@@ -9483,6 +9851,17 @@
         }
       }
     },
+    "Authentication required to inspect usage route": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要身份验证才能检查用量接口"
+          }
+        }
+      }
+    },
     "Authorization": {
       "extractionState": "manual",
       "localizations": {
@@ -9881,6 +10260,16 @@
         }
       }
     },
+    "Carry the notch anywhere round your screen by its six dots — and new versions now ask first, right in the notch.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过六点手柄沿屏幕移动刘海；官方版更新会先在刘海中征求确认。"
+          }
+        }
+      }
+    },
     "Carry the notch to another edge": {
       "extractionState": "manual",
       "localizations": {
@@ -9906,6 +10295,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "将面板拖到另一侧边缘"
+          }
+        }
+      }
+    },
+    "Channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知渠道"
           }
         }
       }
@@ -10189,6 +10595,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "修复检查更新卡住的问题；少量上下文用量也会显示弧线；Claude 账号文件仅在变化后重新读取；繁体中文采用台湾地区用语。"
+          }
+        }
+      }
+    },
+    "Checking usage route...": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查用量接口…"
           }
         }
       }
@@ -11512,6 +11928,16 @@
         }
       }
     },
+    "Close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
     "Code review": {
       "extractionState": "manual",
       "localizations": {
@@ -12314,6 +12740,110 @@
         }
       }
     },
+    "Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch は、この Mac ですでにサインイン済みのツールから使用量を読み取ります。パスワードを尋ねることはありません。Claude Code（Claude アプリではなくターミナルのツール）、Cursor（エディタまたは cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro、Amp、Apify、または Gemini API キー（Gemini CLI、OpenCode、Hermes 経由）のいずれかをインストールしてサインインすると、そのリングがノッチに現れます。"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch читає використання з інструментів, у які вже виконано вхід на цьому Mac, і ніколи не питає ваш пароль. Установіть будь-який з них — Claude Code (термінальний інструмент, не застосунок Claude), Cursor (редактор або cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify чи ключ Gemini API (через Gemini CLI, OpenCode або Hermes) — і увійдіть: його кільце зʼявиться у вирізі."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 读取这台 Mac 上已经登录的工具的用量 — 从不问你的密码。安装并登录 Claude Code（终端工具，不是 Claude 应用）、Cursor（编辑器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro、Amp、Apify 或 Gemini API 密钥（经由 Gemini CLI、OpenCode 或 Hermes）中的任意一个，刘海里就会出现对应的圆环。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 會從這部 Mac 上已登入的工具讀取用量 — 它不會向你要密碼。安裝並登入 Claude Code（終端機工具，不是 Claude App）、Cursor（編輯器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro、Amp、Apify，或 Gemini API 金鑰（透過 Gemini CLI、OpenCode 或 Hermes），對應的圓環就會出現在瀏海上。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch는 이 Mac에서 이미 로그인된 도구의 사용량을 읽으며 비밀번호를 요구하지 않습니다. Claude Code(Claude 앱이 아닌 터미널 도구), Cursor(편집기 또는 cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify 또는 Gemini API 키(Gemini CLI, OpenCode, Hermes 경유)를 사용하는 도구를 설치하고 로그인하면 노치에 해당 링이 나타납니다."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch foydalanishni shu Macʼda allaqachon tizimga kirgan vositalardan oʻqiydi — u hech qachon parolingizni soʻramaydi. Quyidagilardan birortasini oʻrnatib, unga kiring: Claude Code (terminal vositasi, Claude ilovasi emas), Cursor (muharrir yoki cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify yoki Gemini API kaliti (Gemini CLI, OpenCode yoki Hermes orqali) — va uning halqasi notchʼda paydo boʻladi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch membaca penggunaan dari alat yang sudah login di Mac ini — Codenotch tidak pernah meminta kata sandi Anda. Instal dan login ke salah satu dari Claude Code (alat terminal, bukan aplikasi Claude), Cursor (editor atau cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify, atau kunci API Gemini (melalui Gemini CLI, OpenCode, atau Hermes), dan cincinnya akan muncul di notch."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch kullanımı bu Mac'te zaten giriş yapılmış araçlardan okur — asla parolanızı istemez. Claude Code (Claude uygulaması değil, terminal aracı), Cursor (düzenleyici veya cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify veya bir Gemini API anahtarından (Gemini CLI, OpenCode ya da Hermes üzerinden) herhangi birini kurup giriş yapın; halkası çentikte belirir."
+          }
+        }
+      }
+    },
+    "Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify, the Kilo CLI or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 从本机已登录的工具读取用量，不会索要密码。安装并登录 Claude Code（终端工具，而非 Claude 应用）、Cursor（编辑器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro、Amp、Apify、Kilo CLI，或通过 Gemini CLI、OpenCode、Hermes 配置 Gemini API 密钥，即可显示对应圆环。"
+          }
+        }
+      }
+    },
+    "Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, the Kilo CLI or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch は、この Mac ですでにサインイン済みのツールから使用量を読み取ります。パスワードを尋ねることはありません。Claude Code（Claude アプリではなくターミナルのツール）、Cursor（エディタまたは cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro、または Gemini API キー（Gemini CLI、OpenCode、Hermes 経由）のいずれかをインストールしてサインインすると、そのリングがノッチに現れます。"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch читає використання з інструментів, у які вже виконано вхід на цьому Mac, і ніколи не питає ваш пароль. Установіть будь-який з них — Claude Code (термінальний інструмент, не застосунок Claude), Cursor (редактор або cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro чи ключ Gemini API (через Gemini CLI, OpenCode або Hermes) — і увійдіть: його кільце зʼявиться у вирізі."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 读取这台 Mac 上已经登录的工具的用量 — 从不问你的密码。安装并登录 Claude Code（终端工具，不是 Claude 应用）、Cursor（编辑器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro 或 Gemini API 密钥（经由 Gemini CLI、OpenCode 或 Hermes）中的任意一个，刘海里就会出现对应的圆环。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 會從這部 Mac 上已登入的工具讀取用量 — 它不會向你要密碼。安裝並登入 Claude Code（終端機工具，不是 Claude App）、Cursor（編輯器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro，或 Gemini API 金鑰（透過 Gemini CLI、OpenCode 或 Hermes），對應的圓環就會出現在瀏海上。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch는 이 Mac에서 이미 로그인된 도구의 사용량을 읽으며 비밀번호를 요구하지 않습니다. Claude Code(Claude 앱이 아닌 터미널 도구), Cursor(편집기 또는 cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro 또는 Gemini API 키(Gemini CLI, OpenCode, Hermes 경유)를 사용하는 도구를 설치하고 로그인하면 노치에 해당 링이 나타납니다."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch foydalanishni shu Macʼda allaqachon tizimga kirgan vositalardan oʻqiydi — u hech qachon parolingizni soʻramaydi. Quyidagilardan birortasini oʻrnatib, unga kiring: Claude Code (terminal vositasi, Claude ilovasi emas), Cursor (muharrir yoki cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro yoki Gemini API kaliti (Gemini CLI, OpenCode yoki Hermes orqali) — va uning halqasi notchʼda paydo boʻladi."
+          }
+        }
+      }
+    },
     "Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, GitHub Copilot or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.": {
       "extractionState": "manual",
       "localizations": {
@@ -12464,6 +12994,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Codenotch kullanımı bu Mac'te zaten giriş yapılmış araçlardan okur — asla parolanızı istemez. Claude Code (Claude uygulaması değil, terminal aracı), Cursor, Codex, Antigravity, GLM, Grok veya OpenCode'dan herhangi birini kurup giriş yapın; halkası çentikte belirir."
+          }
+        }
+      }
+    },
+    "Codenotch test": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teste do Codenotch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 测试通知"
           }
         }
       }
@@ -14500,6 +15047,77 @@
         }
       }
     },
+    "Couldn't reach Apify. Check your connection.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível alcançar a Apify. Verifique sua conexão."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de joindre Apify. Vérifiez votre connexion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify ist nicht erreichbar. Prüfe deine Verbindung."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify に接続できませんでした。接続を確認してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接 Apify。请检查网络连接。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連線 Apify。請檢查網路連線。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось связаться с Apify. Проверьте подключение."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося зв’язатися з Apify. Перевірте з’єднання."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify에 연결할 수 없습니다. 연결을 확인하십시오."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak dapat menghubungi Apify. Periksa koneksi Anda."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify'a ulaşılamadı. Bağlantınızı kontrol edin."
+          }
+        }
+      }
+    },
     "Couldn't reach the update server. Codenotch will try again on its own — nothing is wrong with this copy.": {
       "extractionState": "manual",
       "localizations": {
@@ -14673,6 +15291,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kullanım okunamadı — %@"
+          }
+        }
+      }
+    },
+    "Credit balance": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分余额"
           }
         }
       }
@@ -15171,6 +15800,17 @@
         }
       }
     },
+    "Custom JSON fields": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义 JSON 字段"
+          }
+        }
+      }
+    },
     "Daily cost": {
       "extractionState": "manual",
       "localizations": {
@@ -15226,6 +15866,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Günlük maliyet"
+          }
+        }
+      }
+    },
+    "Daily limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日额度"
           }
         }
       }
@@ -15450,6 +16101,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gelap dan tenang, dengan judul di atas setiap panel, logo penyedia masing-masing, serta DeepSeek, Ollama, dan LM Studio yang dikelompokkan di bawah Akun. Semuanya merespons kursor, dan tombol Perbarui muncul di samping versi jika tersedia."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "落ち着いた暗い画面に各ペインのタイトルとプロバイダー独自のロゴを表示し、DeepSeek、Ollama、LM Studioをアカウントの下にまとめました。すべての要素がポインターに反応し、更新がある場合はバージョンの横に更新ボタンが表示されます。"
           }
         },
         "ko": {
@@ -15824,6 +16481,17 @@
         }
       }
     },
+    "Detect usage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测用量"
+          }
+        }
+      }
+    },
     "Detected models appear in Accounts → Connected. Model loading and unloading is checked every second.": {
       "extractionState": "manual",
       "localizations": {
@@ -15879,6 +16547,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "偵測到的模型會出現在「帳號 → 已連線」。模型載入與卸載每秒檢查一次。"
+          }
+        }
+      }
+    },
+    "Detected usage format: %@. Save Endpoint to apply.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测到用量格式：%@。保存接口后生效。"
           }
         }
       }
@@ -16662,6 +17341,16 @@
         }
       }
     },
+    "Downloading…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下载…"
+          }
+        }
+      }
+    },
     "Drag it by its handle to any edge, open Settings from its orb, click a ring to read it again or right-click for more, and the hover card stays clear of the taskbar.": {
       "extractionState": "manual",
       "localizations": {
@@ -16669,6 +17358,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seret melalui pegangannya ke tepi mana pun, buka Pengaturan dari bulatannya, klik indikator untuk membacanya kembali atau klik kanan untuk opsi lainnya, dan kartu saat diarahkan tetap tidak menghalangi bilah tugas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ハンドルをドラッグしてどの端にも移動でき、オーブから設定を開けます。リングをクリックすると再読み込みし、右クリックでその他の操作を行えます。ホバーカードはタスクバーと重なりません。"
           }
         },
         "ko": {
@@ -16823,6 +17518,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Yeniden sıralamak için sürükleyin. Çentik halkaları bu sırayla çizer."
+          }
+        }
+      }
+    },
+    "Dragged — by the dots or with ⌥ — the notch keeps to the screen's border and flows round each corner instead of jumping between edges, and settles smoothly where it is let go.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过六点手柄或按住 ⌥ 拖动时，刘海沿屏幕边缘连续移动，平滑经过四角，松手后落在指定位置。"
           }
         }
       }
@@ -18028,6 +18733,16 @@
         }
       }
     },
+    "File contains malformed JSON.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件的 JSON 格式无效。"
+          }
+        }
+      }
+    },
     "Fills the ring against a ceiling you choose; Google publishes none for an API key.": {
       "extractionState": "manual",
       "localizations": {
@@ -18762,6 +19477,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Logo baru"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいロゴ"
           }
         },
         "ko": {
@@ -19741,6 +20462,12 @@
             "value": "Grok ditampilkan sebagai sedang bekerja saat grok -p dijalankan, bukan hanya di jendelanya sendiri."
           }
         },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grokは専用ウインドウだけでなく、grok -pの実行中も作業中として表示されます。"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -19791,6 +20518,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Grok, bahkan tanpa antarmuka"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヘッドレス実行中のGrokも検出"
           }
         },
         "ko": {
@@ -20118,6 +20851,16 @@
         }
       }
     },
+    "Hold the six dots beside the settings button to carry the notch round the screen.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按住设置按钮旁的六点手柄，沿屏幕移动刘海。"
+          }
+        }
+      }
+    },
     "Hold ⌥ and drag the notch to slide it along its edge. Each edge remembers where you left it.": {
       "extractionState": "manual",
       "localizations": {
@@ -20191,6 +20934,27 @@
           "stringUnit": {
             "state": "translated",
             "value": "Çentiği kenarı boyunca kaydırmak için ⌥ tuşunu basılı tutup sürükleyin. Her kenar, bıraktığınız yeri hatırlar."
+          }
+        }
+      }
+    },
+    "Hourly limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每小时额度"
+          }
+        }
+      }
+    },
+    "Hover the settings button and six dots come out beside it. Hold them and drag: the notch follows along any edge of the screen and round its corners, and lands where you let go. They replace the separate move handle at the other end, and its setting.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鼠标移到设置按钮上时，旁边会出现六点手柄。按住拖动即可沿屏幕边缘及四角移动，松手后停留在当前位置。它替代原来另一端的独立移动手柄及其设置。"
           }
         }
       }
@@ -20384,6 +21148,27 @@
         }
       }
     },
+    "Import Custom JSON...": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入自定义 JSON…"
+          }
+        }
+      }
+    },
+    "Imported custom JSON preset mapping.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导入自定义 JSON 预设映射。"
+          }
+        }
+      }
+    },
     "In 1.12.0 the Settings window on Windows opened empty. It is fixed, and a check now stops that kind of mistake from shipping.": {
       "extractionState": "manual",
       "localizations": {
@@ -20474,6 +21259,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Di Dock, di bilah menu, atau tidak di mana pun."
+          }
+        }
+      }
+    },
+    "In the notch": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No notch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刘海内提示"
           }
         }
       }
@@ -20620,6 +21422,23 @@
         }
       }
     },
+    "Install the %@ CLI first; Sign in opens its install page.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instale a CLI do %@ primeiro; Entrar abre a página de instalação."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先安装 %@ CLI；点击登录会打开安装页面。"
+          }
+        }
+      }
+    },
     "Install updates automatically": {
       "extractionState": "manual",
       "localizations": {
@@ -20693,6 +21512,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Güncellemeleri otomatik yükle"
+          }
+        }
+      }
+    },
+    "Installing…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在安装…"
           }
         }
       }
@@ -20975,6 +21804,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notch ini berada di dalam area kerja dan kembali menemukan tepinya saat taskbar berpindah, sementara cincin-cincinnya meredup saat hasil pembacaan sudah lama, dengan ujung-ujung membulat, seperti di Mac."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ノッチは作業領域内に収まり、タスクバーが移動すると端を再び見つけます。読み取りが古くなるとリングが暗くなり、Macと同じように端が丸く表示されます。"
           }
         },
         "ko": {
@@ -21371,6 +22206,17 @@
         }
       }
     },
+    "JSON endpoint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 接口"
+          }
+        }
+      }
+    },
     "Japanese, complete": {
       "extractionState": "manual",
       "localizations": {
@@ -21549,6 +22395,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Açık tut"
+          }
+        }
+      }
+    },
+    "Kilo Cloud rejected the request": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilo Cloud 拒绝了请求"
           }
         }
       }
@@ -22103,6 +22960,16 @@
         }
       }
     },
+    "Later": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稍后"
+          }
+        }
+      }
+    },
     "Leaving a provider out keeps it off the menu bar only — Codenotch still reads it. With none chosen, the icon comes back.": {
       "extractionState": "manual",
       "localizations": {
@@ -22476,6 +23343,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在监听 %@"
+          }
+        }
+      }
+    },
+    "LiteLLM": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LiteLLM"
+          }
+        }
+      }
+    },
+    "LiteLLM key info may require a management credential; use Manual USD entry if unavailable.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LiteLLM 密钥信息可能需要管理凭据；无法获取时可手动填写美元支出。"
           }
         }
       }
@@ -23201,6 +24090,16 @@
         }
       }
     },
+    "Looking for a provider's command-line tool could deadlock the app while Settings redrew.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修复设置重绘期间查找服务命令行工具可能导致应用死锁的问题。"
+          }
+        }
+      }
+    },
     "MCP (1 month)": {
       "extractionState": "manual",
       "localizations": {
@@ -23278,6 +24177,23 @@
         }
       }
     },
+    "Mac notifications": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notificações do Mac"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac 通知"
+          }
+        }
+      }
+    },
     "Main display": {
       "extractionState": "manual",
       "localizations": {
@@ -23351,6 +24267,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ana ekran"
+          }
+        }
+      }
+    },
+    "Manual": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动"
           }
         }
       }
@@ -23645,6 +24572,16 @@
         }
       }
     },
+    "Merged into your Mac's own notch the bar is exactly as deep as the cutout, so a ring and a percentage under it have to share that depth — showing it draws the rings smaller. Turn it off for the largest rings the cutout has room for.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与 Mac 硬件刘海合并时，面板高度由硬件决定，圆环和下方百分比共用这段高度。显示百分比会缩小圆环，关闭后可获得该高度下最大的圆环。"
+          }
+        }
+      }
+    },
     "MiniMax Coding Plan key": {
       "extractionState": "manual",
       "localizations": {
@@ -23734,6 +24671,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "MiniMax, QianwenAI, Z.ai, Kimi, OpenCode, dan Command Code kini menampilkan logo mereka sendiri."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MiniMax、QianwenAI、Z.ai、Kimi、OpenCode、Command Codeにそれぞれのロゴが表示されるようになりました。"
           }
         },
         "ko": {
@@ -23899,6 +24842,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "模型資料"
+          }
+        }
+      }
+    },
+    "Model field": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型字段"
+          }
+        }
+      }
+    },
+    "Model filter (optional)": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型筛选（可选）"
           }
         }
       }
@@ -25172,6 +26137,17 @@
         }
       }
     },
+    "New-API": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New-API"
+          }
+        }
+      }
+    },
     "Next expires %@": {
       "extractionState": "manual",
       "localizations": {
@@ -26049,6 +27025,17 @@
         }
       }
     },
+    "No supported usage schema detected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未检测到支持的用量数据格式"
+          }
+        }
+      }
+    },
     "No unused resets": {
       "extractionState": "manual",
       "localizations": {
@@ -26110,6 +27097,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kullanılmamış sıfırlama yok"
+          }
+        }
+      }
+    },
+    "No usage URL for this base URL": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此基础地址没有对应的用量地址"
           }
         }
       }
@@ -27421,6 +28419,16 @@
         }
       }
     },
+    "On this edge your notch is merged into your Mac's own cutout, and the cutout sets its size. This has no effect here — it is waiting for you to move the notch to another edge.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前边缘的面板已与 Mac 硬件刘海合并，大小由硬件决定。此设置在这里不生效，移到其他边缘后生效。"
+          }
+        }
+      }
+    },
     "Once a token expired, every check went back to the keychain — a prompt a minute. It now reads the secret only when the owning app has changed it, and never retries a refusal on a timer.": {
       "extractionState": "manual",
       "localizations": {
@@ -27717,6 +28725,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hanya reset sungguhan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実際のリセットだけを通知"
           }
         },
         "ko": {
@@ -28229,6 +29243,17 @@
         }
       }
     },
+    "OpenRouter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter"
+          }
+        }
+      }
+    },
     "Opening Codenotch no longer announces a limit that was reached long before: a reading kept from last time is no longer mistaken for something that just happened. Clicking the notch to hold it open lasts the session rather than for good, so the full-screen fold is never disabled behind your back.": {
       "extractionState": "manual",
       "localizations": {
@@ -28481,6 +29506,23 @@
         }
       }
     },
+    "Opens System Settings when banners are off for Codenotch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre os Ajustes do Sistema se os avisos do Codenotch estiverem desligados."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 横幅通知关闭时，打开系统设置。"
+          }
+        }
+      }
+    },
     "Opt in to a ring that shifts colour continuously from empty to full, instead of stepping at the thresholds.": {
       "localizations": {
         "zh-Hans": {
@@ -28616,6 +29658,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Orb kullanımı"
+          }
+        }
+      }
+    },
+    "Other usage source": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他用量来源"
           }
         }
       }
@@ -28987,6 +30040,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "在設定貼上 Coding Plan 金鑰，或登入 MiniMax。"
+          }
+        }
+      }
+    },
+    "Paste a token from Apify Console › Settings › API & Integrations. Not needed after apify login, or with APIFY_TOKEN exported. Stored in your login keychain.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cole um token do Apify Console › Settings › API & Integrations. Dispensável depois de apify login, ou com APIFY_TOKEN exportado. Guardado no seu chaveiro de login."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collez un jeton depuis Apify Console › Settings › API & Integrations. Inutile après apify login, ou si APIFY_TOKEN est exporté. Conservé dans votre trousseau de session."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge ein Token aus Apify Console › Settings › API & Integrations ein. Nach apify login oder mit exportiertem APIFY_TOKEN nicht nötig. Wird im Anmeldeschlüsselbund gespeichert."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify Console › Settings › API & Integrations のトークンを貼り付けてください。apify login 済み、または APIFY_TOKEN を export 済みなら不要です。ログインキーチェーンに保存されます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴来自 Apify Console › Settings › API & Integrations 的令牌。已运行 apify login 或已导出 APIFY_TOKEN 时无需填写。保存在登录钥匙串中。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "貼上來自 Apify Console › Settings › API & Integrations 的權杖。已執行 apify login 或已匯出 APIFY_TOKEN 時不需填寫。儲存在登入鑰匙圈中。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставьте токен из Apify Console › Settings › API & Integrations. Не нужен после apify login или при экспортированном APIFY_TOKEN. Хранится в связке ключей входа."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставте токен з Apify Console › Settings › API & Integrations. Не потрібен після apify login або з експортованим APIFY_TOKEN. Зберігається у в’язці ключів входу."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify Console › Settings › API & Integrations의 토큰을 붙여넣으십시오. apify login 후나 APIFY_TOKEN을 내보낸 경우에는 필요 없습니다. 로그인 키체인에 저장됩니다."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tempel token dari Apify Console › Settings › API & Integrations. Tidak perlu setelah apify login, atau bila APIFY_TOKEN diekspor. Disimpan di keychain login Anda."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apify Console › Settings › API & Integrations'tan bir belirteç yapıştırın. apify login sonrasında veya APIFY_TOKEN dışa aktarılmışsa gerekmez. Giriş anahtar zincirinizde saklanır."
           }
         }
       }
@@ -29826,6 +30950,17 @@
         }
       }
     },
+    "Plan limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套餐额度"
+          }
+        }
+      }
+    },
     "Play %@": {
       "extractionState": "manual",
       "localizations": {
@@ -29980,6 +31115,16 @@
         }
       }
     },
+    "Preparing…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备…"
+          }
+        }
+      }
+    },
     "Preset": {
       "extractionState": "manual",
       "localizations": {
@@ -30106,6 +31251,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hazır boyut"
+          }
+        }
+      }
+    },
+    "Preview": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览"
           }
         }
       }
@@ -30440,6 +31595,17 @@
         }
       }
     },
+    "Public": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开"
+          }
+        }
+      }
+    },
     "Put the notch anywhere": {
       "extractionState": "manual",
       "localizations": {
@@ -30524,6 +31690,12 @@
             "value": "QianwenAI"
           }
         },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QianwenAI"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -30547,6 +31719,12 @@
             "value": "QianwenAI kembali dapat membaca"
           }
         },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QianwenAIの読み取りが復旧"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -30568,6 +31746,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "QianwenAI kembali dapat membaca, lebih sedikit peringatan palsu, dan notch Windows yang lebih stabil."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QianwenAIの読み取りが復旧し、誤通知が減り、Windowsノッチがより安定しました。"
           }
         },
         "ko": {
@@ -30996,6 +32180,17 @@
         }
       }
     },
+    "Quota Used": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用额度"
+          }
+        }
+      }
+    },
     "Quota is available (0% used)": {
       "extractionState": "manual",
       "localizations": {
@@ -31033,6 +32228,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "配額可用（已用 0%）"
+          }
+        }
+      }
+    },
+    "Quota units": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "额度单位"
           }
         }
       }
@@ -31544,6 +32750,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新居中立即生效；全屏判断考虑摄像头刘海；限流等待结束后无需再等一个完整刷新周期。"
+          }
+        }
+      }
+    },
+    "Records path": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录路径"
           }
         }
       }
@@ -32386,6 +33603,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bugünkü istekler · yayımlanmış limit yok"
+          }
+        }
+      }
+    },
+    "Requires --metrics on llama-server": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要为 llama-server 启用 --metrics"
           }
         }
       }
@@ -33463,6 +34691,17 @@
         }
       }
     },
+    "Retry detection": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检测"
+          }
+        }
+      }
+    },
     "Right": {
       "extractionState": "manual",
       "localizations": {
@@ -33659,6 +34898,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "账号与圆环准确对应"
+          }
+        }
+      }
+    },
+    "Round the corners like liquid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平滑经过屏幕四角"
           }
         }
       }
@@ -33969,6 +35218,148 @@
         }
       }
     },
+    "Run apify login in Terminal — the notch reads that login — or paste an Apify API token below.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Execute apify login no Terminal — o notch lê esse login — ou cole um token de API da Apify abaixo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exécutez apify login dans le Terminal — le notch lit cette connexion — ou collez un jeton d'API Apify ci-dessous."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führe apify login im Terminal aus — der Notch liest diese Anmeldung — oder füge unten ein Apify-API-Token ein."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ターミナルで apify login を実行してください。ノッチはそのログインを読み取ります。または下に Apify の API トークンを貼り付けてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端运行 apify login — 刘海会读取该登录 — 或在下方粘贴 Apify API 令牌。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在終端機執行 apify login — 瀏海會讀取該登入 — 或在下方貼上 Apify API 權杖。"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запустите apify login в Терминале — notch читает этот вход — или вставьте API-токен Apify ниже."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запустіть apify login у Терміналі — notch читає цей вхід — або вставте API-токен Apify нижче."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "터미널에서 apify login을 실행하십시오. 노치가 그 로그인을 읽습니다. 또는 아래에 Apify API 토큰을 붙여넣으십시오."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jalankan apify login di Terminal — notch membaca login itu — atau tempel token API Apify di bawah."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminal'de apify login komutunu çalıştırın — çentik bu oturumu okur — ya da aşağıya bir Apify API belirteci yapıştırın."
+          }
+        }
+      }
+    },
+    "Run apify login in Terminal, or paste an Apify API token in Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Execute apify login no Terminal ou cole um token de API da Apify nos Ajustes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exécutez apify login dans le Terminal, ou collez un jeton d'API Apify dans les Réglages"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führe apify login im Terminal aus oder füge in den Einstellungen ein Apify-API-Token ein"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ターミナルで apify login を実行するか、設定で Apify の API トークンを貼り付けてください"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端运行 apify login，或在设置里粘贴 Apify API 令牌"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在終端機執行 apify login，或在設定裡貼上 Apify API 權杖"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запустите apify login в Терминале или вставьте API-токен Apify в настройках"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запустіть apify login у Терміналі або вставте API-токен Apify в налаштуваннях"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "터미널에서 apify login을 실행하거나 설정에서 Apify API 토큰을 붙여넣으십시오"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jalankan apify login di Terminal, atau tempel token API Apify di Pengaturan"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminal'de apify login komutunu çalıştırın veya Ayarlar'a bir Apify API belirteci yapıştırın"
+          }
+        }
+      }
+    },
     "Run grok login — it signs in and refreshes the token this reads.": {
       "extractionState": "manual",
       "localizations": {
@@ -34128,6 +35519,40 @@
         }
       }
     },
+    "Runs %@ in your terminal; it opens the browser to sign in and saves the session this reads.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roda %@ no seu terminal; ele abre o navegador para entrar e guarda a sessão que o app lê."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端运行 %@，通过浏览器登录后保存会话，刘海将读取该会话。"
+          }
+        }
+      }
+    },
+    "Runs %@ in your terminal; sign in there with /login and the notch reads the session.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roda %@ no seu terminal; entre lá com /login e o notch lê a sessão."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端运行 %@，使用 /login 登录后，刘海将读取该会话。"
+          }
+        }
+      }
+    },
     "Sat": {
       "extractionState": "manual",
       "localizations": {
@@ -34281,6 +35706,17 @@
         }
       }
     },
+    "Save JSON template...": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存 JSON 模板…"
+          }
+        }
+      }
+    },
     "Saved": {
       "extractionState": "manual",
       "localizations": {
@@ -34342,6 +35778,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kaydedildi"
+          }
+        }
+      }
+    },
+    "Saved template. Edit it and click Import Custom JSON to load.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板已保存。编辑后点击「导入自定义 JSON」加载。"
           }
         }
       }
@@ -34826,6 +36272,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seçili"
+          }
+        }
+      }
+    },
+    "Send a test": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar teste"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送测试通知"
           }
         }
       }
@@ -36063,6 +37526,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "显示剩余预算，而非已用预算"
+          }
+        }
+      }
+    },
+    "Show the update card in the notch, with nothing downloaded": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览刘海中的更新卡片，不下载任何内容"
           }
         }
       }
@@ -37770,6 +39243,16 @@
         }
       }
     },
+    "Sign in with the Kilo CLI to read your usage": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Kilo CLI 登录后即可读取用量"
+          }
+        }
+      }
+    },
     "Sign in with the tool that owns this account.": {
       "extractionState": "manual",
       "localizations": {
@@ -38074,6 +39557,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ oturumunu kapatır — bu oturum Codenotch'a aittir."
+          }
+        }
+      }
+    },
+    "Six dots to carry the notch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "六点拖动手柄"
           }
         }
       }
@@ -38586,6 +40079,94 @@
           "stringUnit": {
             "state": "translated",
             "value": "生成速度与思考状态"
+          }
+        }
+      }
+    },
+    "Spend This Month": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月支出"
+          }
+        }
+      }
+    },
+    "Spend limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgabenlimit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de dépenses"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batas pengeluaran"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用額の上限"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지출 한도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de gastos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит расходов"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harcama limiti"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліміт витрат"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xarajat limiti"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支出上限"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支出上限"
           }
         }
       }
@@ -39902,6 +41483,16 @@
         }
       }
     },
+    "Switching a provider on no longer hangs the app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启服务不再导致应用卡住"
+          }
+        }
+      }
+    },
     "Switch…": {
       "extractionState": "manual",
       "localizations": {
@@ -40631,6 +42222,12 @@
             "value": "Notch Windows tetap tidak bertumpang tindih dengan taskbar"
           }
         },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windowsノッチがタスクバーと重ならないように"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -40652,6 +42249,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notch Windows, dapat dipindahkan ke mana saja"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "どこにでも移動できるWindowsノッチ"
           }
         },
         "ko": {
@@ -40734,6 +42337,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "地址必须以 http:// 或 https:// 开头"
+          }
+        }
+      }
+    },
+    "The agent stopped to ask you something.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O agente parou para perguntar algo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能体已暂停，等待你回应。"
+          }
+        }
+      }
+    },
+    "The agent's turn is done.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O turno do agente terminou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能体本轮任务已完成。"
           }
         }
       }
@@ -41609,6 +43246,40 @@
         }
       }
     },
+    "The notch opens for a moment or shows a card, with the sound you chose. Nothing reaches Notification Center.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O notch abre por um instante ou mostra um card, com o som escolhido. Nada vai para a Central de Notificações."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刘海短暂展开或显示卡片，并播放所选提示音。通知不会发送到通知中心。"
+          }
+        }
+      }
+    },
+    "The notch opens for a moment, with the session sound.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O notch abre por um instante, com o som de sessão."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刘海短暂展开，并播放会话提示音。"
+          }
+        }
+      }
+    },
     "The notch opens itself for a few seconds and sounds a chime when an agent stops working or starts waiting on you; a click jumps to it.": {
       "extractionState": "manual",
       "localizations": {
@@ -41963,6 +43634,16 @@
         }
       }
     },
+    "The percentage beside your Mac's notch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac 硬件刘海旁的百分比"
+          }
+        }
+      }
+    },
     "The percentage under each ring is now yours to choose": {
       "localizations": {
         "zh-Hans": {
@@ -42042,6 +43723,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Indikator tidak lagi menampilkan \"HTTP 0\" setiap kali dimuat ulang, dan menyatakannya dengan jelas saat QianwenAI menolak permintaan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新のたびにリングが「HTTP 0」と表示されることはなくなり、QianwenAIがリクエストを拒否した場合はそのことを明確に表示します。"
           }
         },
         "ko": {
@@ -42154,6 +43841,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Program yerel olarak tutulur, çünkü resmi bir API'den güvenilir şekilde okunamıyor. Aşağıdaki saatler UTC'dir; kart bir sonraki geçişi yerel saatinize çevirir."
+          }
+        }
+      }
+    },
+    "The settings arc and the dots come out of the notch and go back into it like goo, the settings button turns back into its arc, and joined to your Mac's notch the ends meet the screen's border exactly.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置弧线与六点手柄平滑伸出并收回，设置按钮收回时恢复为弧线；与 Mac 硬件刘海合并时，两端与屏幕边缘对齐。"
           }
         }
       }
@@ -42682,6 +44379,88 @@
         }
       }
     },
+    "This Apify token cannot read account limits — use one with full account access": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este token da Apify não consegue ler os limites da conta — use um com acesso completo à conta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce jeton Apify ne peut pas lire les limites du compte — utilisez-en un avec un accès complet au compte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Apify-Token kann die Kontolimits nicht lesen — verwende eines mit vollem Kontozugriff"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この Apify トークンではアカウントの上限を読み取れません。アカウント全体にアクセスできるトークンを使ってください"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Apify 令牌无法读取账户限额 — 请使用具有完整账户访问权限的令牌"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Apify 權杖無法讀取帳戶限額 — 請使用具有完整帳戶存取權的權杖"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот токен Apify не может прочитать лимиты аккаунта — используйте токен с полным доступом к аккаунту"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей токен Apify не може прочитати ліміти облікового запису — використайте токен із повним доступом"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 Apify 토큰은 계정 한도를 읽을 수 없습니다. 계정 전체 접근 권한이 있는 토큰을 사용하십시오"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Apify ini tidak dapat membaca batas akun — gunakan token dengan akses akun penuh"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu Apify belirteci hesap sınırlarını okuyamıyor — tam hesap erişimi olan bir belirteç kullanın"
+          }
+        }
+      }
+    },
+    "This Kilo account has no usage to read yet — top up credits or subscribe to a coding plan.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Kilo 账号暂无可读取的用量，请充值积分或订阅编程套餐。"
+          }
+        }
+      }
+    },
     "This Mac isn't on a local network": {
       "extractionState": "manual",
       "localizations": {
@@ -42731,6 +44510,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bu Mac yerel bir ağa bağlı değil"
+          }
+        }
+      }
+    },
+    "This is what one looks like.": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "É assim que uma aparece."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是一条通知示例。"
           }
         }
       }
@@ -43182,6 +44978,17 @@
         }
       }
     },
+    "Token field": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 字段"
+          }
+        }
+      }
+    },
     "Tokens": {
       "extractionState": "manual",
       "localizations": {
@@ -43282,6 +45089,17 @@
         }
       }
     },
+    "Tokens Since Server Start": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务启动后的 Token 数"
+          }
+        }
+      }
+    },
     "Tokens Used": {
       "extractionState": "manual",
       "localizations": {
@@ -43360,6 +45178,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "已用 Token（百万）"
+          }
+        }
+      }
+    },
+    "Tokens since server start": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务启动后的 Token 数"
           }
         }
       }
@@ -43653,6 +45482,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bahasa Tionghoa Tradisional di Mac dan Windows, dipilih otomatis di Taiwan dan Hong Kong, serta bahasa Tionghoa Sederhana dan bahasa Ukraina kini mencakup semua teks."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MacとWindowsで繁体字中国語に対応し、台湾と香港では自動的に選択されます。簡体字中国語とウクライナ語もすべての文字列をカバーしました。"
           }
         },
         "ko": {
@@ -44002,6 +45837,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "美元（$）"
+          }
+        }
+      }
+    },
+    "USD spend": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "美元支出"
           }
         }
       }
@@ -44431,6 +46277,16 @@
         }
       }
     },
+    "Updates ask first, in the notch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方更新先在刘海中确认"
+          }
+        }
+      }
+    },
     "Upload Custom Image...": {
       "extractionState": "manual",
       "localizations": {
@@ -44750,6 +46606,39 @@
         }
       }
     },
+    "Usage URL": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量地址"
+          }
+        }
+      }
+    },
+    "Usage URL: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量地址：%@"
+          }
+        }
+      }
+    },
+    "Usage authentication": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量身份验证"
+          }
+        }
+      }
+    },
     "Usage details": {
       "extractionState": "manual",
       "localizations": {
@@ -44805,6 +46694,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kullanım ayrıntıları"
+          }
+        }
+      }
+    },
+    "Usage preset": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量预设"
           }
         }
       }
@@ -44980,6 +46880,17 @@
         }
       }
     },
+    "Usage rides on the account Kilo CLI signs into — run `kilo` once and sign in, and the notch reads it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量来自 Kilo CLI 登录的账号。运行一次 kilo 并登录，刘海即可读取。"
+          }
+        }
+      }
+    },
     "Usage rides on the opencode-go key OpenCode stores on sign-in — connect Go inside OpenCode (`opencode auth login`) and the notch reads it.": {
       "extractionState": "manual",
       "localizations": {
@@ -45053,6 +46964,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kullanım, OpenCode'un giriş sırasında sakladığı opencode-go anahtarıyla okunur — OpenCode içinde Go'yu bağlayın (`opencode auth login`), çentik de onu okusun."
+          }
+        }
+      }
+    },
+    "Usage route unavailable or unreachable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量接口不可用或无法连接"
+          }
+        }
+      }
+    },
+    "Usage source": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量来源"
+          }
+        }
+      }
+    },
+    "Usage tracking": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量记录"
           }
         }
       }
@@ -46291,6 +48235,59 @@
         }
       }
     },
+    "Weekly ring % in the reading": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み値に週間のリングの % を表示"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "% тижневого кільця в показнику"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在读数中显示每周圆环的 %"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在讀數中顯示每週圓環的 %"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수치에 주간 링 % 표시"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ko'rsatkichda haftalik halqa %"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "% ring mingguan pada angka"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değerde haftalık halka %"
+          }
+        }
+      }
+    },
     "Weekly usage": {
       "extractionState": "manual",
       "localizations": {
@@ -46874,6 +48871,23 @@
         }
       }
     },
+    "Where to notify": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onde avisar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示位置"
+          }
+        }
+      }
+    },
     "Window %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -47162,6 +49176,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Windows 支持自动更新，菜单栏显示五小时额度，面板可随时收起。"
+          }
+        }
+      }
+    },
+    "With one ring and its percentage on, the figure sits on the other side of the camera housing, sized to fit.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅有一个圆环且开启百分比时，数字显示在摄像头刘海的另一侧，并自动适配空间。"
           }
         }
       }
@@ -48370,6 +50394,17 @@
         }
       }
     },
+    "llama.cpp": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "llama.cpp"
+          }
+        }
+      }
+    },
     "macOS may ask before Codenotch reads Claude Code's, Antigravity's or cursor-agent's saved login. Background refreshes never show that question; it appears only when you click Allow access…, and Deny stops Codenotch reading that login until you ask again.": {
       "extractionState": "manual",
       "localizations": {
@@ -49108,6 +51143,17 @@
         }
       }
     },
+    "vLLM": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vLLM"
+          }
+        }
+      }
+    },
     "via %@": {
       "extractionState": "manual",
       "localizations": {
@@ -49558,6 +51604,77 @@
         }
       }
     },
+    "~/.apify/auth.json is not readable — run apify login again": {
+      "extractionState": "manual",
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler ~/.apify/auth.json — execute apify login de novo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de lire ~/.apify/auth.json — relancez apify login"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.apify/auth.json ist nicht lesbar — führe apify login erneut aus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.apify/auth.json を読み取れません。apify login をもう一度実行してください"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取 ~/.apify/auth.json — 请重新运行 apify login"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法讀取 ~/.apify/auth.json — 請重新執行 apify login"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось прочитать ~/.apify/auth.json — запустите apify login ещё раз"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося прочитати ~/.apify/auth.json — запустіть apify login ще раз"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.apify/auth.json을 읽을 수 없습니다. apify login을 다시 실행하십시오"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.apify/auth.json tidak dapat dibaca — jalankan apify login lagi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.apify/auth.json okunamıyor — apify login komutunu yeniden çalıştırın"
+          }
+        }
+      }
+    },
     "Русский": {
       "extractionState": "manual",
       "localizations": {
@@ -49775,6 +51892,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bahasa Tionghoa Tradisional, dan semua bahasa kini lengkap"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繁体字中国語、そしてすべての言語に対応"
           }
         },
         "ko": {
