@@ -577,7 +577,15 @@
       }
     },
     "%@ credits left · %@ monthly + %@ extra": {
-      "extractionState": "manual"
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余 %@ 积分 · 月度 %@ + 额外 %@"
+          }
+        }
+      }
     },
     "%@ finished": {
       "extractionState": "manual",
@@ -1025,7 +1033,15 @@
       }
     },
     "%@ of %@ monthly credits left": {
-      "extractionState": "manual"
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月度积分剩余 %@，共 %@"
+          }
+        }
+      }
     },
     "%@ this cycle": {
       "extractionState": "manual",
@@ -1383,6 +1399,12 @@
             "state": "translated",
             "value": "%@ · %@/mês (catálogo)"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@/月（目录价格）"
+          }
         }
       }
     },
@@ -1458,6 +1480,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ · preço desconhecido, defina aqui"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 价格未知，请在此设置"
           }
         }
       }
@@ -1805,6 +1833,12 @@
             "state": "translated",
             "value": "%lld h"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 小时"
+          }
         }
       }
     },
@@ -1815,6 +1849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld h %lld min"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 小时 %lld 分钟"
           }
         }
       }
@@ -2135,6 +2175,12 @@
             "state": "translated",
             "value": "%lld modelos"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个模型"
+          }
         }
       }
     },
@@ -2145,6 +2191,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld planos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个套餐"
           }
         }
       }
@@ -2157,6 +2209,12 @@
             "state": "translated",
             "value": "%lld turnos"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 轮交互"
+          }
         }
       }
     },
@@ -2168,6 +2226,12 @@
             "state": "translated",
             "value": "%lld turnos · %lld arquivos"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 轮交互 · %lld 个文件"
+          }
         }
       }
     },
@@ -2178,6 +2242,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld turnos · %lld arquivos · %lld ignorados"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 轮交互 · %lld 个文件 · 跳过 %lld 项"
           }
         }
       }
@@ -2920,6 +2990,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 USD = %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 美元 = %@"
           }
         }
       }
@@ -4768,6 +4844,16 @@
         }
       }
     },
+    "A menu bar item as wide as what it says": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "菜单栏宽度随内容调整"
+          }
+        }
+      }
+    },
     "A months-old duplicate can no longer win": {
       "extractionState": "manual",
       "localizations": {
@@ -4829,6 +4915,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kredensial duplikat lama tidak lagi digunakan"
+          }
+        }
+      }
+    },
+    "A new Costs section reads the transcripts Claude Code and Codex already keep, and shows what each project spent of each login's allowance — by day, week and month, priced from your plan. Usage from before Codenotch was running is shown as other, never guessed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增“费用”页面，读取 Claude Code 和 Codex 已有的会话记录，按日、周、月展示各项目消耗的账号额度，并根据套餐价格估算费用。Codenotch 运行前的用量归为“其他”，不作推测。"
           }
         }
       }
@@ -5112,6 +5208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Batas yang dijeda ditampilkan sebagai dijeda"
+          }
+        }
+      }
+    },
+    "A preset for custom endpoints shows a RouteLLM account's monthly credits and any bought on top.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义接口新增预设，可显示 RouteLLM 账号的月度积分和额外购买的积分。"
           }
         }
       }
@@ -6807,6 +6913,12 @@
             "state": "translated",
             "value": "Chave de API (por token)"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API 密钥（按词元计费）"
+          }
         }
       }
     },
@@ -7006,7 +7118,25 @@
       }
     },
     "Abacus.AI": {
-      "extractionState": "manual"
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abacus.AI"
+          }
+        }
+      }
+    },
+    "Abacus.AI credits": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abacus.AI 积分"
+          }
+        }
+      }
     },
     "About %lld days": {
       "extractionState": "manual",
@@ -7393,6 +7523,12 @@
             "state": "translated",
             "value": "Tempo ativo"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活跃时长"
+          }
         }
       }
     },
@@ -7403,6 +7539,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Atividade"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动记录"
           }
         }
       }
@@ -7425,6 +7567,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Atividade…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动记录…"
           }
         }
       }
@@ -8065,6 +8213,12 @@
             "state": "translated",
             "value": "Tudo"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部"
+          }
         }
       }
     },
@@ -8075,6 +8229,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Todas as contas"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有账号"
           }
         }
       }
@@ -8240,6 +8400,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Todo o período"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部时间"
           }
         }
       }
@@ -10442,6 +10608,12 @@
             "state": "translated",
             "value": "Cobrança"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计费方式"
+          }
         }
       }
     },
@@ -12126,6 +12298,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "更清晰的玻璃效果"
+          }
+        }
+      }
+    },
+    "Clearer wording throughout.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整体措辞更加清晰。"
           }
         }
       }
@@ -15333,6 +15515,16 @@
         }
       }
     },
+    "Cost per project": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按项目统计费用"
+          }
+        }
+      }
+    },
     "Costs": {
       "extractionState": "manual",
       "localizations": {
@@ -15340,6 +15532,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Custos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "费用"
           }
         }
       }
@@ -16191,6 +16389,12 @@
             "state": "translated",
             "value": "Ciclo"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计费周期"
+          }
         }
       }
     },
@@ -16614,6 +16818,12 @@
             "state": "translated",
             "value": "Dia"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日"
+          }
         }
       }
     },
@@ -16624,6 +16834,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dia, semana e mês por login: sessões por projeto com o custo de cada uma."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按账号查看每日、每周和每月的项目会话及费用。"
           }
         }
       }
@@ -16904,6 +17120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Detectado a partir de cada login uma vez por dia. Uma semana do plano custa o preço ÷ 4,35; um projeto que usou 4% da cota semanal gastou 4% disso. Valores em %@, a moeda do seu Mac. Digite o valor que você paga de fato para substituir o preço de tabela."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天识别一次各账号的套餐。套餐每周费用按月费除以 4.35 估算；项目使用周额度的 4%，就分摊周费用的 4%。金额以 Mac 使用的货币 %@ 显示。可输入实际支付金额，替代目录价格。"
           }
         }
       }
@@ -18351,6 +18573,12 @@
             "state": "translated",
             "value": "Outros"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他位置"
+          }
         }
       }
     },
@@ -18634,6 +18862,12 @@
             "state": "translated",
             "value": "Custo estimado"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预估费用"
+          }
         }
       }
     },
@@ -18644,6 +18878,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Custo estimado por dia; passe o cursor numa barra para ver o tempo ativo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日预估费用；悬停柱形可查看活跃时长"
           }
         }
       }
@@ -18830,6 +19070,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Câmbio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "汇率"
           }
         }
       }
@@ -19189,6 +19435,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lebih sedikit dialog keychain untuk Claude dan Antigravity"
+          }
+        }
+      }
+    },
+    "Figures that keep up": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量数据及时更新"
           }
         }
       }
@@ -21426,6 +21682,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Como o valor é calculado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "费用计算方式"
           }
         }
       }
@@ -24013,6 +24275,12 @@
             "state": "translated",
             "value": "Carregando…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载中…"
+          }
         }
       }
     },
@@ -24848,6 +25116,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dados de mercado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "市场数据"
           }
         }
       }
@@ -25769,6 +26043,12 @@
             "state": "translated",
             "value": "Mês"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月"
+          }
         }
       }
     },
@@ -26121,6 +26401,12 @@
             "state": "translated",
             "value": "Plano mensal"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包月套餐"
+          }
         }
       }
     },
@@ -26131,6 +26417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preço mensal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月费"
           }
         }
       }
@@ -27187,6 +27479,16 @@
         }
       }
     },
+    "No OpenCode Go subscription on this account": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号未订阅 OpenCode Go"
+          }
+        }
+      }
+    },
     "No OpenCode Go subscription on this key": {
       "extractionState": "manual",
       "localizations": {
@@ -27434,6 +27736,16 @@
         }
       }
     },
+    "No more empty room kept for figures that are shorter than their longest; the width changes only when a figure gains or loses a character.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不再为较短的数值预留多余空间；仅在字符数量变化时调整宽度。"
+          }
+        }
+      }
+    },
     "No more transcript folders left behind": {
       "extractionState": "manual",
       "localizations": {
@@ -27635,6 +27947,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nenhuma sessão neste dia"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当天没有会话"
           }
         }
       }
@@ -27963,6 +28281,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ainda não obtido"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未获取"
           }
         }
       }
@@ -29510,6 +29834,12 @@
             "state": "translated",
             "value": "Abrir Atividade…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开活动记录…"
+          }
         }
       }
     },
@@ -29716,6 +30046,12 @@
             "state": "translated",
             "value": "Abrir catálogo"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开目录"
+          }
         }
       }
     },
@@ -29825,6 +30161,16 @@
         }
       }
     },
+    "OpenCode and Grok stay signed in": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenCode 和 Grok 保持登录"
+          }
+        }
+      }
+    },
     "OpenCode's Go plan is a new ring": {
       "extractionState": "manual",
       "localizations": {
@@ -29886,6 +30232,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Paket Go dari OpenCode hadir sebagai ring baru"
+          }
+        }
+      }
+    },
+    "OpenCode's sign-in is read from where recent versions keep it, and an expired Grok session is renewed rather than left at zero until the next login.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从新版存储位置读取 OpenCode 登录信息；Grok 会话过期后自动续期，不再一直显示为零直到重新登录。"
           }
         }
       }
@@ -30316,6 +30672,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Outros (%lld)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他（%lld）"
           }
         }
       }
@@ -31282,6 +31644,12 @@
             "state": "translated",
             "value": "Preços por token"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词元单价"
+          }
         }
       }
     },
@@ -31627,6 +31995,12 @@
             "state": "translated",
             "value": "Plano"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套餐"
+          }
         }
       }
     },
@@ -31637,6 +32011,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Catálogo de planos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套餐目录"
           }
         }
       }
@@ -31659,6 +32039,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Plano ainda não detectado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未识别套餐"
           }
         }
       }
@@ -31890,6 +32276,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bir halkanın üzerine gelmek ya da menü çubuğundaki menüyü açmak, limiti az önce önbelleğe alınmış bir okumadan değil, doğrudan sağlayıcıdan yeniden okur. Kapalıyken de bir bakış canlı bir okuma ister; önbellekteki okumayı yalnızca birkaç dakikadan yeniyse kabul eder."
+          }
+        }
+      }
+    },
+    "Polished Português do Brasil": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完善巴西葡萄牙语"
           }
         }
       }
@@ -33782,6 +34178,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Atualizado uma vez por dia, sem conta: câmbio do open.er-api.com, preços por token do OpenRouter. Os planos ficam no plans.json, editável."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天刷新一次，无需账号：汇率来自 open.er-api.com，词元单价来自 OpenRouter。套餐保存在 plans.json 中，可自行编辑。"
           }
         }
       }
@@ -37031,6 +37433,16 @@
         }
       }
     },
+    "See what each project spent of your allowance, and figures that keep up while you work.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看各项目消耗的额度，用量数据随工作进度及时更新。"
+          }
+        }
+      }
+    },
     "See your usage on your phone.": {
       "extractionState": "manual",
       "localizations": {
@@ -37304,6 +37716,12 @@
             "state": "translated",
             "value": "Sessão"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话"
+          }
         }
       }
     },
@@ -37432,6 +37850,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sessões"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话数"
           }
         }
       }
@@ -41675,7 +42099,15 @@
       }
     },
     "Subscription credits": {
-      "extractionState": "manual"
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订阅积分"
+          }
+        }
+      }
     },
     "Sun": {
       "extractionState": "manual",
@@ -45508,6 +45940,12 @@
             "state": "translated",
             "value": "Este mês"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月"
+          }
         }
       }
     },
@@ -45519,6 +45957,12 @@
             "state": "translated",
             "value": "Esta sessão"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话"
+          }
         }
       }
     },
@@ -45529,6 +45973,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esta semana"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周"
           }
         }
       }
@@ -46409,6 +46859,12 @@
             "state": "translated",
             "value": "Total"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合计"
+          }
         }
       }
     },
@@ -46578,6 +47034,12 @@
             "state": "translated",
             "value": "Turnos"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "交互轮数"
+          }
         }
       }
     },
@@ -46588,6 +47050,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Os turnos são lidos das transcrições que cada conta grava; os primeiros aparecem alguns minutos depois do início da sessão."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从各账号写入的会话记录中读取交互轮数；会话开始几分钟后才会显示首批记录。"
           }
         }
       }
@@ -48895,6 +49363,12 @@
             "state": "translated",
             "value": "Semana"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周"
+          }
         }
       }
     },
@@ -49530,6 +50004,12 @@
             "state": "translated",
             "value": "Quanto cada projeto gastou da franquia de cada login."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各项目消耗的账号额度。"
+          }
         }
       }
     },
@@ -49941,6 +50421,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "提示位置"
+          }
+        }
+      }
+    },
+    "While a session is working, the percentage is read fresh rather than from a cache up to half an hour old, and the countdown follows the clock to the second.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话运行期间读取最新百分比，不再使用最长半小时前的缓存；倒计时逐秒更新。"
           }
         }
       }
