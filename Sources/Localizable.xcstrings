@@ -17119,7 +17119,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Detectado a partir de cada login uma vez por dia. Uma semana do plano custa o preço ÷ 4,35; um projeto que usou 4% da cota semanal gastou 4% disso. Valores em %@, a moeda do seu Mac. Digite o valor que você paga de fato para substituir o preço de tabela."
+            "value": "Detectado a partir de cada login uma vez por dia. Uma semana do plano custa o preço ÷ 4,35; um projeto que usou 4%% da cota semanal gastou 4%% disso. Valores em %@, a moeda do seu Mac. Digite o valor que você paga de fato para substituir o preço de tabela."
           }
         },
         "zh-Hans": {
