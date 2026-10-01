@@ -121,6 +121,15 @@ final class CatalogFormatTests: XCTestCase {
         XCTAssertEqual(broken.sorted(), [], broken.sorted().joined(separator: "\n"))
     }
 
+    func testCostExplanationFormatsInSimplifiedChinese() {
+        let currencyName = "CNY"
+        let body = L10n.t("Detected from each login once a day. A week of the plan costs the price ÷ 4.35; a project that used 4% of the weekly allowance spent 4% of that. Amounts in \(currencyName), your Mac's currency. Type the amount you actually pay to override the list price.", locale: Locale(identifier: "zh-Hans"))
+        XCTAssertTrue(body.contains("每天识别"), body)
+        XCTAssertTrue(body.contains("CNY"), body)
+        XCTAssertTrue(body.contains("4%"), body)
+        XCTAssertFalse(body.contains("%%"), body)
+    }
+
     /// The crash itself, end to end, in the language that had it.
     func testTheEightyPercentAlertBodyFormatsInSimplifiedChinese() {
         let body = L10n.t("\(99)% of its \("weekly") limit used.", locale: Locale(identifier: "zh-Hans"))

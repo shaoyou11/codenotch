@@ -17113,7 +17113,7 @@
         }
       }
     },
-    "Detected from each login once a day. A week of the plan costs the price ÷ 4.35; a project that used 4% of the weekly allowance spent 4% of that. Amounts in %@, your Mac's currency. Type the amount you actually pay to override the list price.": {
+    "Detected from each login once a day. A week of the plan costs the price ÷ 4.35; a project that used 4%% of the weekly allowance spent 4%% of that. Amounts in %@, your Mac's currency. Type the amount you actually pay to override the list price.": {
       "extractionState": "manual",
       "localizations": {
         "pt-BR": {
