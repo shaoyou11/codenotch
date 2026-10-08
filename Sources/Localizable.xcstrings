@@ -472,7 +472,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 重置"
+            "value": "%@ 额度已重置"
           }
         },
         "zh-Hant": {
@@ -724,7 +724,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 已重置"
+            "value": "%@ 额度已重置"
           }
         },
         "zh-Hant": {
@@ -47974,7 +47974,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "额度重置或用尽时会告诉你，会说俄文，也能读取 Kimi。"
+            "value": "新增额度重置和耗尽提醒、俄语及 Kimi 支持。"
           }
         },
         "zh-Hant": {
