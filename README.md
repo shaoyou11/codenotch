@@ -98,13 +98,14 @@ wire-level details.
 | **LM Studio** | local runtime | Loaded models from LM Studio's own listing, what each one is doing (prompt, generating, queue) from its SDK socket, and speed, context use and tokens per day from its server log. No relay needed. |
 | **Grok** | official | The Grok CLI session in `~/.grok/auth.json`, against the same credits billing endpoint `/usage` uses. Once that session has expired it is renewed in memory from the file's own refresh token, the way the CLI would; the file itself is never written. |
 | **OpenCode** | official | The Go plan's official usage endpoint, with the `opencode-go` key OpenCode itself stores on sign-in. |
-| **Command Code** | official | The GOAT plan's `/alpha` billing endpoints, with the key the Command Code app writes to `~/.commandcode/auth.json`. |
+| **Command Code** | official | The GOAT plan's `/alpha` billing endpoints, with the key the Command Code app writes to `~/.commandcode/auth.json`. Further accounts are read from `~/.commandcode-<slug>` homes. |
 | **GitHub Copilot** | official | GitHub's Copilot quota endpoint, authenticated with the GitHub CLI session already on the Mac (`gh auth login`). |
 | **Kimi** | official | The Kimi Code CLI session in `~/.kimi-code/credentials/kimi-code.json`, against the same `/usages` endpoint the CLI's `/usage` asks. Shows the 5-hour rate window and the weekly quota. |
 | **Kiro** | official | The kiro-cli session already on this Mac, against the same `/usage` that command prints. Shows monthly credits. |
 | **Amp** | official subscription percentages; derived free-allowance percentage | The Amp CLI login in `~/.local/share/amp/secrets.json`, against Amp's `userDisplayBalanceInfo` endpoint. Shows Agent and Orb usage, or the Free allowance and replenishment rate. See [Amp details](docs/providers/amp.md). |
 | **Apify** | official | The `apify login` session already on this Mac (`~/.apify/auth.json`, or the token the CLI keeps in the keychain), or a token pasted in Settings or exported as `APIFY_TOKEN`, against the `/v2/users/me/limits` endpoint the Console's Billing page draws from. Shows this cycle's platform spend against the account's monthly usage limit. See [Apify details](docs/providers/apify.md). |
 | **Kilo** | official | The Kilo CLI's own sign-in (`~/.local/share/kilo/auth.json`), against the same coding-plan quota and balance endpoints the CLI asks. Shows the plan's quota windows and the credit balance. |
+| **Custom endpoints** | provider-reported or manual | Configure OpenAI-compatible, Anthropic Messages, or Google Gemini model discovery. Usage can be entered manually or read from a configured JSON endpoint; successful readings are kept locally as a daily hover graph. |
 
 Most providers borrow a credential or session from a tool already on your Mac.
 DeepSeek is the explicit browser-login exception: it never reads a browser's
@@ -195,6 +196,23 @@ or writes Codex credentials. If a login expires, use that profile's Codex CLI
 to renew it. Directories outside the `~/.codex-<slug>` convention are not
 discovered automatically, and adding a profile requires restarting Codenotch,
 just as it does for Claude.
+
+Command Code has no setting for a second configuration directory: it keeps its
+login in `$HOME/.commandcode/auth.json`. A second account therefore lives in a
+second home. `~/.commandcode` stays the **Command Code** ring, and each
+`~/.commandcode-<slug>` directory adds a **Command Code (slug)** ring with its
+own limits and Settings row:
+
+```sh
+mkdir -p "$HOME/.commandcode-work"
+HOME="$HOME/.commandcode-work" commandcode login
+```
+
+Choose the second account during sign-in, then restart Codenotch. The login
+lands in `~/.commandcode-work/.commandcode/auth.json`, and that is the file
+Codenotch reads; an `auth.json` placed directly in `~/.commandcode-work` is read
+too. `COMMAND_CODE_API_KEY` names one account, so it applies to the default
+ring only. Codenotch never copies, refreshes or writes these logins.
 
 ## When a session ends
 

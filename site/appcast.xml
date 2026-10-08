@@ -3,22 +3,20 @@
     <channel>
         <title>Codenotch</title>
         <item>
-            <title>1.20.0</title>
-            <pubDate>Wed, 30 Sep 2026 10:54:07 +0700</pubDate>
-            <sparkle:version>22</sparkle:version>
-            <sparkle:shortVersionString>1.20.0</sparkle:shortVersionString>
+            <title>1.22.0</title>
+            <pubDate>Tue, 06 Oct 2026 15:18:27 +0700</pubDate>
+            <sparkle:version>24</sparkle:version>
+            <sparkle:shortVersionString>1.22.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p>See what each project spent of your allowance, and figures that keep up while you work.</p>
+            <description><![CDATA[<p>Qoder's credits, more than one Command Code account, and DeepSeek's balance from the wallet that has one.</p>
 <ul>
-<li><b>Cost per project.</b> A new Costs section shows what each project spent of each login's allowance, by day, week and month.</li>
-<li><b>Figures that keep up:</b> read fresh while a session works, with a countdown that follows the clock.</li>
-<li><b>A menu bar item as wide as what it says.</b></li>
-<li><b>Abacus.AI credits</b> for custom endpoints.</li>
-<li><b>OpenCode and Grok stay signed in.</b></li>
-<li><b>Polished Português do Brasil.</b></li>
+<li><b>Qoder</b>: a ring for your credits, international or China mainland.</li>
+<li><b>More than one Command Code account</b>, each its own ring.</li>
+<li><b>DeepSeek's balance from the funded wallet.</b></li>
+<li><b>Українська</b>, up to date.</li>
 </ul>
 ]]></description>
-            <enclosure url="https://hivinz.com/Codenotch-1.20.0.dmg" length="12388255" type="application/octet-stream" sparkle:edSignature="zsi0dgSbvq2ghgWz5Ojh9CSikhKW9mdxHhzl1B4CgHWbZViD9dZzgHEKtHcAbatKZXxAqw4bhobamTTLfuSPAg=="/>
+            <enclosure url="https://hivinz.com/Codenotch-1.22.0.dmg" length="12539050" type="application/octet-stream" sparkle:edSignature="LQKgAU5TlcmJscVui3QIJGTLUzUtQQSQ/YqqMT2IKSsdvjEp1hHgIQ21phRyZe8WGL74Dhi5o3kdqBPNAm6ZCQ=="/>
         </item>
     </channel>
 </rss>

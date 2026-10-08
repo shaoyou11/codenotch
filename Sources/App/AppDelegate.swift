@@ -85,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let claudeProfiles = ClaudeProfile.discover()
     private let codexProfiles = CodexProfile.discover()
     private let antigravityProfiles = AntigravityProfile.discover()
+    private let commandCodeProfiles = CommandCodeProfile.discover()
     /// Held as concrete providers, not just handed to the store: the token
     /// refresher needs to ask one of them how long its token has left, and the
     /// protocol has no business carrying that.
@@ -131,6 +132,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // this app's own WKWebView. Unlike MiniMax's sheet below, its ring
             // *is* this adapter, so it belongs in `webProviders` — exactly once.
             let qianwen = WebSessionProvider(site: Sites.qianwen)
+            let qoder = WebSessionProvider(site: Sites.qoder(region: preferences.qoderRegion))
             // MiniMax's ring is MiniMaxProvider. The sheet is the same kind of
             // WebView DeepSeek uses, but it must not join `webProviders`:
             // those are appended to `allProviders`, and two adapters with
@@ -139,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Settings changes it, because the fetch URLs live on the site.
             let miniMaxWeb = WebSessionProvider(site: Sites.minimax(region: preferences.minimaxRegion))
             self.miniMaxWeb = miniMaxWeb
-            let webProviders: [WebSessionProvider] = [deepSeek, qianwen]
+            let webProviders: [WebSessionProvider] = [deepSeek, qianwen, qoder]
             // Account login stays in Settings → Accounts, separate from refresh.
 
             // Cursor reads the editor's session, or cursor-agent's if the
@@ -168,8 +170,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 + [CursorLocalProvider()]
                 + codexProfiles.map { CodexLocalProvider(profile: $0) }
                 + antigravityProfiles.map { AntigravityProvider(profile: $0) }
-                + [GLMProvider(), MiniMaxProvider(web: miniMaxWeb), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider(),
-                   CommandCodeProvider(), GitHubCopilotProvider(), KimiProvider(), KiroProvider(), AmpProvider(),
+                + [GLMProvider(), MiniMaxProvider(web: miniMaxWeb), GrokLocalProvider(), DevinLocalProvider(), OpenCodeProvider()]
+                + commandCodeProfiles.map { CommandCodeProvider(profile: $0) }
+                + [GitHubCopilotProvider(), KimiProvider(), KiroProvider(), AmpProvider(),
                    ApifyProvider(), KiloProvider(),
                    OllamaLocalProvider(endpoint: URL(string: preferences.ollamaEndpoint)!),
                    LMStudioLocalProvider(endpoint: URL(string: preferences.lmstudioEndpoint)!),
@@ -195,7 +198,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferences.$customEndpoints
                 .map { endpoints in
                     endpoints.filter(\.isEnabled).map {
-                        "\($0.id):\($0.name):\($0.baseURL):\($0.trackingUnit.rawValue):\($0.monthlyBudgetUSD ?? -1):\($0.currentSpendUSD ?? -1):\($0.monthlyBudgetTokensM ?? -1):\($0.currentTokensUsedM ?? -1):\($0.displayRemaining):\($0.showCurrency):\($0.iconPreset ?? ""):\($0.customIconFilename ?? ""):\($0.accentColorHex):\($0.selectedModel):\($0.usageSource.rawValue):\($0.usagePreset?.rawValue ?? ""):\($0.usageURL ?? ""):\($0.usageRecordsPath ?? ""):\($0.usageModelField ?? ""):\($0.usageTokenField ?? ""):\($0.usageModelFilter ?? ""):\($0.usageAuthentication.rawValue)"
+                        "\($0.id):\($0.name):\($0.baseURL):\($0.apiType.rawValue):\($0.trackingUnit.rawValue):\($0.monthlyBudgetUSD ?? -1):\($0.currentSpendUSD ?? -1):\($0.monthlyBudgetTokensM ?? -1):\($0.currentTokensUsedM ?? -1):\($0.displayRemaining):\($0.showCurrency):\($0.iconPreset ?? ""):\($0.customIconFilename ?? ""):\($0.accentColorHex):\($0.selectedModel):\($0.usageSource.rawValue):\($0.usagePreset?.rawValue ?? ""):\($0.usageURL ?? ""):\($0.usageRecordsPath ?? ""):\($0.usageModelField ?? ""):\($0.usageTokenField ?? ""):\($0.usageModelFilter ?? ""):\($0.usageAuthentication.rawValue)"
                     }
                 }
                 .removeDuplicates()
@@ -213,6 +216,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             qianwen.onAuthenticated = { [weak store] in
                 store?.providerAuthenticationChanged(providerID: "qianwenai")
+            }
+            qoder.onAuthenticated = { [weak store] in
+                store?.providerAuthenticationChanged(providerID: "qoder")
             }
             miniMaxWeb.onAuthenticated = { [weak store] in
                 store?.providerAuthenticationChanged(providerID: "minimax")
@@ -509,6 +515,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferences.$deepSeekPricingSchedule
                 .receive(on: RunLoop.main)
                 .sink { [weak fleet] in fleet?.apply(deepSeekPricingSchedule: $0) }
+                .store(in: &cancellables)
+
+            preferences.$qoderRegion
+                .dropFirst()
+                .removeDuplicates()
+                .receive(on: RunLoop.main)
+                .sink { [weak qoder, weak store] region in
+                    guard let qoder else { return }
+                    store?.providerContextChanged(providerID: "qoder") {
+                        qoder.apply(site: Sites.qoder(region: region))
+                    }
+                }
                 .store(in: &cancellables)
 
             preferences.$minimaxRegion
@@ -1247,6 +1265,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         store?.stop()
         activityCoordinator?.stop()
         notchFleet?.stop()
+        // A language server this app started, if any. Left running it would
+        // outlive the reason it exists and keep answering on loopback to
+        // nothing.
+        AntigravityBridge.owned.stop()
         Task { await phoneLinkServer?.stop() }
     }
 }
