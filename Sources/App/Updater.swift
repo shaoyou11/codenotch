@@ -68,19 +68,40 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
     /// Mirrors the preference, so switching it off really does stop the checks
     /// rather than only hiding them. Never downloads unasked: what is found is
     /// offered in the notch first.
-    var automatic: Bool { get { false } set {} }
+    var automatic: Bool {
+        get { sparkle.automaticallyChecksForUpdates }
+        set { sparkle.automaticallyChecksForUpdates = newValue }
+    }
 
     var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
     }
 
-    var lastChecked: Date? { nil }
+    var lastChecked: Date? { sparkle.lastUpdateCheckDate }
 
     /// Starts the scheduled checks, and checks now — so an update out since it
     /// last ran is offered as it launches. Deliberately not in `init`: the
     /// updater is lazy so that `self` exists before it is handed over as the
     /// delegate.
-    func start() {}
+    func start() {
+        guard !started else { return }
+        guard Self.isPersonalFeed(Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String) else {
+            outcome = .failed("更新源配置错误，已停止检查。")
+            return
+        }
+        started = true
+        sparkle.automaticallyDownloadsUpdates = false
+        do {
+            try sparkle.start()
+        } catch {
+            outcome = .failed(error.localizedDescription)
+            return
+        }
+        if sparkle.automaticallyChecksForUpdates {
+            sparkle.checkForUpdatesInBackground()
+        }
+    }
+    private var started = false
 
     // MARK: - The prompt in the notch
 
@@ -201,7 +222,19 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
     /// This one *does* show UI — it was asked for, so silence would read as a
     /// broken button.
     func checkNow() {
-        outcome = .failed("请到个人仓库 Releases 下载 CodenotchT 更新。")
+        start()
+        guard started else { return }
+        outcome = .checking
+        sparkle.checkForUpdates()
+        // Never left on "Checking…". Sparkle reports every ending it knows
+        // about below, but a copy whose updater cannot reach its own helper —
+        // a damaged install, a helper macOS blocked — reports nothing at all.
+        let started = checkGeneration &+ 1
+        checkGeneration = started
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.checkTimeout) { [weak self] in
+            guard let self, self.checkGeneration == started else { return }
+            self.outcome = Self.outcome(afterTimeoutFrom: self.outcome)
+        }
     }
 
     /// How long a check may stay unanswered before it is called stalled.
@@ -211,7 +244,7 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
     /// Pure, so both endings can be tested without Sparkle.
     static func outcome(afterTimeoutFrom current: Outcome) -> Outcome {
         guard current == .checking else { return current }
-        return .failed(L10n.t("The update check didn't finish. Try again, or download the latest Codenotch from hivinz.com."))
+        return .failed("更新检查未完成，请重试，或从个人仓库下载安装包。")
     }
 
     /// A cycle that ended without saying found or not found — the person
@@ -221,6 +254,16 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
         guard current == .checking else { return current }
         guard let errorCode else { return .idle }
         return isUnreachable(errorCode) ? .unreachable : .idle
+    }
+
+    nonisolated static let personalFeed = "https://github.com/shaoyou11/codenotch/releases/latest/download/appcast.xml"
+
+    nonisolated static func isPersonalFeed(_ value: String?) -> Bool {
+        value == personalFeed
+    }
+
+    nonisolated func feedURLString(for updater: SPUUpdater) -> String? {
+        Self.personalFeed
     }
 
     // MARK: - SPUUpdaterDelegate

@@ -6,6 +6,13 @@ import XCTest
 /// ends any other way, or never reports back, still lands somewhere.
 @MainActor
 final class UpdaterOutcomeTests: XCTestCase {
+    func testUpdateSourceIsRestrictedToThePersonalRepository() {
+        XCTAssertTrue(Updater.isPersonalFeed(Updater.personalFeed))
+        XCTAssertFalse(Updater.isPersonalFeed("https://hivinz.com/appcast.xml"))
+        XCTAssertFalse(Updater.isPersonalFeed(nil))
+        XCTAssertFalse(Updater.isPersonalFeed(Updater.personalFeed + ".evil"))
+    }
+
     func testACycleThatEndsSilentlyClearsChecking() {
         XCTAssertEqual(Updater.outcome(afterCycleFrom: .checking, errorCode: nil), .idle)
     }
@@ -25,7 +32,7 @@ final class UpdaterOutcomeTests: XCTestCase {
         guard case .failed(let why) = Updater.outcome(afterTimeoutFrom: .checking) else {
             return XCTFail("a stalled check must not stay on Checking…")
         }
-        XCTAssertTrue(why.contains("hivinz.com"), why)
+        XCTAssertTrue(why.contains("个人仓库"), why)
         XCTAssertEqual(Updater.outcome(afterTimeoutFrom: .upToDate(Date(timeIntervalSince1970: 1))),
                        .upToDate(Date(timeIntervalSince1970: 1)))
     }

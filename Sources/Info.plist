@@ -54,11 +54,11 @@
 	<key>SUAutomaticallyUpdate</key>
 	<false/>
 	<key>SUEnableAutomaticChecks</key>
-	<false/>
+	<true/>
 	<key>SUFeedURL</key>
-	<string>https://hivinz.com/appcast.xml</string>
+	<string>https://github.com/shaoyou11/codenotch/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
-	<string>rmUfT5r49nR+3HdkbR5/YYLghfnAi6L49eOk3sIegSk=</string>
+	<string>FzRtMsJAgYL5F5mhUl3+AacP0EtRfnugSsxzXHfqLmA=</string>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 </dict>

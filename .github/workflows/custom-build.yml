@@ -42,7 +42,7 @@ jobs:
           [[ "$version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]
           commit=$(git rev-parse HEAD)
           tag="codenotcht-v${version}-${commit:0:12}"
-          gh release list --limit 1000 --json tagName,isDraft > "$RUNNER_TEMP/releases.json"
+          gh release list --limit 1000 --json tagName,isDraft,name > "$RUNNER_TEMP/releases.json"
           exists=$(jq --arg tag "$tag" '[.[] | select(.tagName == $tag and .isDraft == false)] | length' "$RUNNER_TEMP/releases.json")
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -51,6 +51,28 @@ jobs:
             echo 'needed=false' >> "$GITHUB_OUTPUT"
             echo '没有新的代码需要发布。' >> "$GITHUB_STEP_SUMMARY"
           else
+            python3 - <<'PYBUILD'
+          import json, os, re
+          from pathlib import Path
+          releases = json.loads(Path(os.environ['RUNNER_TEMP'], 'releases.json').read_text())
+          builds = [int(m.group(1)) for r in releases if not r['isDraft']
+                    for m in [re.search(r'构建 (\d+)', r.get('name', ''))] if m]
+          p = Path('project.yml')
+          s = p.read_text()
+          current = int(re.search(r'CURRENT_PROJECT_VERSION: "(\d+)"', s).group(1))
+          number = max(current, max(builds, default=0) + 1)
+          p.write_text(re.sub(r'CURRENT_PROJECT_VERSION: "\d+"', f'CURRENT_PROJECT_VERSION: "{number}"', s))
+          PYBUILD
+            if ! git diff --quiet -- project.yml; then
+              git config user.name shaoyou11
+              git config user.email shaoyou11@users.noreply.github.com
+              git add project.yml
+              git commit -m '发布：递增个人版在线更新构建号'
+              commit=$(git rev-parse HEAD)
+              tag="codenotcht-v${version}-${commit:0:12}"
+              echo "tag=$tag" >> "$GITHUB_OUTPUT"
+              echo "commit=$commit" >> "$GITHUB_OUTPUT"
+            fi
             echo 'needed=true' >> "$GITHUB_OUTPUT"
           fi
       - name: Install XcodeGen
@@ -62,11 +84,31 @@ jobs:
       - name: Build CodenotchT app
         if: steps.version.outputs.needed == 'true'
         run: bash Scripts/custom-build.sh
+      - name: 签名并生成个人版更新清单
+        if: steps.version.outputs.needed == 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.CODENOTCHT_SPARKLE_PRIVATE_KEY }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$UPDATE_SIGNING_KEY"
+          signer=build/CustomDerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update
+          archive="build/custom/CodenotchT-${RELEASE_VERSION}.zip"
+          printf '%s' "$UPDATE_SIGNING_KEY" | "$signer" --ed-key-file - -p "$archive" > "$RUNNER_TEMP/update.signature"
+          signature=$(cat "$RUNNER_TEMP/update.signature")
+          printf '%s' "$UPDATE_SIGNING_KEY" | "$signer" --ed-key-file - --verify "$archive" "$signature"
+          python3 Scripts/personal-appcast.py "$archive" \
+            build/CustomDerivedData/Build/Products/Release/CodenotchT.app/Contents/Info.plist \
+            "$RELEASE_TAG" "$RUNNER_TEMP/update.signature" build/custom/appcast.xml
       - uses: actions/upload-artifact@v4
         if: steps.version.outputs.needed == 'true'
         with:
           name: ${{ steps.version.outputs.tag }}
-          path: build/custom/CodenotchT-*.zip
+          path: |
+            build/custom/CodenotchT-*.zip
+            build/custom/appcast.xml
           if-no-files-found: error
           retention-days: 30
       - name: 保存验证通过的同步结果
@@ -96,7 +138,7 @@ jobs:
 
           下载 ZIP，解压后将 CodenotchT.app 放入「应用程序」。替换前请先退出应用并备份旧版。本机无需 Xcode 或 XcodeGen。
 
-          使用临时签名，未做 Apple 公证；应用内自动更新保持关闭。
+          使用临时代码签名，未做 Apple 公证；更新包另有独立 Ed25519 签名。构建 38 起支持应用内检查个人版更新，确认后下载并安装。
           EOF
           # 先建草稿，资产全部上传成功后才公开；中断后允许重跑。
           draft=$(jq --arg tag "$RELEASE_TAG" '[.[] | select(.tagName == $tag and .isDraft == true)] | length' "$RUNNER_TEMP/releases.json")
@@ -105,7 +147,7 @@ jobs:
               --title "CodenotchT ${RELEASE_VERSION} · 构建 ${build_number} · ${RELEASE_COMMIT:0:7}" \
               --notes-file "$RUNNER_TEMP/release-notes.md"
           fi
-          gh release upload "$RELEASE_TAG" build/custom/CodenotchT-*.zip --clobber
+          gh release upload "$RELEASE_TAG" build/custom/CodenotchT-*.zip build/custom/appcast.xml --clobber
           gh release edit "$RELEASE_TAG" --draft=false --latest \
             --title "CodenotchT ${RELEASE_VERSION} · 构建 ${build_number} · ${RELEASE_COMMIT:0:7}"
           echo "已发布 ${RELEASE_TAG}；请到 Releases 下载安装。" >> "$GITHUB_STEP_SUMMARY"

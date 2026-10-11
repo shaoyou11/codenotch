@@ -1351,11 +1351,10 @@ struct SettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Toggle("官方自动更新（定制版已关闭）", isOn: Binding(
+                Toggle("自动检查个人版更新", isOn: Binding(
                     get: { updater.automatic },
                     set: { updater.automatic = $0 }
                 ))
-                .disabled(true)
 
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     // Disclosed rather than merely silent. An app that updates
@@ -1364,7 +1363,7 @@ struct SettingsView: View {
                     // a way to switch it off, is the difference between a
                     // background updater and something that looks like it is
                     // hiding.
-                    Text("CodenotchT \(updater.currentVersion)，更新请下载个人仓库 Releases 安装包。")
+                    Text("CodenotchT \(updater.currentVersion)（构建 \(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?")）。仅检查个人版更新，确认后下载并安装。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
