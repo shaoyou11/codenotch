@@ -60984,6 +60984,633 @@
           }
         }
       }
+    },
+    "Weekly limit reached": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到每周额度"
+          }
+        }
+      }
+    },
+    "Sign in to Grok Bot in the app": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在应用中登录 Grok Bot"
+          }
+        }
+      }
+    },
+    "Start oMLX's server to monitor your local models": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动 oMLX 服务以监测本地模型"
+          }
+        }
+      }
+    },
+    "Grok Bot has nothing metered on this account yet": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号尚无 Grok Bot 用量记录"
+          }
+        }
+      }
+    },
+    "Run `muse login` in Terminal — it signs in through your browser, and the notch reads its login and its logs.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在终端运行 `muse login`，通过浏览器登录。刘海会读取其登录信息和日志。"
+          }
+        }
+      }
+    },
+    "5-hour": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 小时"
+          }
+        }
+      }
+    },
+    "Tokens today": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日令牌"
+          }
+        }
+      }
+    },
+    "Requests today": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日请求"
+          }
+        }
+      }
+    },
+    "Reasoning share": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推理占比"
+          }
+        }
+      }
+    },
+    "Open oMLX": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 oMLX"
+          }
+        }
+      }
+    },
+    "Checking oMLX…": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查 oMLX…"
+          }
+        }
+      }
+    },
+    "Connecting to oMLX…": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在连接 oMLX…"
+          }
+        }
+      }
+    },
+    "Loaded models appear in Accounts → Connected and are checked every second. Embedding, reranker and audio models are not shown. The API key is read from ~/.omlx/settings.json (or OMLX_API_KEY); speed and tokens come from ~/.omlx/logs.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加载的模型会显示在“账号 → 已连接”中，每秒检查一次。不显示嵌入、重排序和音频模型。API 密钥从 ~/.omlx/settings.json 或 OMLX_API_KEY 读取；速度和令牌数来自 ~/.omlx/logs。"
+          }
+        }
+      }
+    },
+    "Show what is left instead of what is used, a Dock style, oMLX, and Claude and Codex on your own servers.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增剩余额度显示、Dock 外观、oMLX，以及自有服务器上的 Claude 和 Codex 支持。"
+          }
+        }
+      }
+    },
+    "Show remaining instead of used": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示剩余额度"
+          }
+        }
+      }
+    },
+    "The rings and figures count down what is left. Rings can shut when a window is spent, and order themselves by what remains.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圆环和数字显示剩余额度。额度耗尽时可关闭圆环，并可按剩余额度自动排序。"
+          }
+        }
+      }
+    },
+    "Remote hosts and Muse": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "远程主机与 Muse"
+          }
+        }
+      }
+    },
+    "Claude and Codex accounts on servers you reach over SSH, and Muse, each with a ring of its own.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持通过 SSH 连接服务器上的 Claude 和 Codex 账号，并支持 Muse；各自显示独立圆环。"
+          }
+        }
+      }
+    },
+    "A Dock style": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock 外观"
+          }
+        }
+      }
+    },
+    "The notch floats just clear of the screen's edge as a slab of glass.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刘海以玻璃面板悬浮在屏幕边缘内侧，留出少量间距。"
+          }
+        }
+      }
+    },
+    "oMLX": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "oMLX"
+          }
+        }
+      }
+    },
+    "The models oMLX has loaded, what they are doing, their speed, how full the context is, and a daily token count.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看 oMLX 已加载的模型、工作状态、速度、上下文使用率和每日令牌数。"
+          }
+        }
+      }
+    },
+    "Breathing working indicator": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作状态呼吸指示"
+          }
+        }
+      }
+    },
+    "Optional: a disc in the provider's colour breathes while a session works, in place of the spinning arc.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选：会话工作时，用服务品牌色的呼吸圆盘替代旋转圆弧。"
+          }
+        }
+      }
+    },
+    "Enterprise spend forecast": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "企业费用预测"
+          }
+        }
+      }
+    },
+    "The spend card says whether the monthly limit lasts until it resets.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "费用卡片会预测每月额度能否用到下次重置。"
+          }
+        }
+      }
+    },
+    "More": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他更新"
+          }
+        }
+      }
+    },
+    "OpenCode activity on Custom Endpoints, Grok Bot's weekly usage, DeepSeek off-peak all day on Chinese public holidays, gentler Claude retries when rate limited, notches back on external displays after sleep, and Claude sessions nobody has open left out.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增自定义端点的 OpenCode 活动和 Grok Bot 每周用量；DeepSeek 在中国法定节假日全天按闲时计价；优化 Claude 限流重试；修复外接显示器休眠唤醒后刘海不显示，并排除未打开的 Claude 会话。"
+          }
+        }
+      }
+    },
+    "Remote Hosts": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "远程主机"
+          }
+        }
+      }
+    },
+    "Claude and Codex accounts on servers you reach over SSH.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过 SSH 连接服务器上的 Claude 和 Codex 账号。"
+          }
+        }
+      }
+    },
+    "Add Server": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加服务器"
+          }
+        }
+      }
+    },
+    "SSH key auth must already work — polls run on a timer and never stop at a password prompt.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先配置可用的 SSH 密钥认证。定时检查不会停下来等待输入密码。"
+          }
+        }
+      }
+    },
+    "No servers yet. Add one above and its ring appears in the notch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未添加服务器。在上方添加后，刘海中会显示其圆环。"
+          }
+        }
+      }
+    },
+    "Account": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号"
+          }
+        }
+      }
+    },
+    "Work GPU": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作用 GPU"
+          }
+        }
+      }
+    },
+    "Host": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主机"
+          }
+        }
+      }
+    },
+    "gpu.example.com": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gpu.example.com"
+          }
+        }
+      }
+    },
+    "User": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用户"
+          }
+        }
+      }
+    },
+    "armin": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "armin"
+          }
+        }
+      }
+    },
+    "Port": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "端口"
+          }
+        }
+      }
+    },
+    "Identity file": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私钥文件"
+          }
+        }
+      }
+    },
+    "Optional — ~/.ssh/id_ed25519": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选 — ~/.ssh/id_ed25519"
+          }
+        }
+      }
+    },
+    "Probing the server…": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在探测服务器…"
+          }
+        }
+      }
+    },
+    "Needs a host and user": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写主机和用户"
+          }
+        }
+      }
+    },
+    "Enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用"
+          }
+        }
+      }
+    },
+    "Models loaded in oMLX on this Mac.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上 oMLX 已加载的模型。"
+          }
+        }
+      }
+    },
+    "Auto-order based on remaining usage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按剩余额度自动排序"
+          }
+        }
+      }
+    },
+    "The notch sorts rings by what is left of the window that leads each ring, most first. A high number that cannot be spent yet sinks below usable accounts but stays above empty ones. This list keeps your manual order, which breaks ties.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刘海按各圆环主额度窗口的剩余额度从高到低排序。暂时无法使用的额度排在可用账号之后、空账号之前。本列表保留手动顺序，剩余额度相同时按此顺序排列。"
+          }
+        }
+      }
+    },
+    "Auto-order is on: the notch sorts these by remaining usage. Dragging still sets the order ties break in.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已开启自动排序：刘海按剩余额度排列。拖动仍可设置剩余额度相同时的顺序。"
+          }
+        }
+      }
+    },
+    "The notch reads what is left — the figures, the rings' sweep, and the card's bars and percentages. Colours still judge by what is spent, so a nearly empty ring still reads red.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数字、圆环进度和卡片中的进度条及百分比均显示剩余额度。颜色仍按已用额度判断，因此剩余额度很少时仍显示红色。"
+          }
+        }
+      }
+    },
+    "Shut rings when a window is spent": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "额度耗尽时关闭圆环"
+          }
+        }
+      }
+    },
+    "When the 5-hour or the weekly window is spent, both rings say shut even where the other window still has room — dark grey where the notch reads what is left, red where it reads what is spent.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 小时或每周额度耗尽时，即使另一个额度窗口仍有余量，两个圆环也会同时关闭。显示剩余额度时呈深灰色，显示已用额度时呈红色。"
+          }
+        }
+      }
+    },
+    "Hide accounts with nothing left to spend": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏额度已耗尽的账号"
+          }
+        }
+      }
+    },
+    "When the 5-hour or the weekly window is at 0% remaining, the account leaves the notch until a window resets. Stale readings stay: an old number is not proof the account is empty.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 小时或每周剩余额度为 0% 时，账号从刘海中隐藏，直到额度窗口重置。过期读数仍保留，因为旧数字不能证明额度已耗尽。"
+          }
+        }
+      }
+    },
+    "Codenotch reads usage from tools already signed in on this Mac — it never asks for your password. Install and sign in to any of Claude Code (the terminal tool, not the Claude app), Cursor (the editor or cursor-agent), Codex, Antigravity, GLM, Grok, OpenCode, Command Code, GitHub Copilot, Kimi Code, Kiro, Amp, Apify, the Kilo CLI, Muse or a Gemini API key (via Gemini CLI, OpenCode or Hermes), and its ring appears in the notch.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codenotch 从此 Mac 上已登录的工具读取用量，不会索取密码。安装并登录 Claude Code（终端工具）、Cursor（编辑器或 cursor-agent）、Codex、Antigravity、GLM、Grok、OpenCode、Command Code、GitHub Copilot、Kimi Code、Kiro、Amp、Apify、Kilo CLI、Muse，或通过 Gemini CLI、OpenCode、Hermes 配置 Gemini API 密钥后，刘海中会显示对应圆环。"
+          }
+        }
+      }
+    },
+    "macOS may ask before Codenotch reads Claude Code's, Antigravity's, cursor-agent's or Muse's saved login. Background refreshes never show that question; it appears only when you click Allow access…, and Deny stops Codenotch reading that login until you ask again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取 Claude Code、Antigravity、cursor-agent 或 Muse 保存的登录信息前，macOS 可能会请求授权。后台刷新不会弹出提示；只有点击“允许访问…”后才会询问。选择拒绝后，将停止读取该登录信息，直到你再次请求访问。"
+          }
+        }
+      }
+    },
+    "Verified · %@ · token found (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已验证 · %@ · 已找到令牌（%@）"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -20,6 +20,13 @@ final class LocalizationTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 1_787_900_000)
     private let resetNow = Date(timeIntervalSince1970: 1_700_000_000)
 
+    func testVersion123AppearanceAndRemoteHostTranslations() {
+        XCTAssertEqual(L10n.t("Show remaining instead of used", locale: zhHans), "显示剩余额度")
+        XCTAssertEqual(L10n.t("Remote Hosts", locale: zhHans), "远程主机")
+        XCTAssertEqual(L10n.t("Breathing working indicator", locale: zhHans), "工作状态呼吸指示")
+        XCTAssertEqual(L10n.t("Show what is left instead of what is used, a Dock style, oMLX, and Claude and Codex on your own servers.", locale: zhHans), "新增剩余额度显示、Dock 外观、oMLX，以及自有服务器上的 Claude 和 Codex 支持。")
+    }
+
     func testCustomStatisticsTranslations() {
         XCTAssertEqual(L10n.t("Alert when \("Codex") crosses 80% and 100% of a limit.", locale: zhHans), "当 Codex 的额度越过 80% 和 100% 时提醒。")
         let value = "20.2"
