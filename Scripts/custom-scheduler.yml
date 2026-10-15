@@ -1,0 +1,21 @@
+name: CodenotchT 自动同步与发布
+on:
+  schedule:
+    - cron: '23 */2 * * *'
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: read
+concurrency:
+  group: codenotcht-scheduler
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    if: github.repository == 'shaoyou11/codenotch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 调用最新的个人版同步构建流程
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run custom-build.yml --ref custom/compact-draggable

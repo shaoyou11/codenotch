@@ -11,3 +11,6 @@ xcuserdata/
 .forgeguard/
 .playwright-mcp/
 /plans/
+
+# Python automation tests
+__pycache__/

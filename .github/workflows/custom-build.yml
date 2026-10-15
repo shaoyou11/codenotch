@@ -1,7 +1,5 @@
 name: CodenotchT 自动同步与发布
 on:
-  schedule:
-    - cron: '23 1 * * *'
   workflow_dispatch:
   push:
     branches: [custom/compact-draggable]
@@ -23,7 +21,11 @@ jobs:
         with:
           ref: custom/compact-draggable
           fetch-depth: 0
-      - name: 合并上游（冲突时停止）
+      - name: 配置个人版结构化合并并验证自动化规则
+        run: |
+          python3 Scripts/custom-merge.py configure
+          python3 -m unittest discover -s Scripts/custom_tests -v
+      - name: 合并上游（真实代码冲突时停止）
         if: github.event_name != 'push'
         shell: bash
         run: |
@@ -32,7 +34,8 @@ jobs:
           git config user.email shaoyou11@users.noreply.github.com
           git remote add upstream https://github.com/vinzdg/codenotch.git
           git fetch upstream main
-          git merge --no-edit -m '同步：合并上游 main，保留 CodenotchT 定制' upstream/main
+          git -c merge.renormalize=true merge --no-edit -m '同步：合并上游 main，保留 CodenotchT 定制' upstream/main
+          python3 -m unittest discover -s Scripts/custom_tests -v
       - name: 检查是否需要发布
         id: version
         shell: bash
@@ -47,9 +50,10 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
-          if [ "$exists" -gt 0 ]; then
+          app_changed=$(python3 Scripts/custom-release-needed.py "$RUNNER_TEMP/releases.json")
+          if [ "$exists" -gt 0 ] || [ "$app_changed" = false ]; then
             echo 'needed=false' >> "$GITHUB_OUTPUT"
-            echo '没有新的代码需要发布。' >> "$GITHUB_STEP_SUMMARY"
+            echo '没有应用代码变化，跳过 Xcode 测试和编译。' >> "$GITHUB_STEP_SUMMARY"
           else
             python3 - <<'PYBUILD'
           import json, os, re
@@ -112,7 +116,6 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: 保存验证通过的同步结果
-        if: steps.version.outputs.needed == 'true'
         shell: bash
         run: |
           set -euo pipefail

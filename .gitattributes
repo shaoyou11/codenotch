@@ -1,0 +1,3 @@
+# Structural merging only; Swift conflicts must never silently pick a side.
+Sources/Localizable.xcstrings merge=codenotcht-catalog
+project.yml merge=codenotcht-project
