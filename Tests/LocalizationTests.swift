@@ -14,6 +14,7 @@ final class LocalizationTests: XCTestCase {
     private let ukrainian = Locale(identifier: "uk")
     private let uzbek = Locale(identifier: "uz")
     private let turkish = Locale(identifier: "tr")
+    private let spanish = Locale(identifier: "es")
     private let brazilianPortuguese = Locale(identifier: "pt-BR")
     private let english = Locale(identifier: "en")
     private let indonesian = Locale(identifier: "id")
@@ -25,6 +26,12 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(L10n.t("Remote Hosts", locale: zhHans), "远程主机")
         XCTAssertEqual(L10n.t("Breathing working indicator", locale: zhHans), "工作状态呼吸指示")
         XCTAssertEqual(L10n.t("Show what is left instead of what is used, a Dock style, oMLX, and Claude and Codex on your own servers.", locale: zhHans), "新增剩余额度显示、Dock 外观、oMLX，以及自有服务器上的 Claude 和 Codex 支持。")
+    }
+
+    func testVersion124MenuAndReleaseTranslations() {
+        XCTAssertEqual(L10n.t("Provider cards in the menu", locale: zhHans), "菜单中的服务卡片")
+        XCTAssertEqual(L10n.t("Order rings by burn deficit", locale: zhHans), "按即将过期的额度排序")
+        XCTAssertEqual(L10n.t("Show menu", locale: zhHans), "显示菜单")
     }
 
     func testCustomStatisticsTranslations() {
@@ -714,6 +721,44 @@ final class LocalizationTests: XCTestCase {
         )
     }
 
+    // MARK: - Spanish
+
+    /// "Se renueva", not "Se reinicia": the quota renews, the app does not
+    /// restart — the reading #295 was turned down for in Portuguese.
+    func testCoreCopyInSpanish() {
+        XCTAssertEqual(
+            ElapsedCopy.text(since: now.addingTimeInterval(-5), now: now, locale: spanish),
+            "ahora mismo"
+        )
+        XCTAssertEqual(
+            ElapsedCopy.text(since: now.addingTimeInterval(-6 * 60), now: now, locale: spanish),
+            "6 min"
+        )
+        XCTAssertEqual(
+            ResetCopy.text(for: resetNow.addingTimeInterval(51 * 60), now: resetNow, locale: spanish),
+            "Se renueva en 51 min"
+        )
+        XCTAssertEqual(
+            percentWindow(0.12).summary(locale: spanish),
+            "12% usado · 88% restante"
+        )
+        XCTAssertEqual(L10n.t("Always show", locale: spanish), "Mostrar siempre")
+        XCTAssertEqual(L10n.t("Settings…", locale: spanish), "Ajustes…")
+        XCTAssertEqual(
+            L10n.t("Sign in to \("Perplexity")", locale: spanish),
+            "Iniciar sesión en Perplexity"
+        )
+    }
+
+    /// The label arrives as lowercased English ("weekly"), so the Spanish
+    /// keeps it in parentheses rather than making it agree with "límite".
+    func testSpanishThresholdAlertKeepsArgumentOrder() {
+        XCTAssertEqual(
+            L10n.t("\(80)% of its \("weekly") limit used.", locale: spanish),
+            "Se usó el 80% de su límite (weekly)."
+        )
+    }
+
     /// Every language the picker offers must resolve to a locale the catalog
     /// is filed under — a region-qualified or unshipped identifier silently
     /// serves another language instead.
@@ -721,7 +766,7 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(
             AppLanguage.allCases.map(\.rawValue),
             ["system", "en", "fr", "de", "id", "ja", "ko", "pt-BR", "ru", "zh-Hans",
-             "zh-Hant", "uk", "uz", "tr"]
+             "zh-Hant", "uk", "uz", "tr", "es"]
         )
         XCTAssertNil(AppLanguage.system.locale)
         for language in AppLanguage.allCases where language != .system {

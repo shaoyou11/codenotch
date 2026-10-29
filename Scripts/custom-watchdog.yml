@@ -1,0 +1,32 @@
+name: CodenotchT 调度健康检查
+on:
+  schedule:
+    - cron: '47 1,7,13,19 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 强制补触发一次，用于验收恢复链路
+        type: boolean
+        default: false
+permissions:
+  actions: write
+  contents: read
+concurrency:
+  group: codenotcht-watchdog
+  cancel-in-progress: false
+jobs:
+  check:
+    if: github.repository == 'shaoyou11/codenotch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: custom/compact-draggable
+          sparse-checkout: Scripts
+      - name: 检查停跑并按需恢复主调度
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          WATCHDOG_FORCE: ${{ inputs.force || false }}
+        run: python3 Scripts/custom-watchdog.py

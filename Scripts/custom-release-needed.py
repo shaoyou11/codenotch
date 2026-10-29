@@ -10,7 +10,8 @@ IGNORED_PREFIXES = ('.github/', 'docs/', 'site/', 'windows/')
 IGNORED_FILES = {'.gitattributes', '.gitignore', 'CUSTOM.md', 'README.md',
                  'CONTRIBUTING.md', 'LICENSE', 'TASKS.md',
                  'Scripts/custom-merge.py', 'Scripts/custom-release-needed.py',
-                 'Scripts/custom-sync.sh', 'Scripts/custom-scheduler.yml'}
+                 'Scripts/custom-sync.sh', 'Scripts/custom-scheduler.yml',
+                 'Scripts/custom-watchdog.py', 'Scripts/custom-watchdog.yml'}
 
 
 def affects_app(path):

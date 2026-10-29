@@ -1,7 +1,7 @@
 name: CodenotchT 自动同步与发布
 on:
   schedule:
-    - cron: '23 */2 * * *'
+    - cron: '17 */2 * * *'
   workflow_dispatch:
 permissions:
   actions: write

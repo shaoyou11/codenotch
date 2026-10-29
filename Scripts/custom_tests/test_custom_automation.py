@@ -1,5 +1,6 @@
 import importlib.util
 import json
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import subprocess
 import tempfile
@@ -18,6 +19,7 @@ def load(name, filename):
 
 merge = load('custom_merge', 'custom-merge.py')
 release = load('custom_release', 'custom-release-needed.py')
+watchdog = load('custom_watchdog', 'custom-watchdog.py')
 
 
 def cat(strings):
@@ -132,6 +134,31 @@ class ReleaseTests(unittest.TestCase):
 
     def test_missing_tag_builds_rather_than_skipping(self):
         self.assertTrue(release.needed([{'tagName': 'codenotcht-missing', 'isDraft': False}]))
+
+
+class WatchdogTests(unittest.TestCase):
+    def setUp(self):
+        self.now = datetime(2026, 10, 29, 8, 0, tzinfo=timezone.utc)
+
+    def run_at(self, hours, status="completed", conclusion="success"):
+        return {'created_at': (self.now - timedelta(hours=hours)).isoformat(),
+                'status': status, 'conclusion': conclusion}
+
+    def test_no_history_recovers(self):
+        self.assertTrue(watchdog.is_stale([], self.now))
+
+    def test_four_hour_gap_recovers(self):
+        self.assertTrue(watchdog.is_stale([self.run_at(5)], self.now))
+
+    def test_recent_success_or_queued_build_is_not_duplicated(self):
+        for status in ['queued', 'in_progress', 'completed']:
+            self.assertFalse(watchdog.is_stale([self.run_at(1, status)], self.now))
+
+    def test_real_failure_is_not_retried_repeatedly(self):
+        self.assertFalse(watchdog.is_stale([self.run_at(1, conclusion="failure")], self.now))
+
+    def test_newest_time_wins_independent_of_api_order(self):
+        self.assertFalse(watchdog.is_stale([self.run_at(8), self.run_at(1)], self.now))
 
 
 if __name__ == '__main__':
