@@ -157,6 +157,8 @@ final class PeekTests: XCTestCase {
     /// machine running this, which is not something a test may assume.
     func testAPeekOutlastsTheHoverFold() {
         let controller = NotchWindowController()
+        // Exercise peek timing independently of real full-screen windows.
+        controller.fullscreenCheck = { _ in false }
         controller.show()
         defer { controller.stop() }
 
@@ -170,6 +172,8 @@ final class PeekTests: XCTestCase {
     /// Hidden is a standing choice. Something finishing does not overrule it.
     func testAPeekDoesNotOverrideHidden() {
         let controller = NotchWindowController()
+        // Exercise peek timing independently of real full-screen windows.
+        controller.fullscreenCheck = { _ in false }
         controller.show()
         defer { controller.stop() }
 

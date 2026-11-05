@@ -288,4 +288,72 @@ final class FullScreenAutoFoldTests: XCTestCase {
         XCTAssertTrue(controller.model.isPinned)
     }
 
+    func testOverlapFoldsAndRestoresWhileCompleteFullscreenHideIsEnabled() throws {
+        let controller = NotchWindowController()
+        controller.fullscreenCheck = { _ in false }
+        controller.isFullScreenActive = { false }
+        controller.show()
+        defer { controller.stop() }
+        try skipIfPointerOnNotch(controller)
+        controller.model.isAlwaysOn = true
+        controller.model.isExpanded = true
+        controller.isWindowOverlapActive = { true }
+
+        controller.apply(autoHideMode: .onOverlap)
+        XCTAssertFalse(controller.fullscreenSuppressedForTesting)
+        XCTAssertFalse(controller.model.isExpanded)
+
+        controller.isWindowOverlapActive = { false }
+        controller.handleActiveSpaceOrAppChange()
+        XCTAssertTrue(controller.model.isExpanded)
+    }
+
+    func testCompleteFullscreenHideOverridesOverlapModeAndPin() throws {
+        guard !NSScreen.screens.isEmpty else { throw XCTSkip("No display") }
+        let controller = NotchWindowController()
+        controller.fullscreenCheck = { _ in false }
+        controller.show()
+        defer { controller.stop() }
+        controller.model.isPinned = true
+        controller.model.isExpanded = true
+        controller.isWindowOverlapActive = { true }
+        controller.fullscreenCheck = { _ in true }
+
+        controller.apply(autoHideMode: .onOverlap)
+        XCTAssertTrue(controller.fullscreenSuppressedForTesting)
+        XCTAssertFalse(controller.panelVisibleForTesting)
+        XCTAssertTrue(controller.model.isPinned)
+        XCTAssertTrue(controller.model.isExpanded)
+
+        controller.fullscreenCheck = { _ in false }
+        controller.handleActiveSpaceOrAppChange()
+        XCTAssertFalse(controller.fullscreenSuppressedForTesting)
+        XCTAssertTrue(controller.model.isPinned)
+        XCTAssertTrue(controller.model.isExpanded)
+    }
+
+    func testOverlapHoverFoldRetainsSurfaceTrackingAndHonorsNever() throws {
+        let controller = NotchWindowController()
+        controller.fullscreenCheck = { _ in false }
+        controller.isFullScreenActive = { false }
+        controller.show()
+        defer { controller.stop() }
+        try skipIfPointerOnNotch(controller)
+        controller.model.isAlwaysOn = true
+        controller.model.isExpanded = true
+        controller.model.isPointerOverSurface = true
+        controller.autoHideMode = .onOverlap
+        controller.isWindowOverlapActive = { true }
+
+        controller.cursorMoved()
+        XCTAssertFalse(controller.model.isPointerOverSurface)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertFalse(controller.model.isExpanded)
+
+        controller.apply(autoHideMode: .never)
+        controller.cursorMoved()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertTrue(controller.model.isExpanded)
+    }
+
 }
