@@ -1,6 +1,12 @@
 name: CodenotchT 自动同步与发布
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: 云端执行器（默认原生 Apple 芯片，Intel 仅作备用）
+        type: choice
+        default: macos-26
+        options: [macos-26, macos-26-intel]
   push:
     branches: [custom/compact-draggable]
 permissions:
@@ -11,9 +17,8 @@ concurrency:
 jobs:
   release:
     if: github.repository == 'shaoyou11/codenotch'
-    # Keep the same SDK; cross-compile the personal Release for arm64.
-    runs-on: macos-26-intel
-    timeout-minutes: 40
+    runs-on: ${{ inputs.runner || 'macos-26' }}
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}

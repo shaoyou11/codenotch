@@ -438,7 +438,7 @@ final class CodexProfileTests: XCTestCase {
     }
 
     @MainActor
-    func testCodexAuthActivityMonitorIgnoresInactiveAccount() throws {
+    func testCodexAuthActivityMonitorIgnoresInactiveAccount() async throws {
         let root = try home([".codex": []])
         let registryURL = root.appendingPathComponent(".codex/registry.json")
         let json = """
@@ -469,8 +469,19 @@ final class CodexProfileTests: XCTestCase {
         let workMonitor = CodexActivityMonitor(profile: work)
         let personalMonitor = CodexActivityMonitor(profile: personal)
 
+        let loaded = expectation(description: "active account background scan published")
+        let mirrored = expectation(description: "inactive account must not mirror sessions")
+        mirrored.isInverted = true
+        let activeSubscription = workMonitor.$sessions.dropFirst().prefix(1).sink { _ in loaded.fulfill() }
+        let inactiveSubscription = personalMonitor.$sessions.dropFirst().sink { sessions in
+            if !sessions.isEmpty { mirrored.fulfill() }
+        }
         workMonitor.start(); personalMonitor.start()
-        defer { workMonitor.stop(); personalMonitor.stop() }
+        defer {
+            activeSubscription.cancel(); inactiveSubscription.cancel()
+            workMonitor.stop(); personalMonitor.stop()
+        }
+        await fulfillment(of: [loaded, mirrored], timeout: 3)
 
         // Active account sees the sessions
         XCTAssertEqual(workMonitor.sessions.map(\.name), ["Active work conversation"])
