@@ -11,7 +11,8 @@ concurrency:
 jobs:
   release:
     if: github.repository == 'shaoyou11/codenotch'
-    runs-on: macos-26
+    # Keep the same SDK; cross-compile the personal Release for arm64.
+    runs-on: macos-26-intel
     timeout-minutes: 40
     env:
       GH_TOKEN: ${{ github.token }}
